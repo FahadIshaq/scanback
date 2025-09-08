@@ -54,15 +54,11 @@ export default function HomePage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : (
-              <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-navy-900">
-                <Link href="/auth/login">Login</Link>
-              </Button>
+                    null
                   )}
                   
                   {!isAuthenticated && (
-                    <Button size="sm" asChild className="bg-navy-900 hover:bg-navy-800 text-white rounded-xl shadow-lg">
-                <Link href="/auth/register">Sign Up</Link>
-              </Button>
+                    null
                   )}
                 </>
               )}

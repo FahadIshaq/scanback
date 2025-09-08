@@ -114,7 +114,7 @@ export function Footer() {
               <Link href="/terms" className="block hover:text-white transition-colors">Terms of Service</Link>
               <Link href="/privacy" className="block hover:text-white transition-colors">Privacy</Link>
               <a href="#" className="block hover:text-white transition-colors">Legal Notice</a>
-              <a href="#" className="block hover:text-white transition-colors">Cookie Policy</a>
+                <Link href="/cookies" className="block hover:text-white transition-colors">Cookie Policy</Link>
             </div>
             
             {/* Disclaimer */}
@@ -161,9 +161,9 @@ export function Footer() {
               "QR Code" is a registered trademark of Denso Wave Incorporated.
             </div>
             <div className="flex items-center space-x-6">
-              <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <Link href="/cookies" className="text-sm text-gray-400 hover:text-white transition-colors">
                 Cookie Preferences
-              </a>
+              </Link>
               {isAuthenticated && (
                 <Link href="/dashboard" className="text-sm text-gray-400 hover:text-white transition-colors">
                   Manage My Tag

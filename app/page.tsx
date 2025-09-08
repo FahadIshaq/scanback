@@ -599,8 +599,8 @@ export default function HomePage() {
               <h3 className="font-semibold text-lg">Legal Stuff</h3>
               <div className="space-y-2 text-gray-300">
                 <a href="#" className="block hover:text-white transition-colors">Terms of Sale</a>
-                <a href="#" className="block hover:text-white transition-colors">Terms of Service</a>
-                <a href="#" className="block hover:text-white transition-colors">Privacy</a>
+                <Link href="/terms" className="block hover:text-white transition-colors">Terms of Service</Link>
+                <Link href="/privacy" className="block hover:text-white transition-colors">Privacy</Link>
                 <a href="#" className="block hover:text-white transition-colors">Legal Notice</a>
                 <a href="#" className="block hover:text-white transition-colors">Cookie Policy</a>
               </div>

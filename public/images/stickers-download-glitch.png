@@ -1,0 +1,258 @@
+```typescriptreact file="app/dashboard/stickers/page.tsx"
+[v0-no-op-code-block-prefix]"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { ArrowLeft, Download, QrCode, Heart, Package, FileText, ArrowRight } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+
+export default function StickersPage() {
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedTemplate, setSelectedTemplate] = useState("classic")
+  const [selectedSize, setSelectedSize] = useState("standard")
+
+  // Mock data
+  const tags = [
+    { id: "1", code: "SB-ABC123", name: "Luna", type: "pet", status: "active" },
+    { id: "2", code: "SB-DEF456", name: "House Keys", type: "general", status: "active" },
+    { id: "3", code: "SB-GHI789", name: "iPhone 15", type: "general", status: "active" },
+  ]
+
+  const templates = [
+    { id: "classic", name: "Classic", description: "Simple black circular design", preview: "/placeholder.svg?height=100&width=100" },
+    { id: "gold", name: "Premium Gold", description: "Elegant gold square design", preview: "/placeholder.svg?height=100&width=100" },
+    { id: "silver", name: "Brushed Silver", description: "Rounded silver rectangle", preview: "/placeholder.svg?height=100&width=100" },
+  ]
+
+  const sizes = [
+    { id: "small", name: "Small (2cm)" },
+    { id: "standard", name: "Standard (4cm)" },
+    { id: "large", name: "Large (6cm)" },
+  ]
+
+  const handleTagSelection = (tagId: string, checked: boolean) => {
+    setSelectedTags((prev) => (checked ? [...prev, tagId] : prev.filter((id) => id !== tagId)))
+  }
+
+  const handleSelectAll = () => {
+    if (selectedTags.length === tags.length) setSelectedTags([])
+    else setSelectedTags(tags.map((t) => t.id))
+  }
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "pet":
+        return <Heart className="h-4 w-4 text-red-500" />
+      case "general":
+        return <Package className="h-4 w-4 text-blue-500" />
+      default:
+        return <QrCode className="h-4 w-4 text-gray-500" />
+    }
+  }
+
+  const handleDownload = () => {
+    const selectedNames = tags.filter((t) => selectedTags.includes(t.id)).map((t) => t.name).join(", ")
+    alert(`Downloading print-ready PDF for ${selectedNames} (${selectedSize}, ${selectedTemplate})`)
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-navy-900">
+              <Link href="/dashboard">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-navy-900 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm font-bold">S</span>
+              </div>
+              <span className="font-semibold text-navy-900">ScanBack™</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-6 max-w-4xl">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-navy-900">Download Stickers</h1>
+          <p className="text-sm text-gray-600">Quick, print-ready stickers for your tags.</p>
+
+          <div className="mt-3 p-3 rounded-xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <span className="text-sm text-gray-700">
+              Need bulk exports, batching (100, 200, custom), and multi-format ZIPs?
+            </span>
+            <Button asChild variant="outline" className="rounded-xl border-gray-200 text-gray-800 hover:bg-gray-50 bg-transparent">
+              <Link href="/admin/generator">
+                Open Admin Generator
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Tag Selection */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="border-0 shadow-lg rounded-2xl">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-navy-900">Select Tags</CardTitle>
+                  <Button variant="outline" size="sm" onClick={handleSelectAll} className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl">
+                    {selectedTags.length === tags.length ? "Deselect All" : "Select All"}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {tags.map((tag) => (
+                  <div key={tag.id} className="flex items-center space-x-3 p-3 border rounded-xl hover:bg-gray-50">
+                    <Checkbox
+                      checked={selectedTags.includes(tag.id)}
+                      onCheckedChange={(checked) => handleTagSelection(tag.id, checked as boolean)}
+                    />
+                    <div className="flex items-center space-x-2">{getTypeIcon(tag.type)}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium">{tag.name}</span>
+                        <Badge variant="outline" className="capitalize">
+                          {tag.type}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 font-mono">{tag.code}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Template Selection */}
+            <Card className="border-0 shadow-lg rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-navy-900">Choose Design</CardTitle>
+                <p className="text-sm text-gray-600">Professional designs, print-ready</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4">
+                  {templates.map((template) => (
+                    <div
+                      key={template.id}
+                      className={`border-2 rounded-2xl p-4 cursor-pointer transition-colors text-center ${
+                        selectedTemplate === template.id
+                          ? "border-navy-900 bg-navy-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setSelectedTemplate(template.id)}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={template.preview || "/placeholder.svg"}
+                        alt={template.name}
+                        className="w-16 h-16 object-contain mx-auto mb-2"
+                      />
+                      <h4 className="font-medium text-navy-900 text-sm">{template.name}</h4>
+                      <p className="text-xs text-gray-600">{template.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Download Options */}
+          <div className="space-y-6">
+            <Card className="border-0 shadow-lg rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-navy-900">Options & Download</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Size</p>
+                  <div
+                    role="tablist"
+                    aria-label="Sticker size"
+                    className="w-full inline-flex items-center gap-1 rounded-full bg-gray-100 p-1"
+                  >
+                    {[
+                      { id: "small", label: "Small (2cm)" },
+                      { id: "standard", label: "Standard (4cm)" },
+                      { id: "large", label: "Large (6cm)" },
+                    ].map((opt) => {
+                      const active = selectedSize === opt.id
+                      return (
+                        <button
+                          key={opt.id}
+                          role="tab"
+                          aria-selected={active}
+                          onClick={() => setSelectedSize(opt.id)}
+                          className={[
+                            "flex-1 min-w-0 px-3 py-2 rounded-full text-xs sm:text-sm transition-colors",
+                            "whitespace-nowrap overflow-hidden text-ellipsis",
+                            active
+                              ? "bg-white text-navy-900 shadow"
+                              : "text-gray-700 hover:text-gray-900"
+                          ].join(" ")}
+                        >
+                          {opt.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleDownload}
+                  disabled={selectedTags.length === 0}
+                  className="mt-2 w-full bg-navy-900 hover:bg-navy-800 text-white rounded-xl"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+
+                <div className="text-xs text-gray-500 space-y-1 pt-2">
+                  <p>• PDF format optimized for printing</p>
+                  <p>• High resolution (300 DPI), cut lines included</p>
+                </div>
+
+                <div className="mt-4 p-3 rounded-xl bg-gray-50 border border-gray-200">
+                  <p className="text-xs text-gray-600">
+                    Admins can generate advanced batches, multi-format exports, and layouts in the{" "}
+                    <Link href="/admin/generator" className="text-navy-900 underline">
+                      Admin Generator
+                    </Link>
+                    .
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-navy-900">Customize Your Scan Page</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-600">
+                Update finder-facing message and contact visibility per tag.
+                <div className="mt-3">
+                  <Button asChild variant="outline" className="rounded-xl border-gray-200 text-gray-800 hover:bg-gray-50 bg-transparent">
+                    <Link href="/dashboard/customize">Open customizer</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        <div className="hidden">
+          {/* Developer reference: original report of size selector glitch */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/stickers-download-glitch.png" alt="Download page glitch reference" />
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -236,7 +236,9 @@ export default function HomePage() {
             {/* Keys */}
             <div className="text-center group">
               <div className="w-64 h-64 mx-auto mb-6 bg-gray-200 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                <div className="text-gray-500 text-lg">Add your keys image here</div>
+                <div className="text-gray-500 text-lg">
+                  <Image src="/images/keys.png" alt="Keys" width={200} height={200} />
+                </div>
               </div>
               <h3 className="text-xl font-semibold text-navy-900 mb-3">Keys</h3>
               <p className="text-gray-600">From lost to found, get your keys back to your pocket in minutes.</p>
@@ -245,7 +247,9 @@ export default function HomePage() {
             {/* Passports */}
             <div className="text-center group">
               <div className="w-64 h-64 mx-auto mb-6 bg-gray-200 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                <div className="text-gray-500 text-lg">Add your passport image here</div>
+                <div className="text-gray-500 text-lg">
+                  <Image src="/images/passport.png" alt="Passport" width={200} height={200} />
+                </div>
               </div>
               <h3 className="text-xl font-semibold text-navy-900 mb-3">Passports</h3>
               <p className="text-gray-600">Your passport is your freedom. Tag it before you travel and get back if lost.</p>
@@ -254,7 +258,9 @@ export default function HomePage() {
             {/* Suitcases */}
             <div className="text-center group">
               <div className="w-64 h-64 mx-auto mb-6 bg-gray-200 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                <div className="text-gray-500 text-lg">Add your suitcase image here</div>
+                <div className="text-gray-500 text-lg">
+                  <Image src="/images/suitcase.png" alt="Suitcase" width={200} height={200} />
+                </div>
               </div>
               <h3 className="text-xl font-semibold text-navy-900 mb-3">Suitcases</h3>
               <p className="text-gray-600">Label your bags and suitcases in case of travel mishaps.</p>
@@ -283,8 +289,14 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left side - Image placeholder */}
             <div className="order-2 lg:order-1">
-              <div className="w-full h-96 bg-gray-200 rounded-2xl flex items-center justify-center">
-                <div className="text-gray-500 text-lg">Add your secure section image here</div>
+              <div className="w-full aspect-[4/3] bg-gray-200 rounded-2xl overflow-hidden">
+                <Image 
+                  src="/images/main.jpeg" 
+                  alt="Secure" 
+                  width={600} 
+                  height={450} 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
 
@@ -372,140 +384,48 @@ export default function HomePage() {
       </section>
 
       {/* Image Gallery Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white overflow-hidden">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-navy-900 mb-6">Product Gallery</h2>
           <p className="text-xl text-gray-600 mb-12">See our QR code stickers in action</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-            {/* Image 1 */}
-            <div className="group">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Image
-                  src="/images/image1.jpeg"
-                  alt="ScanBack QR Code Sticker"
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
+          {/* First Row - Left to Right Scrolling */}
+          <div className="mb-8">
+            <div className="flex animate-scroll-left">
+              {/* Duplicate images for seamless loop */}
+              {[1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6].map((num, index) => (
+                <div key={`row1-${index}`} className="group flex-shrink-0 mx-3">
+                  <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow w-64 h-64">
+                    <Image
+                      src={`/images/image${num}.jpeg`}
+                      alt="ScanBack QR Code Sticker"
+                      width={300}
+                      height={300}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
+          </div>
 
-            {/* Image 2 */}
-            <div className="group">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Image
-                  src="/images/image2.jpeg"
-                  alt="ScanBack QR Code Sticker"
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            </div>
-
-            {/* Image 3 */}
-            <div className="group">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Image
-                  src="/images/image3.jpeg"
-                  alt="ScanBack QR Code Sticker"
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            </div>
-
-            {/* Image 4 */}
-            <div className="group">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Image
-                  src="/images/image4.jpeg"
-                  alt="ScanBack QR Code Sticker"
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            </div>
-
-            {/* Image 5 */}
-            <div className="group">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Image
-                  src="/images/image5.jpeg"
-                  alt="ScanBack QR Code Sticker"
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            </div>
-
-            {/* Image 6 */}
-            <div className="group">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Image
-                  src="/images/image6.jpeg"
-                  alt="ScanBack QR Code Sticker"
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            </div>
-
-            {/* Image 7 */}
-            <div className="group">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Image
-                  src="/images/image7.jpeg"
-                  alt="ScanBack QR Code Sticker"
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            </div>
-
-            {/* Image 8 */}
-            <div className="group">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Image
-                  src="/images/image8.jpeg"
-                  alt="ScanBack QR Code Sticker"
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            </div>
-
-            {/* Image 9 */}
-            <div className="group">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Image
-                  src="/images/image9.jpeg"
-                  alt="ScanBack QR Code Sticker"
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            </div>
-
-            {/* Image 10 */}
-            <div className="group">
-              <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Image
-                  src="/images/image10.jpeg"
-                  alt="ScanBack QR Code Sticker"
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
+          {/* Second Row - Right to Left Scrolling */}
+          <div>
+            <div className="flex animate-scroll-right">
+              {/* Duplicate images for seamless loop */}
+              {[7, 8, 9, 10, 11, 12, 7, 8, 9, 10, 11, 12].map((num, index) => (
+                <div key={`row2-${index}`} className="group flex-shrink-0 mx-3">
+                  <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow w-64 h-64">
+                    <Image
+                      src={`/images/image${num}.jpeg`}
+                      alt="ScanBack QR Code Sticker"
+                      width={300}
+                      height={300}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

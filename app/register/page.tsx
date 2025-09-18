@@ -64,7 +64,7 @@ export default function RegisterPage() {
 
     try {
       // First, generate a QR code
-      const qrResponse = await fetch('http://192.168.0.104:5001/api/admin/generate-qr', {
+      const qrResponse = await fetch('https://scanback-backend.onrender.com/api/admin/generate-qr', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

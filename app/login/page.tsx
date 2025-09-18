@@ -57,7 +57,7 @@ export default function LoginPage() {
     setForgotPasswordMessage("")
 
     try {
-      const response = await fetch('http://192.168.0.104:5001/api/auth/forgot-password', {
+      const response = await fetch('https://scanback-backend.onrender.com/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

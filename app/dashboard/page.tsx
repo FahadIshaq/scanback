@@ -324,7 +324,7 @@ export default function DashboardPage() {
                   <Button
                     size="sm"
                           variant="outline"
-                          onClick={() => window.open(`http://192.168.0.104:3001/scan/${qr.code}`, '_blank')}
+                          onClick={() => window.open(`https://scanback.vercel.app/scan/${qr.code}`, '_blank')}
                   >
                           <Eye className="h-4 w-4 mr-1" />
                           View

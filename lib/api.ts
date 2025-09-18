@@ -62,48 +62,48 @@ class ApiClient {
 
   // Auth endpoints
   async login(email: string, password: string) {
-    return this.request('/auth/login', {
+    return this.request('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     })
   }
 
   async forgotPassword(email: string) {
-    return this.request('/auth/forgot-password', {
+    return this.request('/api/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
     })
   }
 
   async getCurrentUser() {
-    return this.request('/auth/me')
+    return this.request('/api/auth/me')
   }
 
   // QR Code endpoints
   async getQRCode(code: string) {
-    return this.request(`/qr/${code}`)
+    return this.request(`/api/qr/${code}`)
   }
 
   async activateQRCode(code: string, data: any) {
-    return this.request(`/qr/${code}/activate`, {
+    return this.request(`/api/qr/${code}/activate`, {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
   async getUserQRCodes() {
-    return this.request('/qr/user')
+    return this.request('/api/qr/user')
   }
 
   async updateQRCode(code: string, data: any) {
-    return this.request(`/qr/${code}`, {
+    return this.request(`/api/qr/${code}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
   }
 
   async deleteQRCode(code: string) {
-    return this.request(`/qr/${code}`, {
+    return this.request(`/api/qr/${code}`, {
       method: 'DELETE',
     })
   }

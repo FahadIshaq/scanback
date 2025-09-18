@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://scanback-backend.onrender.com/api'
+const API_BASE_URL = 'https://scanback-backend.onrender.com'
 
 class ApiClient {
   private baseURL: string

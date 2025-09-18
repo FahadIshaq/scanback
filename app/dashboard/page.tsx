@@ -1,627 +1,482 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, QrCode, Eye, Edit, Power, MoreHorizontal, Search, Download, Heart, Package, Bell, BellOff, Trash2, MessageCircle, Filter, SortAsc, Settings, User } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Checkbox } from "@/components/ui/checkbox"
-import { QRLogo } from "@/components/qr-logo"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { 
+  LogOut, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  Heart, 
+  Package,
+  QrCode,
+  User,
+  Scan
+} from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
+import { apiClient } from "@/lib/api"
 
-export default function Dashboard() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [sortBy, setSortBy] = useState("newest")
-  const [filterStatus, setFilterStatus] = useState("all")
+interface QRCode {
+  _id: string
+  code: string
+  type: 'item' | 'pet'
+  details: {
+    name: string
+    description?: string
+    category?: string
+    color?: string
+    brand?: string
+    model?: string
+    species?: string
+    breed?: string
+    age?: number
+  }
+  status: string
+  isActivated: boolean
+  createdAt: string
+  scanCount: number
+}
+
+export default function DashboardPage() {
+  const { user, loading: authLoading, logout } = useAuth()
+  const [qrCodes, setQrCodes] = useState<QRCode[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [editingQR, setEditingQR] = useState<QRCode | null>(null)
+  const [editForm, setEditForm] = useState({
+    name: "",
+    description: "",
+    category: "",
+    color: "",
+    brand: "",
+    model: "",
+    species: "",
+    breed: "",
+    age: ""
+  })
   const router = useRouter()
 
-  // Mock data - in real app, this would be fetched from API
-  const tags = [
-    {
-      id: "1",
-      code: "SB-ABC123",
-      name: "Luna",
-      type: "pet",
-      status: "active",
-      scans: 3,
-      lastScan: "2024-01-20T10:30:00Z",
-      createdAt: "2024-01-15",
-      breed: "Golden Retriever",
-      hasImage: true,
-      scanAlerts: true,
-      showPhone: true,
-      showEmail: true,
-    },
-    {
-      id: "2",
-      code: "SB-DEF456",
-      name: "House Keys",
-      type: "general",
-      status: "active",
-      scans: 1,
-      lastScan: "2024-01-18T14:15:00Z",
-      createdAt: "2024-01-10",
-      hasImage: false,
-      scanAlerts: true,
-      showPhone: true,
-      showEmail: false,
-    },
-    {
-      id: "3",
-      code: "SB-GHI789",
-      name: "iPhone 15",
-      type: "general",
-      status: "active",
-      scans: 0,
-      lastScan: null,
-      createdAt: "2024-01-22",
-      hasImage: true,
-      scanAlerts: false,
-      showPhone: false,
-      showEmail: true,
-    },
-    {
-      id: "4",
-      code: "SB-JKL012",
-      name: "Max",
-      type: "pet",
-      status: "inactive",
-      scans: 5,
-      lastScan: "2024-01-19T09:45:00Z",
-      createdAt: "2024-01-05",
-      breed: "Labrador Mix",
-      hasImage: true,
-      scanAlerts: true,
-      showPhone: true,
-      showEmail: true,
-    },
-  ]
-
-  const filteredTags = tags.filter((tag) => {
-    const matchesSearch = 
-      tag.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tag.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tag.type.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesFilter = filterStatus === "all" || tag.status === filterStatus
-    
-    return matchesSearch && matchesFilter
-  })
-
-  const sortedTags = [...filteredTags].sort((a, b) => {
-    switch (sortBy) {
-      case "newest":
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      case "oldest":
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      case "name":
-        return a.name.localeCompare(b.name)
-      case "scans":
-        return b.scans - a.scans
-      default:
-        return 0
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login')
+    } else if (user) {
+      loadUserQRCodes()
     }
-  })
+  }, [user, authLoading, router])
 
-  const activeTags = sortedTags.filter((tag) => tag.status === "active")
-  const petTags = sortedTags.filter((tag) => tag.type === "pet")
-  const generalTags = sortedTags.filter((tag) => tag.type === "general")
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800"
-      case "inactive":
-        return "bg-gray-100 text-gray-800"
-      default:
-        return "bg-gray-100 text-gray-800"
+  const loadUserQRCodes = async () => {
+    try {
+      const response = await apiClient.getUserQRCodes()
+      if (response.success) {
+        setQrCodes(response.data)
+      } else {
+        setError(response.message || "Failed to load QR codes")
+      }
+    } catch (error: any) {
+      setError(error.message || "Failed to load QR codes")
+    } finally {
+      setLoading(false)
     }
   }
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "pet":
-        return <Heart className="h-4 w-4 text-red-500" />
-      case "general":
-        return <Package className="h-4 w-4 text-gray-600" />
-      default:
-        return <QrCode className="h-4 w-4 text-gray-500" />
-    }
+  const startEdit = (qr: QRCode) => {
+    setEditingQR(qr)
+    setEditForm({
+      name: qr.details.name || "",
+      description: qr.details.description || "",
+      category: qr.details.category || "",
+      color: qr.details.color || "",
+      brand: qr.details.brand || "",
+      model: qr.details.model || "",
+      species: qr.details.species || "",
+      breed: qr.details.breed || "",
+      age: qr.details.age?.toString() || ""
+    })
   }
 
-  const formatLastScan = (lastScan: string | null) => {
-    if (!lastScan) return "Never"
-    const date = new Date(lastScan)
-    const now = new Date()
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
-    
-    if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`
-    } else {
-      // Use consistent date formatting to avoid hydration mismatch
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      return `${day}/${month}/${year}`
-    }
+  const cancelEdit = () => {
+    setEditingQR(null)
+    setEditForm({
+      name: "",
+      description: "",
+      category: "",
+      color: "",
+      brand: "",
+      model: "",
+      species: "",
+      breed: "",
+      age: ""
+    })
   }
 
-  const handleTagSelection = (tagId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedTags((prev) => [...prev, tagId])
-    } else {
-      setSelectedTags((prev) => prev.filter((id) => id !== tagId))
-    }
-  }
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingQR) return
 
-  const handleSelectAll = () => {
-    if (selectedTags.length === sortedTags.length) {
-      setSelectedTags([])
-    } else {
-      setSelectedTags(sortedTags.map((tag) => tag.id))
-    }
-  }
-
-  const handleBulkAction = (action: string) => {
-    switch (action) {
-      case "export":
-        router.push(`/dashboard/stickers?tags=${selectedTags.join(",")}`)
-        break
-      case "activate":
-        alert(`Activating ${selectedTags.length} tags`)
-        setSelectedTags([])
-        break
-      case "deactivate":
-        alert(`Deactivating ${selectedTags.length} tags`)
-        setSelectedTags([])
-        break
-      case "delete":
-        if (confirm(`Delete ${selectedTags.length} tags permanently?`)) {
-          alert(`Deleting ${selectedTags.length} tags`)
-          setSelectedTags([])
+    try {
+      const response = await apiClient.updateQRCode(editingQR.code, {
+        details: {
+          ...editForm,
+          age: editForm.age ? parseInt(editForm.age) : undefined
         }
-        break
+      })
+      
+      if (response.success) {
+        setQrCodes(prev => prev.map(qr => 
+          qr._id === editingQR._id 
+            ? { ...qr, details: { ...qr.details, ...editForm, age: editForm.age ? parseInt(editForm.age) : undefined } }
+            : qr
+        ))
+        setEditingQR(null)
+        setEditForm({
+          name: "",
+          description: "",
+          category: "",
+          color: "",
+          brand: "",
+          model: "",
+          species: "",
+          breed: "",
+          age: ""
+        })
+    } else {
+        setError(response.message || "Failed to update QR code")
+      }
+    } catch (error: any) {
+      setError(error.message || "Failed to update QR code")
     }
   }
 
-  const TagCard = ({ tag }: { tag: any }) => (
-    <Card className="hover:shadow-lg transition-all duration-200 border-0 shadow-md rounded-xl">
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-start space-x-3 sm:space-x-4">
-            <Checkbox
-              checked={selectedTags.includes(tag.id)}
-              onCheckedChange={(checked) => handleTagSelection(tag.id, checked as boolean)}
-              className="mt-1"
-            />
-            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-xl">
-              {getTypeIcon(tag.type)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                <h3 className="font-semibold text-navy-900 text-base sm:text-lg truncate">{tag.name}</h3>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className="capitalize border-gray-200 text-gray-600 text-xs">
-                    {tag.type}
-                  </Badge>
-                  <Badge className={`${getStatusColor(tag.status)} text-xs`}>{tag.status}</Badge>
-                  {tag.scanAlerts ? (
-                    <Bell className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <BellOff className="h-3 w-3 text-gray-400" />
-                  )}
-                </div>
-              </div>
-              <p className="text-xs sm:text-sm text-gray-600 font-mono mb-2 break-all">{tag.code}</p>
-              {tag.type === "pet" && tag.breed && <p className="text-xs text-gray-500 mb-2">{tag.breed}</p>}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
-                <span className="flex items-center space-x-1">
-                  <Eye className="h-3 w-3" />
-                  <span>{tag.scans} scans</span>
-                </span>
-                <span>Last: {formatLastScan(tag.lastScan)}</span>
-              </div>
-              <div className="mt-2 text-xs text-gray-500">
-                <span>
-                  Contact:{" "}
-                  {[tag.showPhone && "Phone", tag.showEmail && "Email"].filter(Boolean).join(", ") ||
-                    "Secure form only"}
-                </span>
-              </div>
-            </div>
-          </div>
+  const deleteQRCode = async (qrId: string, qrCode: string) => {
+    if (!confirm("Are you sure you want to delete this QR code? This action cannot be undone.")) {
+      return
+    }
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl text-xs"
-              asChild
-            >
-              <Link href={`/scan/${tag.code}`}>
-                <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                View
-              </Link>
-            </Button>
+    try {
+      const response = await apiClient.deleteQRCode(qrCode)
+      
+      if (response.success) {
+        setQrCodes(prev => prev.filter(qr => qr._id !== qrId))
+    } else {
+        setError(response.message || "Failed to delete QR code")
+      }
+    } catch (error: any) {
+      setError(error.message || "Failed to delete QR code")
+    }
+  }
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl text-xs"
-                >
-                  <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="rounded-xl">
-                <DropdownMenuItem asChild>
-                  <Link href={`/dashboard/edit/${tag.id}`}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Tag
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={`/dashboard/history/${tag.id}`}>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Scan History
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={`/dashboard/stickers?tag=${tag.id}`}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Sticker
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Power className="h-4 w-4 mr-2" />
-                  {tag.status === "active" ? "Deactivate" : "Activate"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
+
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
   )
+  }
+
+  if (!user) {
+    return null // Will redirect to login
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
-                <QRLogo />
-              </Link>
-              <div className="hidden sm:block">
-                <h1 className="text-lg sm:text-xl font-semibold text-navy-900">My Dashboard</h1>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm font-bold">S</span>
               </div>
+              <span className="font-semibold text-blue-600">ScanBack Dashboard</span>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <Button
-                variant="outline"
-                className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl hidden sm:flex"
-                asChild
-              >
-                <Link href="/dashboard/messages">
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Messages
-                </Link>
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl"
-                  >
-                    <User className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Account</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="rounded-xl">
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings">
-                      <Settings className="h-4 w-4 mr-2" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/auth/login">
-                      Sign Out
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button className="bg-navy-900 hover:bg-navy-800 text-white rounded-xl text-sm sm:text-base" asChild>
-                <Link href="/dashboard/register">
-                  <Plus className="h-4 w-4 mr-1 sm:mr-2" />
-                  {/* <span className="hidden sm:inline">Add New Tag</span> */}
-                  <span className="sm:hidden">Add</span>
-                </Link>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">
+                Welcome, <span className="font-medium">{user.name}</span>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="border-0 shadow-md rounded-xl">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Tags</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-navy-900">{tags.length}</p>
-                </div>
-                <QrCode className="h-6 w-6 sm:h-8 sm:w-8 text-navy-900" />
-              </div>
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-blue-600 mb-2">{qrCodes.length}</div>
+              <div className="text-gray-600">Total QR Codes</div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md rounded-xl">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Active Tags</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-green-600">
-                    {tags.filter((tag) => tag.status === "active").length}
-                  </p>
-                </div>
-                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Power className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
-                </div>
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-green-600 mb-2">
+                {qrCodes.filter(qr => qr.type === 'item').length}
               </div>
+              <div className="text-gray-600">Items</div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md rounded-xl">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pet Tags</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-red-600">{tags.filter((tag) => tag.type === "pet").length}</p>
-                </div>
-                <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-orange-600 mb-2">
+                {qrCodes.filter(qr => qr.type === 'pet').length}
               </div>
+              <div className="text-gray-600">Pets</div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md rounded-xl">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Scans</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-navy-900">{tags.reduce((sum, tag) => sum + tag.scans, 0)}</p>
-                </div>
-                <Eye className="h-6 w-6 sm:h-8 sm:w-8 text-navy-900" />
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-purple-600 mb-2">
+                {qrCodes.reduce((sum, qr) => sum + qr.scanCount, 0)}
               </div>
+              <div className="text-gray-600">Total Scans</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="mb-6 border-0 shadow-md rounded-xl">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex flex-col gap-3 sm:gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search tags by name, code, or type..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-gray-200 focus:border-gray-400 rounded-xl"
-                />
+        {/* QR Codes List */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl">Your QR Codes</CardTitle>
+              <span className="text-gray-500 text-sm">
+                {qrCodes.length} {qrCodes.length === 1 ? 'code' : 'codes'}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {qrCodes.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <QrCode className="h-8 w-8 text-gray-400" />
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl text-sm">
-                      <Filter className="h-4 w-4 mr-2" />
-                      Filter
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No QR Codes Yet</h3>
+                <p className="text-gray-600 mb-4">
+                  Scan a QR code to register your first item or pet.
+                </p>
+                <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <a href="/">Get Started</a>
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-xl">
-                    <DropdownMenuItem onClick={() => setFilterStatus("all")}>All Tags</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterStatus("active")}>Active Only</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterStatus("inactive")}>Inactive Only</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl text-sm">
-                      <SortAsc className="h-4 w-4 mr-2" />
-                      Sort
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="rounded-xl">
-                    <DropdownMenuItem onClick={() => setSortBy("newest")}>Newest First</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy("oldest")}>Oldest First</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy("name")}>Name A-Z</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy("scans")}>Most Scanned</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {qrCodes.map((qr) => (
+                  <div key={qr._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Badge variant="secondary" className="capitalize">
+                            {qr.type === 'pet' ? (
+                              <>
+                                <Heart className="h-3 w-3 mr-1" />
+                                Pet
+                              </>
+                            ) : (
+                              <>
+                                <Package className="h-3 w-3 mr-1" />
+                                Item
+                              </>
+                            )}
+                          </Badge>
+                          <Badge 
+                            variant={qr.status === 'active' ? 'default' : 'secondary'}
+                            className={qr.status === 'active' ? 'bg-green-100 text-green-800' : ''}
+                          >
+                            {qr.status}
+                          </Badge>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                          {qr.details.name}
+                        </h3>
+                        {qr.details.description && (
+                          <p className="text-gray-600 text-sm mb-2">
+                            {qr.details.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span>Code: {qr.code}</span>
+                          <span>Scans: {qr.scanCount}</span>
+                          <span>Created: {new Date(qr.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Bulk Actions */}
-        {selectedTags.length > 0 && (
-          <Card className="mb-6 bg-blue-50 border-blue-200 rounded-xl">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <span className="text-sm font-medium text-blue-900 text-center sm:text-left">
-                  {selectedTags.length} tag{selectedTags.length > 1 ? "s" : ""} selected
-                </span>
-                <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
+                      <div className="flex items-center gap-2">
                   <Button
                     size="sm"
-                    onClick={() => handleBulkAction("export")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs"
+                          variant="outline"
+                          onClick={() => window.open(`http://192.168.0.104:3001/scan/${qr.code}`, '_blank')}
                   >
-                    <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    <span className="hidden sm:inline">Download Stickers</span>
-                    <span className="sm:hidden">Download</span>
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleBulkAction("activate")}
-                    className="border-blue-300 text-blue-700 rounded-xl text-xs"
+                          onClick={() => startEdit(qr)}
                   >
-                    <Power className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    <span className="hidden sm:inline">Activate</span>
-                    <span className="sm:hidden">Activate</span>
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleBulkAction("deactivate")}
-                    className="border-blue-300 text-blue-700 rounded-xl text-xs"
-                  >
-                    <Power className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    <span className="hidden sm:inline">Deactivate</span>
-                    <span className="sm:hidden">Deactivate</span>
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleBulkAction("delete")} className="rounded-xl text-xs">
-                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    <span className="hidden sm:inline">Delete</span>
-                    <span className="sm:hidden">Delete</span>
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setSelectedTags([])} className="rounded-xl text-xs">
-                    Cancel
+                          onClick={() => deleteQRCode(qr._id, qr.code)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
                   </Button>
                 </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+            )}
             </CardContent>
           </Card>
+
+        {/* Edit Modal */}
+        {editingQR && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <CardHeader>
+                <CardTitle>
+                  Edit {editingQR.type === 'pet' ? 'Pet' : 'Item'} Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleEditSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="editName">Name *</Label>
+                    <Input
+                      id="editName"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="editDescription">Description</Label>
+                    <Textarea
+                      id="editDescription"
+                      value={editForm.description}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                      rows={3}
+                    />
+          </div>
+
+                  {editingQR.type === 'item' ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="editCategory">Category</Label>
+                          <Input
+                            id="editCategory"
+                            value={editForm.category}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="editColor">Color</Label>
+                          <Input
+                            id="editColor"
+                            value={editForm.color}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, color: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="editBrand">Brand</Label>
+                          <Input
+                            id="editBrand"
+                            value={editForm.brand}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, brand: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="editModel">Model</Label>
+                          <Input
+                            id="editModel"
+                            value={editForm.model}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, model: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="editSpecies">Species</Label>
+                          <Input
+                            id="editSpecies"
+                            value={editForm.species}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, species: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="editBreed">Breed</Label>
+                          <Input
+                            id="editBreed"
+                            value={editForm.breed}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, breed: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="editAge">Age (years)</Label>
+                        <Input
+                          id="editAge"
+                          type="number"
+                          value={editForm.age}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, age: e.target.value }))}
+                          min="0"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="flex gap-2 justify-end">
+                    <Button type="button" variant="outline" onClick={cancelEdit}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+                      Save Changes
+                  </Button>
+                  </div>
+                </form>
+                </CardContent>
+              </Card>
+          </div>
         )}
 
-        {/* Tags Tabs */}
-        <Tabs defaultValue="all" className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <TabsList className="grid w-full grid-cols-4 rounded-xl">
-              <TabsTrigger value="all" className="rounded-xl text-xs sm:text-sm">All Tags ({sortedTags.length})</TabsTrigger>
-              <TabsTrigger value="active" className="rounded-xl text-xs sm:text-sm">Active ({activeTags.length})</TabsTrigger>
-              <TabsTrigger value="pets" className="rounded-xl text-xs sm:text-sm">Pets ({petTags.length})</TabsTrigger>
-              <TabsTrigger value="general" className="rounded-xl text-xs sm:text-sm">General ({generalTags.length})</TabsTrigger>
-            </TabsList>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSelectAll}
-              className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl text-xs sm:text-sm"
-            >
-              {selectedTags.length === sortedTags.length ? "Deselect All" : "Select All"}
-            </Button>
+        {error && (
+          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-800">{error}</p>
           </div>
-
-          <TabsContent value="all" className="space-y-4">
-            {sortedTags.length === 0 ? (
-              <Card className="border-0 shadow-md rounded-xl">
-                <CardContent className="p-8 text-center">
-                  <QrCode className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-navy-900 mb-2">
-                    {searchTerm ? "No tags found" : "No tags yet"}
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    {searchTerm ? "Try adjusting your search terms" : "Get started by registering your first QR tag"}
-                  </p>
-                  {!searchTerm && (
-                    <Button className="bg-navy-900 hover:bg-navy-800 text-white rounded-xl" asChild>
-                      <Link href="/dashboard/register">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Register First Tag
-                      </Link>
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              sortedTags.map((tag) => <TagCard key={tag.id} tag={tag} />)
-            )}
-          </TabsContent>
-
-          <TabsContent value="active" className="space-y-4">
-            {activeTags.map((tag) => (
-              <TagCard key={tag.id} tag={tag} />
-            ))}
-          </TabsContent>
-
-          <TabsContent value="pets" className="space-y-4">
-            {petTags.length === 0 ? (
-              <Card className="border-0 shadow-md rounded-xl">
-                <CardContent className="p-8 text-center">
-                  <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-navy-900 mb-2">No pet tags yet</h3>
-                  <p className="text-gray-600 mb-4">Create a special tag for your beloved pet</p>
-                  <Button className="bg-navy-900 hover:bg-navy-800 text-white rounded-xl" asChild>
-                    <Link href="/dashboard/register?type=pet">
-                      <Heart className="h-4 w-4 mr-2" />
-                      Add Pet Tag
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              petTags.map((tag) => <TagCard key={tag.id} tag={tag} />)
-            )}
-          </TabsContent>
-
-          <TabsContent value="general" className="space-y-4">
-            {generalTags.map((tag) => (
-              <TagCard key={tag.id} tag={tag} />
-            ))}
-          </TabsContent>
-        </Tabs>
-
-        {/* Quick Actions */}
-        <div className="mt-12 text-center">
-          <h3 className="font-semibold text-navy-900 mb-4 text-base sm:text-lg">Quick Actions</h3>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              variant="outline"
-              className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl text-sm"
-              asChild
-            >
-              <Link href="/dashboard/stickers">
-                <Download className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Download All Stickers</span>
-                <span className="sm:hidden">Download Stickers</span>
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl text-sm"
-              asChild
-            >
-              <Link href="/dashboard/messages">
-                <MessageCircle className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Message Center</span>
-                <span className="sm:hidden">Messages</span>
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              className="border-gray-200 text-gray-700 hover:bg-gray-50 bg-transparent rounded-xl text-sm"
-              asChild
-            >
-              <Link href="/contact">
-                <span className="hidden sm:inline">Contact Support</span>
-                <span className="sm:hidden">Support</span>
-              </Link>
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

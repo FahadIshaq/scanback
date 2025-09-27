@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { ArrowLeft, Heart, Package, CheckCircle } from "lucide-react"
+import { ArrowLeft, Heart, Package, CheckCircle, QrCode } from "lucide-react"
 import Link from "next/link"
 import { apiClient } from "@/lib/api"
 
@@ -64,7 +64,7 @@ export default function RegisterPage() {
 
     try {
       // First, generate a QR code
-      const qrResponse = await fetch('https://scanback-backend.onrender.com/api/admin/generate-qr', {
+      const qrResponse = await fetch('http://localhost:5001/api/admin/generate-qr', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,17 +102,15 @@ export default function RegisterPage() {
         <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-blue-600">
-                <Link href="/">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Link>
-              </Button>
+             
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">S</span>
+                <div className="p-2 bg-black rounded-lg">
+                  <QrCode className="h-6 w-6 text-white" />
                 </div>
-                <span className="font-semibold text-blue-600">ScanBack</span>
+                <div>
+                  <span className="font-bold text-black">ScanBack</span>
+                  <p className="text-xs text-gray-600">QR Code Service</p>
+                </div>
               </div>
             </div>
           </div>
@@ -154,17 +152,15 @@ export default function RegisterPage() {
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-blue-600">
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Link>
-            </Button>
+           
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white text-sm font-bold">S</span>
+              <div className="p-2 bg-black rounded-lg">
+                <QrCode className="h-6 w-6 text-white" />
               </div>
-              <span className="font-semibold text-blue-600">ScanBack</span>
+              <div>
+                <span className="font-bold text-black">ScanBack</span>
+                <p className="text-xs text-gray-600">QR Code Service</p>
+              </div>
             </div>
           </div>
         </div>

@@ -54,6 +54,12 @@ class ApiClient {
         // Clear invalid token
         this.clearToken()
       }
+      
+      // For 403 status (inactive QR code), return the data instead of throwing
+      if (response.status === 403) {
+        return data
+      }
+      
       throw new Error(data.message || 'API request failed')
     }
 
@@ -72,6 +78,34 @@ class ApiClient {
     return this.request('/api/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
+    })
+  }
+
+  async sendPasswordResetOTP(email: string) {
+    return this.request('/api/auth/send-reset-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    })
+  }
+
+  async verifyPasswordResetOTP(email: string, otp: string) {
+    return this.request('/api/auth/verify-reset-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
+    })
+  }
+
+  async resetPassword(email: string, otp: string, newPassword: string) {
+    return this.request('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp, newPassword }),
+    })
+  }
+
+  async changePassword(data: { currentPassword: string; newPassword: string }) {
+    return this.request('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
     })
   }
 
@@ -105,6 +139,33 @@ class ApiClient {
   async deleteQRCode(code: string) {
     return this.request(`/api/qr/${code}`, {
       method: 'DELETE',
+    })
+  }
+
+  async sendUpdateOTP(code: string, newEmail?: string, newPhone?: string) {
+    return this.request(`/api/qr/${code}/send-update-otp`, {
+      method: 'POST',
+      body: JSON.stringify({ newEmail, newPhone }),
+    })
+  }
+
+  async verifyUpdateOTP(code: string, otp: string, updateData: any) {
+    return this.request(`/api/qr/${code}/verify-update-otp`, {
+      method: 'POST',
+      body: JSON.stringify({ otp, updateData }),
+    })
+  }
+
+  async toggleQRCodeStatus(code: string) {
+    return this.request(`/api/qr/${code}/toggle-status`, {
+      method: 'PATCH',
+    })
+  }
+
+  async trackScan(code: string, location?: string) {
+    return this.request(`/api/qr/${code}/track-scan`, {
+      method: 'POST',
+      body: JSON.stringify({ location }),
     })
   }
 }

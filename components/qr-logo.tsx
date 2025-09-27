@@ -10,63 +10,14 @@ export function QRLogo() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-          {/* QR Code Icon */}
-          <div className="relative w-10 h-10">
-            <svg viewBox="0 0 40 40" className="w-full h-full">
-              {/* Rounded square background */}
-              <rect x="2" y="2" width="36" height="36" rx="4" fill="#14b8a6" stroke="#0f766e" strokeWidth="1"/>
-              
-              {/* Position detection patterns (corners) - white */}
-              <rect x="6" y="6" width="8" height="8" fill="white"/>
-              <rect x="8" y="8" width="4" height="4" fill="#14b8a6"/>
-              
-              <rect x="26" y="6" width="8" height="8" fill="white"/>
-              <rect x="28" y="8" width="4" height="4" fill="#14b8a6"/>
-              
-              <rect x="6" y="26" width="8" height="8" fill="white"/>
-              <rect x="8" y="28" width="4" height="4" fill="#14b8a6"/>
-              
-              {/* Data modules - white squares and dots */}
-              <rect x="16" y="6" width="2" height="2" fill="white"/>
-              <rect x="20" y="6" width="2" height="2" fill="white"/>
-              <rect x="24" y="6" width="2" height="2" fill="white"/>
-              
-              <rect x="16" y="10" width="2" height="2" fill="white"/>
-              <rect x="20" y="10" width="2" height="2" fill="white"/>
-              <rect x="24" y="10" width="2" height="2" fill="white"/>
-              
-              <rect x="16" y="14" width="2" height="2" fill="white"/>
-              <rect x="20" y="14" width="2" height="2" fill="white"/>
-              <rect x="24" y="14" width="2" height="2" fill="white"/>
-              
-              <rect x="16" y="18" width="2" height="2" fill="white"/>
-              <rect x="20" y="18" width="2" height="2" fill="white"/>
-              <rect x="24" y="18" width="2" height="2" fill="white"/>
-              
-              <rect x="16" y="22" width="2" height="2" fill="white"/>
-              <rect x="20" y="22" width="2" height="2" fill="white"/>
-              <rect x="24" y="22" width="2" height="2" fill="white"/>
-              
-              {/* Right side data modules */}
-              <rect x="26" y="16" width="2" height="2" fill="white"/>
-              <rect x="26" y="20" width="2" height="2" fill="white"/>
-              
-              {/* Bottom side data modules */}
-              <rect x="16" y="26" width="2" height="2" fill="white"/>
-              <rect x="20" y="26" width="2" height="2" fill="white"/>
-              <rect x="24" y="26" width="2" height="2" fill="white"/>
-              
-              {/* Additional data dots for realistic look */}
-              <rect x="30" y="16" width="2" height="2" fill="white"/>
-              <rect x="30" y="20" width="2" height="2" fill="white"/>
-              <rect x="30" y="24" width="2" height="2" fill="white"/>
-              <rect x="30" y="28" width="2" height="2" fill="white"/>
-            </svg>
+        <button className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+          <div className="p-2 bg-black rounded-lg">
+            <QrCode className="h-6 w-6 text-white" />
           </div>
-          
-          {/* ScanBack Text with TM */}
-          <span className="text-xl font-bold text-navy-900">ScanBack™</span>
+          <div>
+            <span className="font-bold text-black">ScanBack</span>
+            <p className="text-xs text-gray-600">QR Code Service</p>
+          </div>
         </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Upload, X } from "lucide-react"
+import { ArrowLeft, Upload, X, QrCode } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -102,11 +102,14 @@ export default function RegisterPage({ params }: RegisterPageProps) {
                 Back
               </Link>
             </Button>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">S</span>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-black rounded-lg">
+                <QrCode className="h-6 w-6 text-white" />
               </div>
-              <span className="font-semibold text-gray-900">ScanBack™</span>
+              <div>
+                <span className="font-bold text-black">ScanBack</span>
+                <p className="text-xs text-gray-600">QR Code Service</p>
+              </div>
             </div>
           </div>
         </div>

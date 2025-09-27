@@ -4,13 +4,15 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, QrCode, User, Bell, Shield, Trash2, Save } from "lucide-react"
+import { ArrowLeft, QrCode, User, Bell, Shield, Trash2, Save, Eye, EyeOff, Key } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { apiClient } from "@/lib/api"
+import { Footer } from "@/components/footer"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +44,19 @@ export default function SettingsPage() {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  })
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  })
+  const [passwordError, setPasswordError] = useState("")
+  const [passwordMessage, setPasswordMessage] = useState("")
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,6 +79,75 @@ export default function SettingsPage() {
     alert("Account deletion requested. You will receive a confirmation email.")
   }
 
+  // Password validation function
+  const validatePassword = (password: string) => {
+    const errors = []
+    if (password.length < 8) {
+      errors.push("At least 8 characters")
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("One uppercase letter")
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push("One lowercase letter")
+    }
+    if (!/\d/.test(password)) {
+      errors.push("One number")
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      errors.push("One special character")
+    }
+    return errors
+  }
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordError("")
+    setPasswordMessage("")
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError("New passwords do not match")
+      return
+    }
+
+    const passwordErrors = validatePassword(passwordData.newPassword)
+    if (passwordErrors.length > 0) {
+      setPasswordError(`Password must contain: ${passwordErrors.join(", ")}`)
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await apiClient.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      })
+      
+      if (response.success) {
+        setPasswordMessage("Password changed successfully!")
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: ""
+        })
+        setShowChangePassword(false)
+      } else {
+        setPasswordError(response.message || "Failed to change password")
+      }
+    } catch (error: any) {
+      setPasswordError(error.message || "Failed to change password")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }))
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -76,15 +160,20 @@ export default function SettingsPage() {
                 Back to Dashboard
               </Link>
             </Button>
-            <div className="flex items-center space-x-2">
-              <QrCode className="h-6 w-6 text-blue-600" />
-              <span className="font-semibold text-gray-900">ScanBack™</span>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-black rounded-lg">
+                <QrCode className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <span className="font-bold text-black">ScanBack</span>
+                <p className="text-xs text-gray-600">QR Code Service</p>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <div className="container mx-auto px-4 py-6 max-w-4xl min-h-[calc(100vh-80px)]">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Account Settings</h1>
           <p className="text-gray-600">Manage your profile and preferences</p>
@@ -260,7 +349,12 @@ export default function SettingsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button variant="outline" className="w-full bg-transparent">
+                  <Button 
+                    variant="outline" 
+                    className="w-full bg-transparent"
+                    onClick={() => setShowChangePassword(true)}
+                  >
+                    <Key className="h-4 w-4 mr-2" />
                     Change Password
                   </Button>
                   <Button variant="outline" className="w-full bg-transparent">
@@ -312,7 +406,150 @@ export default function SettingsPage() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Change Password Modal */}
+        {showChangePassword && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Key className="h-5 w-5" />
+                  <span>Change Password</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {passwordError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <p className="text-red-800">{passwordError}</p>
+                  </div>
+                )}
+
+                {passwordMessage && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <p className="text-green-800">{passwordMessage}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handlePasswordChange} className="space-y-4">
+                  <div>
+                    <Label htmlFor="currentPassword">Current Password *</Label>
+                    <div className="relative">
+                      <Input
+                        id="currentPassword"
+                        type={showPasswords.current ? "text" : "password"}
+                        value={passwordData.currentPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                        placeholder="Enter current password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('current')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="newPassword">New Password *</Label>
+                    <div className="relative">
+                      <Input
+                        id="newPassword"
+                        type={showPasswords.new ? "text" : "password"}
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                        placeholder="Enter new password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('new')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="confirmPassword">Confirm New Password *</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showPasswords.confirm ? "text" : "password"}
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        placeholder="Confirm new password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('confirm')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Password Requirements */}
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Password Requirements:</h4>
+                    <ul className="text-xs text-gray-600 space-y-1">
+                      <li className={`flex items-center ${passwordData.newPassword.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
+                        <span className="mr-2">{passwordData.newPassword.length >= 8 ? '✓' : '○'}</span>
+                        At least 8 characters
+                      </li>
+                      <li className={`flex items-center ${/[A-Z]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                        <span className="mr-2">{/[A-Z]/.test(passwordData.newPassword) ? '✓' : '○'}</span>
+                        One uppercase letter
+                      </li>
+                      <li className={`flex items-center ${/[a-z]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                        <span className="mr-2">{/[a-z]/.test(passwordData.newPassword) ? '✓' : '○'}</span>
+                        One lowercase letter
+                      </li>
+                      <li className={`flex items-center ${/\d/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                        <span className="mr-2">{/\d/.test(passwordData.newPassword) ? '✓' : '○'}</span>
+                        One number
+                      </li>
+                      <li className={`flex items-center ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                        <span className="mr-2">{/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordData.newPassword) ? '✓' : '○'}</span>
+                        One special character
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowChangePassword(false)
+                        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
+                        setPasswordError("")
+                        setPasswordMessage("")
+                      }}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={isSubmitting || passwordData.newPassword !== passwordData.confirmPassword || validatePassword(passwordData.newPassword).length > 0}
+                      className="flex-1 bg-black hover:bg-gray-800 text-white"
+                    >
+                      {isSubmitting ? 'Changing...' : 'Change Password'}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
+      <Footer />
     </div>
   )
 }

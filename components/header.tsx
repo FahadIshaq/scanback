@@ -1,10 +1,11 @@
 "use client"
 
-import { User, Settings, LogOut } from "lucide-react"
+import { User, Settings, LogOut, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { QRLogo } from "@/components/qr-logo"
 import { useAuth } from "@/hooks/use-auth"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import Link from "next/link"
 
 export function Header() {
   const { user, isAuthenticated, loading, logout } = useAuth()
@@ -16,7 +17,7 @@ export function Header() {
           <div className="flex items-center space-x-3">
             <QRLogo />
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             {loading ? (
               <div className="w-20 h-8 bg-gray-200 rounded animate-pulse"></div>
             ) : (
@@ -46,11 +47,15 @@ export function Header() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  null
-                )}
-                
-                {!isAuthenticated && (
-                  null
+                  <div className="flex items-center space-x-2">
+                    <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-navy-900">
+                      <Link href="/login">
+                        <LogIn className="h-4 w-4 mr-2" />
+                        Login
+                      </Link>
+                    </Button>
+                  
+                  </div>
                 )}
               </>
             )}

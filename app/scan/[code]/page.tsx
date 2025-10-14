@@ -410,12 +410,14 @@ export default function ScanPage() {
       if (response.success) {
         setQrData(response.data)
         
-        // Track the scan
-        try {
-          await apiClient.trackScan(code)
-        } catch (trackError) {
-          // Don't show error for tracking failures, just log it
-          console.log('Scan tracking failed:', trackError)
+        // Only track the scan if the QR code is activated
+        if (response.data.isActivated) {
+          try {
+            await apiClient.trackScan(code)
+          } catch (trackError) {
+            // Don't show error for tracking failures, just log it
+            console.log('Scan tracking failed:', trackError)
+          }
         }
       } else {
         // Handle inactive QR code or other errors

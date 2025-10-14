@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://scanback-backend.onrender.com'
+const API_BASE_URL = 'http://192.168.100.16:5001'
 
 class ApiClient {
   private baseURL: string
@@ -111,6 +111,13 @@ class ApiClient {
 
   async getCurrentUser() {
     return this.request('/api/auth/me')
+  }
+
+  async updateProfile(data: { name: string; email: string; phone: string }) {
+    return this.request('/api/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
   }
 
   // QR Code endpoints

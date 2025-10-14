@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ArrowLeft, QrCode, User, Bell, Shield, Trash2, Save, Eye, EyeOff, Key } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { apiClient } from "@/lib/api"
+import { useAuth } from "@/hooks/use-auth"
 import { Footer } from "@/components/footer"
 import {
   AlertDialog,
@@ -26,12 +27,14 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export default function SettingsPage() {
+  const { user } = useAuth()
   const [profileData, setProfileData] = useState({
-    firstName: "Sarah",
-    lastName: "Johnson",
-    email: "sarah.j@email.com",
-    phone: "+1 (555) 123-4567",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
   })
+  const [loading, setLoading] = useState(true)
 
   const [notificationSettings, setNotificationSettings] = useState({
     emailAlerts: true,
@@ -57,14 +60,96 @@ export default function SettingsPage() {
   })
   const [passwordError, setPasswordError] = useState("")
   const [passwordMessage, setPasswordMessage] = useState("")
+  const [profileMessage, setProfileMessage] = useState("")
+  const [profileError, setProfileError] = useState("")
+
+  // Load user data on component mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (user) {
+        try {
+          // Split the name into first and last name
+          const nameParts = user.name ? user.name.split(' ') : ['', '']
+          setProfileData({
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' ') || '',
+            email: user.email || '',
+            phone: user.phone || '',
+          })
+        } catch (error) {
+          console.error('Error loading user data:', error)
+        } finally {
+          setLoading(false)
+        }
+      } else {
+        setLoading(false)
+      }
+    }
+
+    loadUserData()
+  }, [user])
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsSubmitting(false)
-    alert("Profile updated successfully!")
+    setProfileError("")
+    setProfileMessage("")
+    
+    try {
+      const fullName = `${profileData.firstName} ${profileData.lastName}`.trim()
+      
+      // Update user profile
+      const profileResponse = await apiClient.updateProfile({
+        name: fullName,
+        email: profileData.email,
+        phone: profileData.phone
+      })
+      
+      if (profileResponse.success) {
+        // Get all user's QR codes to update them
+        const qrCodesResponse = await apiClient.getUserQRCodes()
+        
+        if (qrCodesResponse.success && qrCodesResponse.data.length > 0) {
+          // Update each QR code with new contact information
+          const updatePromises = qrCodesResponse.data.map((qr: any) => 
+            apiClient.updateQRCode(qr.code, {
+              contact: {
+                name: fullName,
+                email: profileData.email,
+                phone: profileData.phone,
+                backupPhone: qr.contact?.backupPhone || '', // Keep existing backup phone
+                message: qr.contact?.message || '' // Keep existing message
+              }
+            })
+          )
+          
+          // Wait for all QR code updates to complete
+          const qrUpdateResults = await Promise.allSettled(updatePromises)
+          
+          // Check if any QR updates failed
+          const failedUpdates = qrUpdateResults.filter(result => 
+            result.status === 'rejected' || 
+            (result.status === 'fulfilled' && !result.value.success)
+          )
+          
+          if (failedUpdates.length > 0) {
+            console.warn('Some QR codes failed to update:', failedUpdates)
+            setProfileMessage(`Profile updated successfully! However, ${failedUpdates.length} QR code(s) failed to update. Please check your QR codes in the dashboard.`)
+          } else {
+            setProfileMessage(`Profile updated successfully! All ${qrCodesResponse.data.length} QR code(s) have been updated with the new information.`)
+          }
+        } else {
+          setProfileMessage("Profile updated successfully!")
+        }
+      } else {
+        setProfileError(profileResponse.message || "Failed to update profile")
+      }
+    } catch (error: any) {
+      console.error('Profile update error:', error)
+      setProfileError(error.message || "Failed to update profile")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleNotificationUpdate = async () => {
@@ -154,12 +239,6 @@ export default function SettingsPage() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-black rounded-lg">
                 <QrCode className="h-6 w-6 text-white" />
@@ -169,6 +248,12 @@ export default function SettingsPage() {
                 <p className="text-xs text-gray-600">QR Code Service</p>
               </div>
             </div>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/dashboard">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
           </div>
         </div>
       </header>
@@ -196,55 +281,73 @@ export default function SettingsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleProfileUpdate} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-gray-500">Loading profile data...</div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleProfileUpdate} className="space-y-4">
+                    {profileError && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p className="text-red-800">{profileError}</p>
+                      </div>
+                    )}
+                    
+                    {profileMessage && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p className="text-green-800">{profileMessage}</p>
+                      </div>
+                    )}
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input
+                          id="firstName"
+                          value={profileData.firstName}
+                          onChange={(e) => setProfileData((prev) => ({ ...prev, firstName: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                          id="lastName"
+                          value={profileData.lastName}
+                          onChange={(e) => setProfileData((prev) => ({ ...prev, lastName: e.target.value }))}
+                          required
+                        />
+                      </div>
+                    </div>
+
                     <div>
-                      <Label htmlFor="firstName">First Name</Label>
+                      <Label htmlFor="email">Email Address</Label>
                       <Input
-                        id="firstName"
-                        value={profileData.firstName}
-                        onChange={(e) => setProfileData((prev) => ({ ...prev, firstName: e.target.value }))}
+                        id="email"
+                        type="email"
+                        value={profileData.email}
+                        onChange={(e) => setProfileData((prev) => ({ ...prev, email: e.target.value }))}
                         required
                       />
                     </div>
+
                     <div>
-                      <Label htmlFor="lastName">Last Name</Label>
+                      <Label htmlFor="phone">Phone Number</Label>
                       <Input
-                        id="lastName"
-                        value={profileData.lastName}
-                        onChange={(e) => setProfileData((prev) => ({ ...prev, lastName: e.target.value }))}
+                        id="phone"
+                        type="tel"
+                        value={profileData.phone}
+                        onChange={(e) => setProfileData((prev) => ({ ...prev, phone: e.target.value }))}
                         required
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={profileData.email}
-                      onChange={(e) => setProfileData((prev) => ({ ...prev, email: e.target.value }))}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={profileData.phone}
-                      onChange={(e) => setProfileData((prev) => ({ ...prev, phone: e.target.value }))}
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" disabled={isSubmitting} className="w-full">
-                    {isSubmitting ? "Updating..." : "Update Profile"}
-                    <Save className="h-4 w-4 ml-2" />
-                  </Button>
-                </form>
+                    <Button type="submit" disabled={isSubmitting} className="w-full">
+                      {isSubmitting ? "Updating..." : "Update Profile"}
+                      <Save className="h-4 w-4 ml-2" />
+                    </Button>
+                  </form>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

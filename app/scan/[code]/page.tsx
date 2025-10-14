@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, CheckCircle, AlertCircle, Heart, Package, QrCode, Shield, Copy, Check, PawPrint, Luggage } from "lucide-react"
+import { ArrowLeft, CheckCircle, AlertCircle, Heart, Package, QrCode, Shield, Copy, Check, PawPrint, Luggage, Loader2 } from "lucide-react"
 import { FaWhatsapp, FaSms, FaPhone, FaEnvelope } from "react-icons/fa"
 import Link from "next/link"
 import { apiClient } from "@/lib/api"
@@ -352,8 +352,10 @@ export default function ScanPage() {
     main: "",
     backup: ""
   })
+  const [emailError, setEmailError] = useState("")
   const [copiedPassword, setCopiedPassword] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
+  const [messageClicked, setMessageClicked] = useState(false)
 
   const [formData, setFormData] = useState({
     details: {
@@ -387,6 +389,20 @@ export default function ScanPage() {
       loadQRCode()
     }
   }, [code])
+
+  // Update message when item name changes (only if message is active)
+  useEffect(() => {
+    if (messageClicked && formData.details.name) {
+      const updatedMessage = `Hi! Thanks for finding my ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
+      setFormData(prev => ({
+        ...prev,
+        contact: {
+          ...prev.contact,
+          message: updatedMessage
+        }
+      }))
+    }
+  }, [formData.details.name, messageClicked])
 
   const loadQRCode = async () => {
     try {
@@ -446,11 +462,21 @@ export default function ScanPage() {
         main: validation.isValid ? "" : validation.error
       }))
     } else if (field === 'contact.backupPhone') {
-      const validation = validatePhoneNumber(value as string, formData.contact.backupCountryCode)
-      setPhoneErrors(prev => ({
-        ...prev,
-        backup: validation.isValid ? "" : validation.error
-      }))
+      const phoneValue = value as string
+      if (phoneValue.trim() === '') {
+        // Clear error if field is empty (since it's optional)
+        setPhoneErrors(prev => ({
+          ...prev,
+          backup: ""
+        }))
+      } else {
+        // Only validate if there's a value
+        const validation = validatePhoneNumber(phoneValue, formData.contact.backupCountryCode)
+        setPhoneErrors(prev => ({
+          ...prev,
+          backup: validation.isValid ? "" : validation.error
+        }))
+      }
     } else if (field === 'contact.countryCode') {
       // Re-validate main phone when country changes
       const validation = validatePhoneNumber(formData.contact.phone, value as string)
@@ -459,12 +485,31 @@ export default function ScanPage() {
         main: validation.isValid ? "" : validation.error
       }))
     } else if (field === 'contact.backupCountryCode') {
-      // Re-validate backup phone when country changes
-      const validation = validatePhoneNumber(formData.contact.backupPhone, value as string)
-      setPhoneErrors(prev => ({
-        ...prev,
-        backup: validation.isValid ? "" : validation.error
-      }))
+      // Re-validate backup phone when country changes (only if there's a value)
+      if (formData.contact.backupPhone.trim() !== '') {
+        const validation = validatePhoneNumber(formData.contact.backupPhone, value as string)
+        setPhoneErrors(prev => ({
+          ...prev,
+          backup: validation.isValid ? "" : validation.error
+        }))
+      } else {
+        // Clear error if backup phone is empty
+        setPhoneErrors(prev => ({
+          ...prev,
+          backup: ""
+        }))
+      }
+    } else if (field === 'contact.email') {
+      // Validate email in real-time
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const emailValue = value as string
+      if (emailValue.trim() === '') {
+        setEmailError("")
+      } else if (!emailRegex.test(emailValue)) {
+        setEmailError("Please enter a valid email address")
+      } else {
+        setEmailError("")
+      }
     }
   }
 
@@ -532,9 +577,9 @@ export default function ScanPage() {
     setSubmitting(true)
     setError("")
 
-    // Check for phone validation errors before submission
-    if (phoneErrors.main || phoneErrors.backup) {
-      setError("Please fix phone number validation errors before submitting.")
+    // Check for validation errors before submission
+    if (phoneErrors.main || phoneErrors.backup || emailError) {
+      setError("Please fix validation errors before submitting.")
       setSubmitting(false)
       return
     }
@@ -609,7 +654,7 @@ export default function ScanPage() {
                 </Link>
               </Button>
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-black rounded-lg">
+                <div className="p-2 bg-blue-600 rounded-lg">
                   <QrCode className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -627,7 +672,7 @@ export default function ScanPage() {
           </div>
           <h1 className="text-3xl font-bold text-black mb-3">QR Code Not Found</h1>
           <p className="text-gray-700 mb-8 text-lg">{error}</p>
-          <Button asChild className="bg-black hover:bg-gray-800 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200">
+          <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200">
             <Link href="/">Go Home</Link>
           </Button>
         </div>
@@ -643,7 +688,7 @@ export default function ScanPage() {
             <div className="flex items-center justify-between">
               
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-black rounded-lg">
+                <div className="p-2 bg-blue-600 rounded-lg">
                   <QrCode className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -861,11 +906,13 @@ export default function ScanPage() {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild className="bg-black hover:bg-gray-800 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200">
-              <Link href="/login">Login to Dashboard</Link>
+            <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200">
+              <Link href={`/login?email=${encodeURIComponent(userEmail)}${isNewUser && tempPassword ? `&password=${encodeURIComponent(tempPassword)}` : ''}`}>
+                Login to Dashboard
+              </Link>
             </Button>
-            <Button asChild variant="outline" className="border-2 border-gray-300 hover:border-black hover:text-black font-semibold px-8 py-3 rounded-lg transition-all duration-200">
-              <Link href="/login">Go Home</Link>
+            <Button asChild variant="outline" className="border-2 border-blue-300 hover:border-blue-500 text-blue-700 hover:text-blue-900 font-semibold px-8 py-3 rounded-lg transition-all duration-200">
+              <Link href="/">Go Home</Link>
             </Button>
           </div>
         </div>
@@ -882,7 +929,7 @@ export default function ScanPage() {
             <div className="flex items-center justify-between">
               
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-black rounded-lg">
+                <div className="p-2 bg-blue-600 rounded-lg">
                   <QrCode className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -1077,7 +1124,7 @@ export default function ScanPage() {
                     </Button>
                   {/* Primary Contact Methods */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Button asChild className="bg-black hover:bg-gray-800 text-white h-12 text-base font-semibold">
+                    <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold">
                       <a href={`tel:${qrData.contact.phone}`} className="flex items-center justify-center gap-3">
                         <FaPhone className="h-5 w-5 text-blue-400" />
                         Call Owner
@@ -1118,7 +1165,7 @@ export default function ScanPage() {
               <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-gray-50">
                 <CardContent className="p-6 text-center">
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-gray-200">
-                    <span className="text-3xl">🙏</span>
+                    <CheckCircle className="h-8 w-8 text-green-600" />
                   </div>
                   <h3 className="text-lg font-bold text-black mb-2">Thank You for Your Help!</h3>
                   <p className="text-gray-700">
@@ -1145,7 +1192,7 @@ export default function ScanPage() {
               </Link>
             </Button> */}
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-black rounded-lg">
+              <div className="p-2 bg-blue-600 rounded-lg">
                 <QrCode className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -1239,7 +1286,7 @@ export default function ScanPage() {
                 </div>
 
                   <div>
-                  <Label htmlFor="backupPhone">+ Backup Phone Number (Optional)</Label>
+                  <Label htmlFor="backupPhone">Backup Phone Number <span className="text-gray-500 font-normal">(Optional)</span></Label>
                   <div className="flex flex-col sm:flex-row gap-2 mt-1">
                     <Select value={formData.contact.backupCountryCode} onValueChange={(value) => handleInputChange('contact.backupCountryCode', value)}>
                       <SelectTrigger className="w-full sm:w-32">
@@ -1263,7 +1310,7 @@ export default function ScanPage() {
                         type="tel"
                         value={formData.contact.backupPhone}
                         onChange={(e) => handleInputChange('contact.backupPhone', e.target.value)}
-                        placeholder={getPhonePlaceholder(formData.contact.backupCountryCode)}
+                        placeholder={`${getPhonePlaceholder(formData.contact.backupCountryCode)} (optional)`}
                         className={`flex-1 ${phoneErrors.backup ? 'border-red-500 focus:border-red-500' : ''}`}
                       />
                       {phoneErrors.backup && (
@@ -1282,8 +1329,11 @@ export default function ScanPage() {
                     onChange={(e) => handleInputChange('contact.email', e.target.value)}
                     placeholder="your.email@example.com"
                     required
-                    className="mt-1"
+                    className={`mt-1 ${emailError ? 'border-red-500 focus:border-red-500' : ''}`}
                   />
+                  {emailError && (
+                    <p className="text-red-500 text-xs mt-1">{emailError}</p>
+                  )}
                 </div>
               </div>
 
@@ -1305,8 +1355,17 @@ export default function ScanPage() {
                   <Label htmlFor="message">Finder Message (Optional)</Label>
                   <Textarea
                     id="message"
-                    value={formData.contact.message}
+                    value={messageClicked ? formData.contact.message : ""}
                     onChange={(e) => handleInputChange('contact.message', e.target.value)}
+                    onFocus={() => {
+                      if (!messageClicked) {
+                        setMessageClicked(true)
+                        const defaultMessage = formData.details.name ? 
+                          `Hi! Thanks for finding my ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!` :
+                          "Hi! Thanks for finding my item. Please contact me so we can arrange a return. I really appreciate your honesty and help!"
+                        handleInputChange('contact.message', defaultMessage)
+                      }
+                    }}
                     placeholder={formData.details.name ? `Hi! Thanks for finding my ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!` : "Hi! Thanks for finding my item. Please contact me so we can arrange a return. I really appreciate your honesty and help!"}
                     rows={3}
                     className="mt-1"
@@ -1324,8 +1383,8 @@ export default function ScanPage() {
                   <button
                     type="button"
                     onClick={() => handleInputChange('settings.instantAlerts', !formData.settings.instantAlerts)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
-                      formData.settings.instantAlerts ? 'bg-black' : 'bg-gray-300'
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      formData.settings.instantAlerts ? 'bg-blue-600' : 'bg-gray-300'
                     }`}
                     aria-pressed={formData.settings.instantAlerts}
                   >
@@ -1345,8 +1404,8 @@ export default function ScanPage() {
                   <button
                     type="button"
                     onClick={() => handleInputChange('settings.locationSharing', !formData.settings.locationSharing)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
-                      formData.settings.locationSharing ? 'bg-black' : 'bg-gray-300'
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      formData.settings.locationSharing ? 'bg-blue-600' : 'bg-gray-300'
                     }`}
                     aria-pressed={formData.settings.locationSharing}
                   >
@@ -1368,9 +1427,16 @@ export default function ScanPage() {
                 <Button
                 type="submit"
                 disabled={submitting || !isFormValid()}
-                className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? 'Activating...' : 'Activate My Tag'}
+                {submitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Activating...
+                  </>
+                ) : (
+                  'Activate My Tag'
+                )}
                 </Button>
 
                 {!isFormValid() && !submitting && (

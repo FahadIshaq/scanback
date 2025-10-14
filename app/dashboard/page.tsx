@@ -721,7 +721,7 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3 sm:space-y-4">
                 {qrCodes.map((qr) => (
-                  <div key={qr._id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+                  <div key={qr._id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => openQRModal(qr)}>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 sm:gap-3 mb-2">
@@ -766,7 +766,10 @@ export default function DashboardPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => openQRModal(qr)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openQRModal(qr);
+                          }}
                           className="text-xs px-2 sm:px-3"
                         >
                           <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
@@ -775,7 +778,10 @@ export default function DashboardPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => startEdit(qr)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEdit(qr);
+                          }}
                           className="text-xs px-2 sm:px-3"
                         >
                           <Edit className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
@@ -784,7 +790,10 @@ export default function DashboardPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => toggleQRCodeStatus(qr._id, qr.code, qr.status)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleQRCodeStatus(qr._id, qr.code, qr.status);
+                          }}
                           className={`text-xs px-2 sm:px-3 ${
                             qr.status === 'active' 
                               ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50" 
@@ -806,7 +815,10 @@ export default function DashboardPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => deleteQRCode(qr._id, qr.code)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteQRCode(qr._id, qr.code);
+                          }}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs px-2 sm:px-3"
                         >
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
@@ -1092,7 +1104,7 @@ export default function DashboardPage() {
                     <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-1">QR Code URL:</p>
                       <p className="text-xs sm:text-sm font-mono break-all">
-                        {`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app'}/scan/${selectedQR.code}`}
+                        {`${process.env.NEXT_PUBLIC_BASE_URL || 'http://192.168.100.16:3001'}/scan/${selectedQR.code}`}
                       </p>
                     </div>
                   </div>
@@ -1101,7 +1113,7 @@ export default function DashboardPage() {
                     <QrCode className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
                     <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">QR Code image not available</p>
                     <p className="text-xs sm:text-sm text-gray-500 break-all">
-                      QR Code URL: {`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app'}/scan/${selectedQR.code}`}
+                      QR Code URL: {`${process.env.NEXT_PUBLIC_BASE_URL || 'http://192.168.100.16:3001'}/scan/${selectedQR.code}`}
                     </p>
                   </div>
                 )}
@@ -1118,7 +1130,7 @@ export default function DashboardPage() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app'}/scan/${selectedQR.code}`)
+                      navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://192.168.100.16:3001'}/scan/${selectedQR.code}`)
                       // You could add a toast notification here
                     }}
                     className="flex-1 text-sm"

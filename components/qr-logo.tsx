@@ -11,12 +11,12 @@ export function QRLogo() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-          <div className="p-2 bg-black rounded-lg">
+          <div className="p-2 bg-black rounded-lg flex-shrink-0">
             <QrCode className="h-6 w-6 text-white" />
           </div>
-          <div>
-            <span className="font-bold text-black">ScanBack</span>
-            <p className="text-xs text-gray-600">QR Code Service</p>
+          <div className="flex flex-col items-start">
+            <span className="font-bold text-black text-lg leading-tight">ScanBack™</span>
+            <p className="text-xs text-gray-600 leading-tight">Smart Lost & Found QR Tag</p>
           </div>
         </button>
       </DialogTrigger>

@@ -244,8 +244,8 @@ export default function SettingsPage() {
                 <QrCode className="h-6 w-6 text-white" />
               </div>
               <div>
-                <span className="font-bold text-black">ScanBack</span>
-                <p className="text-xs text-gray-600">QR Code Service</p>
+                <span className="font-bold text-black">ScanBack™</span>
+                <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
               </div>
             </div>
             <Button variant="ghost" size="sm" asChild>

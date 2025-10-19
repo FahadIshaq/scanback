@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Key, Mail, Shield, QrCode } from "lucide-react"
+import { ArrowLeft, Key, Mail, Shield, QrCode, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { apiClient } from "@/lib/api"
 import { Header } from "@/components/header"
@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
       if (response.success) {
         setMessage("Verification code has been sent to your email address. Please check your inbox.")
         setStep('otp')
-        setResendCooldown(30) // Start 30-second cooldown
+        setResendCooldown(60) // Start 30-second cooldown
       } else {
         setError(response.message || "Failed to send verification code")
       }
@@ -140,7 +140,7 @@ export default function ForgotPasswordPage() {
       const response = await apiClient.sendPasswordResetOTP(email)
       if (response.success) {
         setMessage("Verification code resent to your email address.")
-        setResendCooldown(30) // Start 30-second cooldown
+        setResendCooldown(60) // Start 30-second cooldown
       } else {
         setError(response.message || "Failed to resend verification code")
       }
@@ -212,9 +212,15 @@ export default function ForgotPasswordPage() {
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-black hover:bg-gray-800 text-white"
+                className="w-full bg-blue-600 hover:bg-blue-800 text-white"
               >
-                {loading ? 'Sending...' : 'Send Verification Code'}
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  </>
+                ) : (
+                  'Send Verification Code'
+                )}
               </Button>
             </form>
           )}
@@ -242,9 +248,11 @@ export default function ForgotPasswordPage() {
                 <Button 
                   type="submit" 
                   disabled={loading || otp.length !== 6}
-                  className="flex-1 bg-black hover:bg-gray-800 text-white"
+                  className="flex-1 bg-blue-600 hover:bg-blue-800 text-white"
                 >
-                  {loading ? 'Verifying...' : 'Verify Code'}
+                  {loading ? <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    </> : 'Verify Code'}
                 </Button>
                 
                 <Button 
@@ -334,9 +342,11 @@ export default function ForgotPasswordPage() {
               <Button 
                 type="submit" 
                 disabled={loading || newPassword !== confirmPassword || validatePassword(newPassword).length > 0}
-                className="w-full bg-black hover:bg-gray-800 text-white"
+                className="w-full bg-blue-600 hover:bg-blue-800 text-white"
               >
-                {loading ? 'Resetting...' : 'Reset Password'}
+                {loading ? <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  </>: 'Reset Password'}
               </Button>
             </form>
           )}

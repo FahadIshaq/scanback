@@ -1,11 +1,9 @@
 "use client"
 
-import React from "react"
-
-import { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Upload, X, Power, Trash2, Heart, Package, Save } from "lucide-react"
+import { ArrowLeft, Upload, X, Power, Trash2, Heart, Package, Save, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { QRLogo } from "@/components/qr-logo"
+import { useAuth } from "@/hooks/use-auth"
+import { apiClient } from "@/lib/api"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,296 +32,410 @@ interface EditPageProps {
   }>
 }
 
+interface QRCode {
+  _id: string
+  code: string
+  type: 'item' | 'pet'
+  details: {
+    name: string
+    description?: string
+    category?: string
+    color?: string
+    brand?: string
+    model?: string
+    image?: string
+    emergencyDetails?: string
+    pedigreeInfo?: string
+  }
+  contact?: {
+    name: string
+    phone: string
+    countryCode: string
+    backupPhone?: string
+    backupCountryCode?: string
+    email: string
+    message?: string
+  }
+  settings?: {
+    instantAlerts: boolean
+    locationSharing: boolean
+    showContactOnFinderPage?: boolean
+  }
+  status: string
+  isActivated: boolean
+  createdAt: string
+  scanCount: number
+  lastScanned?: string
+}
+
 export default function EditPage({ params }: EditPageProps) {
   const { id } = React.use(params)
   const router = useRouter()
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const [qrCode, setQrCode] = useState<QRCode | null>(null)
 
-  // Mock data - in real app, this would be fetched based on the ID
   const [formData, setFormData] = useState({
-    itemName: "Luna",
-    tagType: "pet",
-    customMessage: "Hi! Thanks for finding Luna. She's very friendly but might be scared. Please call me immediately!",
+    itemName: "",
+    tagType: "item" as 'item' | 'pet',
+    customMessage: "",
     showPhone: true,
     showEmail: true,
+    showContactOnFinderPage: true,
     scanAlerts: true,
     emailAlerts: true,
     smsAlerts: true,
     status: "active",
     // Pet-specific fields
-    breed: "Golden Retriever",
-    color: "Golden/Cream",
-    age: "3 years old",
-    medicalNotes: "Takes daily medication for allergies. Please contact vet if found injured.",
-    vetName: "Dr. Smith - Happy Paws Clinic",
-    vetPhone: "+1 (555) 987-6543",
-    emergencyContact: "John Johnson (husband) - +1 (555) 123-4568",
+    breed: "",
+    color: "",
+    age: "",
+    medicalNotes: "",
+    vetName: "",
+    vetPhone: "",
+    emergencyContact: "",
+    emergencyDetails: "",
+    pedigreeInfo: "",
+    showEmergencyDetails: false,
+    showPedigreeInfo: false,
   })
 
-  const [image, setImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>("/placeholder.svg?height=200&width=200&text=Luna")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  // Load QR code data
+  useEffect(() => {
+    const loadQRCode = async () => {
+      try {
+        setLoading(true)
+        const response = await apiClient.getUserQRCodes()
+        const qr = response.data.find((q: QRCode) => q._id === id)
+        
+        if (!qr) {
+          setError("QR code not found")
+          return
+        }
 
-  const tagInfo = {
-    code: "SB-ABC123",
-    createdAt: "2024-01-15",
-    scans: 3,
-    lastScan: "2024-01-20T10:30:00Z",
-  }
-
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setImage(file)
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string)
+        setQrCode(qr)
+        setFormData({
+          itemName: qr.details.name || "",
+          tagType: qr.type,
+          customMessage: qr.contact?.message || "",
+          showPhone: true, // Always show phone
+          showEmail: true, // Always show email
+          showContactOnFinderPage: qr.settings?.showContactOnFinderPage ?? true,
+          scanAlerts: qr.settings?.instantAlerts ?? true,
+          emailAlerts: qr.settings?.instantAlerts ?? true,
+          smsAlerts: qr.settings?.instantAlerts ?? true,
+          status: qr.isActivated ? "active" : "inactive",
+          // Pet-specific fields
+          breed: "",
+          color: "",
+          age: "",
+          medicalNotes: qr.details.emergencyDetails || "",
+          vetName: "",
+          vetPhone: "",
+          emergencyContact: "",
+          emergencyDetails: qr.details.emergencyDetails || "",
+          pedigreeInfo: qr.details.pedigreeInfo || "",
+          showEmergencyDetails: !!qr.details.emergencyDetails,
+          showPedigreeInfo: !!qr.details.pedigreeInfo,
+        })
+      } catch (err: any) {
+        console.error('Error loading QR code:', err)
+        setError(err.message || "Failed to load QR code")
+      } finally {
+        setLoading(false)
       }
-      reader.readAsDataURL(file)
+    }
+
+    if (id) {
+      loadQRCode()
+    }
+  }, [id])
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleSave = async () => {
+    if (!qrCode) return
+
+    try {
+      setSaving(true)
+      setError("")
+      setSuccess("")
+
+      // Prepare update data
+      const updateData = {
+        contact: {
+          ...qrCode.contact,
+          message: formData.customMessage
+        },
+        details: {
+          ...qrCode.details,
+          name: formData.itemName,
+          // Clear emergency details if toggle is disabled
+          emergencyDetails: formData.showEmergencyDetails ? formData.emergencyDetails : '',
+          // Clear pedigree info if toggle is disabled
+          pedigreeInfo: formData.showPedigreeInfo ? formData.pedigreeInfo : ''
+        },
+        settings: {
+          instantAlerts: formData.scanAlerts,
+          locationSharing: formData.scanAlerts, // Using same value for simplicity
+          showContactOnFinderPage: formData.showContactOnFinderPage
+        }
+      }
+
+      const response = await apiClient.updateQRCode(qrCode.code, updateData)
+      
+      if (response.success) {
+        setSuccess("QR code updated successfully!")
+        // Update local state
+        setQrCode(prev => prev ? { ...prev, ...response.data } : null)
+        
+        // Redirect back to dashboard after a short delay
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 2000)
+      } else {
+        setError(response.message || "Failed to update QR code")
+      }
+    } catch (err: any) {
+      console.error('Error updating QR code:', err)
+      setError(err.message || "Failed to update QR code")
+    } finally {
+      setSaving(false)
     }
   }
 
-  const removeImage = () => {
-    setImage(null)
-    setImagePreview(null)
+  const handleToggleStatus = async () => {
+    if (!qrCode) return
+
+    try {
+      setSaving(true)
+      const newStatus = formData.status === "active" ? "inactive" : "active"
+      
+      const response = await apiClient.updateQRCode(qrCode.code, {
+        isActivated: newStatus === "active"
+      })
+      
+      if (response.success) {
+        setFormData(prev => ({ ...prev, status: newStatus }))
+        setQrCode(prev => prev ? { ...prev, isActivated: newStatus === "active" } : null)
+        setSuccess(`QR code ${newStatus === "active" ? "activated" : "deactivated"} successfully!`)
+      } else {
+        setError(response.message || "Failed to update QR code status")
+      }
+    } catch (err: any) {
+      console.error('Error toggling QR code status:', err)
+      setError(err.message || "Failed to update QR code status")
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+  const handleDelete = async () => {
+    if (!qrCode) return
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    // Redirect back to dashboard
-    router.push("/dashboard")
+    try {
+      setSaving(true)
+      const response = await apiClient.deleteQRCode(qrCode.code)
+      
+      if (response.success) {
+        setSuccess("QR code deleted successfully!")
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 2000)
+      } else {
+        setError(response.message || "Failed to delete QR code")
+      }
+    } catch (err: any) {
+      console.error('Error deleting QR code:', err)
+      setError(err.message || "Failed to delete QR code")
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const handleToggleStatus = () => {
-    const newStatus = formData.status === "active" ? "inactive" : "active"
-    setFormData((prev) => ({ ...prev, status: newStatus }))
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading QR code...</p>
+        </div>
+      </div>
+    )
   }
 
-  const handleDelete = () => {
-    // In real app, this would delete the tag
-    router.push("/dashboard")
-  }
-
-  const formatLastScan = (lastScan: string | null) => {
-    if (!lastScan) return "Never"
-    const date = new Date(lastScan)
-    // Use consistent date formatting to avoid hydration mismatch
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    
-    return `${day}/${month}/${year} ${hours}:${minutes}`
+  if (error && !qrCode) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={() => router.push('/dashboard')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+      <div className="bg-white border-b">
+        <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" asChild className="text-sm">
+            <div className="flex items-center space-x-4">
               <Link href="/dashboard">
+                <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Back to Dashboard</span>
-                <span className="sm:hidden">Back</span>
+                  Back to Dashboard
+                </Button>
               </Link>
-            </Button>
-            <div className="flex items-center space-x-2">
               <QRLogo />
-              <span className="font-semibold text-gray-900 text-sm sm:text-base">ScanBack™</span>
             </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-2xl">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Edit Tag</h1>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600">
-              <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm">{tagInfo.code}</span>
-              <Badge
-                className={formData.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
-              >
-                {formData.status}
+            <div className="flex items-center space-x-2">
+              <Badge variant={formData.status === "active" ? "default" : "secondary"}>
+                {formData.status === "active" ? "Active" : "Inactive"}
               </Badge>
-              <div className="flex items-center space-x-1">
-                {formData.tagType === "pet" ? (
-                  <Heart className="h-4 w-4 text-red-500" />
-                ) : (
-                  <Package className="h-4 w-4 text-blue-500" />
-                )}
-                <span className="capitalize">{formData.tagType}</span>
-              </div>
             </div>
           </div>
         </div>
+              </div>
 
-        {/* Tag Stats */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">Tag Statistics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-xl sm:text-2xl font-bold text-blue-600">{tagInfo.scans}</p>
-                <p className="text-xs sm:text-sm text-gray-600">Total Scans</p>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800 text-sm">{error}</p>
               </div>
-              <div>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">{formatLastScan(tagInfo.lastScan)}</p>
-                <p className="text-xs sm:text-sm text-gray-600">Last Scan</p>
-              </div>
-              <div>
-                <p className="text-lg sm:text-2xl font-bold text-gray-900">
-                  {(() => {
-                    const date = new Date(tagInfo.createdAt)
-                    const year = date.getFullYear()
-                    const month = String(date.getMonth() + 1).padStart(2, '0')
-                    const day = String(date.getDate()).padStart(2, '0')
-                    return `${day}/${month}/${year}`
-                  })()}
-                </p>
-                <p className="text-xs sm:text-sm text-gray-600">Created</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {success && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <p className="text-green-800 text-sm">{success}</p>
+              </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle className="flex items-center">
+                {formData.tagType === "pet" ? (
+                  <Heart className="h-5 w-5 mr-2 text-pink-500" />
+                ) : (
+                  <Package className="h-5 w-5 mr-2 text-blue-500" />
+                )}
+                Basic Information
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="itemName">{formData.tagType === "pet" ? "Pet Name" : "Item Name"} *</Label>
+                <Label htmlFor="itemName" className="text-sm font-medium">
+                  {formData.tagType === "pet" ? "Pet Name" : "Item Name"}
+                </Label>
                 <Input
                   id="itemName"
                   value={formData.itemName}
                   onChange={(e) => handleInputChange("itemName", e.target.value)}
-                  placeholder={
-                    formData.tagType === "pet" ? "e.g., Luna, Max, Buddy" : "e.g., House Keys, iPhone, Wallet"
-                  }
-                  required
+                  className="mt-1"
+                  placeholder={formData.tagType === "pet" ? "Enter pet name" : "Enter item name"}
                 />
               </div>
 
               <div>
-                <Label htmlFor="customMessage">Custom Message for Finder *</Label>
+                <Label htmlFor="customMessage" className="text-sm font-medium">
+                  Custom Message for Finders
+                </Label>
                 <Textarea
                   id="customMessage"
                   value={formData.customMessage}
                   onChange={(e) => handleInputChange("customMessage", e.target.value)}
-                  placeholder="What should someone do if they find this item?"
+                  className="mt-1"
                   rows={4}
-                  required
+                  placeholder="Enter a message that will be shown to people who find your item..."
                 />
-                <p className="text-sm text-gray-500 mt-1">
-                  This message will be shown to anyone who scans your QR code
-                </p>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Pet-specific information */}
+              {/* Pet-specific fields */}
           {formData.tagType === "pet" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Heart className="h-5 w-5 text-red-500" />
-                  <span>Pet Details</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <>
                   <div>
-                    <Label htmlFor="breed">Breed</Label>
-                    <Input
-                      id="breed"
-                      value={formData.breed}
-                      onChange={(e) => handleInputChange("breed", e.target.value)}
-                      placeholder="e.g., Golden Retriever"
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <Label className="text-sm font-medium text-black">Emergency Details</Label>
+                        <p className="text-xs text-gray-600 mt-1">Add medical info, special needs, or emergency contacts</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange("showEmergencyDetails", !formData.showEmergencyDetails)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          formData.showEmergencyDetails ? 'bg-blue-600' : 'bg-gray-300'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            formData.showEmergencyDetails ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    {formData.showEmergencyDetails && (
+                      <div className="mt-3">
+                        <Textarea
+                          value={formData.emergencyDetails}
+                          onChange={(e) => handleInputChange("emergencyDetails", e.target.value)}
+                          placeholder="e.g., Allergic to penicillin, needs medication twice daily, emergency vet contact..."
+                          rows={3}
                       className="text-sm"
                     />
+                      </div>
+                    )}
                   </div>
+
                   <div>
-                    <Label htmlFor="color">Color</Label>
-                    <Input
-                      id="color"
-                      value={formData.color}
-                      onChange={(e) => handleInputChange("color", e.target.value)}
-                      placeholder="e.g., Golden/Cream"
-                      className="text-sm"
-                    />
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <Label className="text-sm font-medium text-black">Pedigree Information</Label>
+                        <p className="text-xs text-gray-600 mt-1">Add breeding, registration, or lineage details</p>
                   </div>
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange("showPedigreeInfo", !formData.showPedigreeInfo)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          formData.showPedigreeInfo ? 'bg-blue-600' : 'bg-gray-300'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            formData.showPedigreeInfo ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
                 </div>
-
-                <div>
-                  <Label htmlFor="age">Age</Label>
-                  <Input
-                    id="age"
-                    value={formData.age}
-                    onChange={(e) => handleInputChange("age", e.target.value)}
-                    placeholder="e.g., 3 years old"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="medicalNotes">Medical Notes (Optional)</Label>
+                    {formData.showPedigreeInfo && (
+                      <div className="mt-3">
                   <Textarea
-                    id="medicalNotes"
-                    value={formData.medicalNotes}
-                    onChange={(e) => handleInputChange("medicalNotes", e.target.value)}
-                    placeholder="Any medical conditions, medications, or special care instructions"
+                          value={formData.pedigreeInfo}
+                          onChange={(e) => handleInputChange("pedigreeInfo", e.target.value)}
+                          placeholder="e.g., AKC registered, champion bloodline, microchip #123456789..."
                     rows={3}
+                          className="text-sm"
                   />
                 </div>
-
-                <div>
-                  <Label htmlFor="vetName">Veterinarian Name (Optional)</Label>
-                  <Input
-                    id="vetName"
-                    value={formData.vetName}
-                    onChange={(e) => handleInputChange("vetName", e.target.value)}
-                    placeholder="Dr. Smith - Happy Paws Clinic"
-                  />
+                    )}
                 </div>
-
-                <div>
-                  <Label htmlFor="vetPhone">Vet Phone Number (Optional)</Label>
-                  <Input
-                    id="vetPhone"
-                    type="tel"
-                    value={formData.vetPhone}
-                    onChange={(e) => handleInputChange("vetPhone", e.target.value)}
-                    placeholder="+1 (555) 987-6543"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="emergencyContact">Emergency Contact (Optional)</Label>
-                  <Input
-                    id="emergencyContact"
-                    value={formData.emergencyContact}
-                    onChange={(e) => handleInputChange("emergencyContact", e.target.value)}
-                    placeholder="John Doe (spouse) - +1 (555) 123-4567"
-                  />
-                </div>
+                </>
+              )}
               </CardContent>
             </Card>
-          )}
 
           {/* Contact & Privacy Settings */}
           <Card>
@@ -353,6 +467,17 @@ export default function EditPage({ params }: EditPageProps) {
                       Show my email address to finders
                     </Label>
                   </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="showContactOnFinderPage"
+                      checked={formData.showContactOnFinderPage}
+                      onCheckedChange={(checked) => handleInputChange("showContactOnFinderPage", checked as boolean)}
+                    />
+                    <Label htmlFor="showContactOnFinderPage" className="text-sm">
+                      Show contact information on finder page
+                    </Label>
+                  </div>
                 </div>
               </div>
 
@@ -366,12 +491,10 @@ export default function EditPage({ params }: EditPageProps) {
                       onCheckedChange={(checked) => handleInputChange("scanAlerts", checked as boolean)}
                     />
                     <Label htmlFor="scanAlerts" className="text-sm">
-                      Enable scan alerts for this tag
+                      Instant scan alerts
                     </Label>
                   </div>
 
-                  {formData.scanAlerts && (
-                    <div className="ml-6 space-y-2">
                       <div className="flex items-center space-x-2">
                         <Checkbox
                           id="emailAlerts"
@@ -393,119 +516,59 @@ export default function EditPage({ params }: EditPageProps) {
                           SMS notifications
                         </Label>
                       </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Image Upload */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl">Photo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!imagePreview ? (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 text-center">
-                  <Upload className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2 text-sm sm:text-base">Upload a photo of your {formData.tagType}</p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="image-upload"
-                  />
-                  <Button type="button" variant="outline" asChild size="sm" className="text-sm">
-                    <label htmlFor="image-upload" className="cursor-pointer">
-                      Choose Photo
-                    </label>
-                  </Button>
                 </div>
-              ) : (
-                <div className="relative">
-                  <img
-                    src={imagePreview || "/placeholder.svg"}
-                    alt="Preview"
-                    className="w-full h-32 sm:h-48 object-cover rounded-lg"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={removeImage}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          {/* Actions */}
-          <div className="flex flex-col space-y-3">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-between mt-8">
+          <div className="flex gap-3">
             <Button
-              type="submit"
-              size="lg"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-sm sm:text-base"
-              disabled={isSubmitting || !formData.itemName || !formData.customMessage}
+              onClick={handleToggleStatus}
+              variant={formData.status === "active" ? "destructive" : "default"}
+              disabled={saving}
             >
-              {isSubmitting ? "Saving Changes..." : "Save Changes"}
-              <Save className="h-4 w-4 ml-2" />
-            </Button>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                onClick={handleToggleStatus}
-                className="w-full bg-transparent text-sm sm:text-base"
-              >
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
                 <Power className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">
-                  {formData.status === "active" ? "Deactivate Tag" : "Activate Tag"}
-                </span>
-                <span className="sm:hidden">
+              )}
                   {formData.status === "active" ? "Deactivate" : "Activate"}
-                </span>
               </Button>
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="lg" className="w-full text-sm sm:text-base">
+                <Button variant="destructive" disabled={saving}>
                     <Trash2 className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Delete Tag</span>
-                    <span className="sm:hidden">Delete</span>
+                  Delete
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="sm:max-w-md">
+              <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Tag</AlertDialogTitle>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete this tag? This action cannot be undone and the QR code will no
-                      longer work.
+                    This action cannot be undone. This will permanently delete your QR code.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-                      Delete Tag
+                    Delete
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </div>
-          </div>
-        </form>
 
-        {/* Preview Link */}
-        <div className="mt-6 sm:mt-8 text-center">
-          <p className="text-xs sm:text-sm text-gray-600 mb-2">Want to see how your tag looks to finders?</p>
-          <Button variant="link" asChild className="text-sm sm:text-base">
-            <Link href={`/scan/${tagInfo.code}`}>Preview Tag</Link>
+          <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
+            {saving ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Save Changes
           </Button>
         </div>
       </div>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Eye, EyeOff, Key, QrCode } from "lucide-react"
+import { ArrowLeft, Eye, EyeOff, Key, Loader2, QrCode } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { Header } from "@/components/header"
@@ -129,9 +129,12 @@ export default function LoginPage() {
             <Button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-black hover:bg-gray-800 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-800 text-white"
             >
-              {loading ? 'Logging in...' : 'Login to Dashboard'}
+              {loading ? <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                
+                </> : 'Login to Dashboard'}
             </Button>
             
             <div className="text-center">

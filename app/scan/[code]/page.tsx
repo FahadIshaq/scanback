@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, CheckCircle, AlertCircle, Heart, Package, QrCode, Shield, Copy, Check, PawPrint, Luggage, Loader2 } from "lucide-react"
+import { ArrowLeft, CheckCircle, AlertCircle, Heart, Package, QrCode, Shield, Copy, Check, PawPrint, Luggage, Loader2, Upload, Camera, Image as ImageIcon } from "lucide-react"
 import { FaWhatsapp, FaSms, FaPhone, FaEnvelope } from "react-icons/fa"
 import Link from "next/link"
 import { apiClient } from "@/lib/api"
@@ -108,9 +108,9 @@ interface QRData {
     color?: string
     brand?: string
     model?: string
-    species?: string
-    breed?: string
-    age?: string
+    image?: string
+    emergencyDetails?: string
+    pedigreeInfo?: string
   }
   contact: {
     name: string
@@ -121,6 +121,7 @@ interface QRData {
   settings?: {
     instantAlerts: boolean
     locationSharing: boolean
+    showContactOnFinderPage?: boolean
   }
   status: string
   createdAt: string
@@ -356,6 +357,9 @@ export default function ScanPage() {
   const [copiedPassword, setCopiedPassword] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [messageClicked, setMessageClicked] = useState(false)
+  const [petImage, setPetImage] = useState<string | null>(null)
+  const [showEmergencyDetails, setShowEmergencyDetails] = useState(false)
+  const [showPedigreeInfo, setShowPedigreeInfo] = useState(false)
 
   const [formData, setFormData] = useState({
     details: {
@@ -365,9 +369,9 @@ export default function ScanPage() {
       color: "",
       brand: "",
       model: "",
-      species: "",
-      breed: "",
-      age: ""
+      image: "",
+      emergencyDetails: "",
+      pedigreeInfo: ""
     },
     contact: {
       name: "",
@@ -380,7 +384,8 @@ export default function ScanPage() {
     },
     settings: {
       instantAlerts: true,
-      locationSharing: true
+      locationSharing: true,
+      showContactOnFinderPage: true
     }
   })
 
@@ -412,11 +417,11 @@ export default function ScanPage() {
         
         // Only track the scan if the QR code is activated
         if (response.data.isActivated) {
-          try {
-            await apiClient.trackScan(code)
-          } catch (trackError) {
-            // Don't show error for tracking failures, just log it
-            console.log('Scan tracking failed:', trackError)
+        try {
+          await apiClient.trackScan(code)
+        } catch (trackError) {
+          // Don't show error for tracking failures, just log it
+          console.log('Scan tracking failed:', trackError)
           }
         }
       } else {
@@ -474,10 +479,10 @@ export default function ScanPage() {
       } else {
         // Only validate if there's a value
         const validation = validatePhoneNumber(phoneValue, formData.contact.backupCountryCode)
-        setPhoneErrors(prev => ({
-          ...prev,
-          backup: validation.isValid ? "" : validation.error
-        }))
+      setPhoneErrors(prev => ({
+        ...prev,
+        backup: validation.isValid ? "" : validation.error
+      }))
       }
     } else if (field === 'contact.countryCode') {
       // Re-validate main phone when country changes
@@ -489,11 +494,11 @@ export default function ScanPage() {
     } else if (field === 'contact.backupCountryCode') {
       // Re-validate backup phone when country changes (only if there's a value)
       if (formData.contact.backupPhone.trim() !== '') {
-        const validation = validatePhoneNumber(formData.contact.backupPhone, value as string)
-        setPhoneErrors(prev => ({
-          ...prev,
-          backup: validation.isValid ? "" : validation.error
-        }))
+      const validation = validatePhoneNumber(formData.contact.backupPhone, value as string)
+      setPhoneErrors(prev => ({
+        ...prev,
+        backup: validation.isValid ? "" : validation.error
+      }))
       } else {
         // Clear error if backup phone is empty
         setPhoneErrors(prev => ({
@@ -548,6 +553,43 @@ export default function ScanPage() {
     } catch (err) {
       console.error('Failed to copy: ', err)
     }
+  }
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file')
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size must be less than 5MB')
+        return
+      }
+      
+      // Convert to base64 data URL directly
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        setPetImage(result)
+        setFormData(prev => ({
+          ...prev,
+          details: {
+            ...prev.details,
+            image: result
+          }
+        }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const triggerImageUpload = () => {
+    const input = document.getElementById('pet-image-upload') as HTMLInputElement
+    input?.click()
   }
 
   // Form validation function
@@ -656,12 +698,12 @@ export default function ScanPage() {
                 </Link>
               </Button>
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-600 rounded-lg">
+                <div className="p-2 bg-black rounded-lg">
                   <QrCode className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <span className="font-bold text-black">ScanBack</span>
-                  <p className="text-xs text-gray-600">QR Code Service</p>
+                  <span className="font-bold text-black">ScanBack™</span>
+                  <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
                 </div>
               </div>
             </div>
@@ -690,12 +732,12 @@ export default function ScanPage() {
             <div className="flex items-center justify-between">
               
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-600 rounded-lg">
+                <div className="p-2 bg-black rounded-lg">
                   <QrCode className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <span className="font-bold text-black">ScanBack</span>
-                  <p className="text-xs text-gray-600">QR Code Service</p>
+                  <span className="font-bold text-black">ScanBack™</span>
+                  <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
                 </div>
               </div>
             </div>
@@ -719,8 +761,12 @@ export default function ScanPage() {
             </div>
           </div>
           <p className="text-gray-700 mb-8 text-lg">
-            Your QR tag has been registered and is now active
+  Your ScanBack™ QR code is now active. <br />
+  <span className="text-gray-500 text-base">
+    If your item is lost, anyone who scans it can contact you instantly.
+  </span>
           </p>
+
           
           {isNewUser && tempPassword ? (
             <div className="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6 text-left shadow-lg">
@@ -931,12 +977,12 @@ export default function ScanPage() {
             <div className="flex items-center justify-between">
               
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-600 rounded-lg">
+                <div className="p-2 bg-black rounded-lg">
                   <QrCode className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <span className="font-bold text-black">ScanBack</span>
-                  <p className="text-xs text-gray-600">QR Code Service</p>
+                  <span className="font-bold text-black">ScanBack™</span>
+                  <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
                 </div>
               </div>
             </div>
@@ -957,7 +1003,7 @@ export default function ScanPage() {
               Found {qrData.type === 'pet' ? 'Pet' : 'Item'}
             </h1>
             <p className="text-gray-700 text-xl">
-              This {qrData.type === 'pet' ? 'pet' : 'item'} belongs to someone. Help return it!
+            Thanks for scanning — let’s help return it safely.
             </p>
           </div>
 
@@ -966,7 +1012,7 @@ export default function ScanPage() {
             <div className="space-y-6">
               {/* Item Information Card */}
               <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
-                <CardHeader className="bg-gray-50 rounded-t-xl">
+                <CardHeader className="bg-gray-50">
                   <CardTitle className="flex items-center gap-3 text-xl text-black">
                     {qrData.type === 'pet' ? (
                       <PawPrint className="h-6 w-6 text-black" />
@@ -976,7 +1022,7 @@ export default function ScanPage() {
                     {qrData.details.name}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 space-y-4">
+                {/* <CardContent className="p-6 space-y-4">
                   {qrData.details.description && (
                     <div className="bg-gray-50 rounded-lg p-4">
                       <Label className="text-sm font-semibold text-gray-700 mb-2 block">Description</Label>
@@ -1033,11 +1079,11 @@ export default function ScanPage() {
                       )}
                     </div>
                   )}
-                </CardContent>
+                </CardContent> */}
               </Card>
 
-              {/* Owner Message Card */}
-              {qrData.contact.message && (
+              {/* Owner Message Card - Only show if contact visibility is enabled */}
+              {qrData.settings?.showContactOnFinderPage === true && qrData.contact.message && (
                 <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-gray-50">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg text-black">
@@ -1056,9 +1102,10 @@ export default function ScanPage() {
 
             {/* Right Column - Contact Options */}
             <div className="space-y-6">
-              {/* Owner Information Card */}
+              {/* Owner Information Card - Only show if contact visibility is enabled */}
+              {qrData.settings?.showContactOnFinderPage === true && (
               <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
-                <CardHeader className="bg-gray-50 rounded-t-xl">
+                  <CardHeader className="bg-gray-50">
                   <CardTitle className="flex items-center gap-2 text-xl text-black">
                     <Shield className="h-6 w-6" />
                     Owner Information
@@ -1097,15 +1144,79 @@ export default function ScanPage() {
                         <span className="text-sm font-medium text-black">WhatsApp</span>
                       </div>
                       <div className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-200">
-                        <FaSms className="text-purple-600 text-sm" />
+                          <FaSms className="text-blue-600 text-sm" />
                         <span className="text-sm font-medium text-black">SMS</span>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
+              )}
 
-              {/* Contact Action Buttons */}
+
+              {/* Pet-specific information display */}
+              {qrData.type === 'pet' && (
+                <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
+                  <CardHeader className="bg-gray-50">
+                    <CardTitle className="flex items-center gap-2 text-xl text-black">
+                      <PawPrint className="h-6 w-6 text-orange-600" />
+                      Pet Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Pet Image */}
+                    {qrData.details.image && (
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <Label className="text-sm font-semibold text-gray-700 mb-2 block">Pet Photo</Label>
+                        <img 
+                          src={qrData.details.image} 
+                          alt={qrData.details.name}
+                          className="w-32 h-32 object-cover rounded-lg mx-auto"
+                        />
+                      </div>
+                    )}
+
+
+                    {/* Emergency Details */}
+                    {qrData.details.emergencyDetails && (
+                      <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                        <Label className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4" />
+                          Emergency Information
+                        </Label>
+                        <p className="text-red-800 text-sm leading-relaxed">{qrData.details.emergencyDetails}</p>
+                      </div>
+                    )}
+
+                    {/* Pedigree Information */}
+                    {qrData.details.pedigreeInfo && (
+                      <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <Label className="text-sm font-semibold text-blue-700 mb-2 block">Pedigree Information</Label>
+                        <p className="text-blue-800 text-sm leading-relaxed">{qrData.details.pedigreeInfo}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Contact Information Hidden Message */}
+              {qrData.settings?.showContactOnFinderPage === false && (
+                <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-gray-50">
+                  <CardContent className="p-6">
+                    <div className="text-center">
+                      <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <Shield className="h-8 w-8 text-gray-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">Contact Information Hidden</h3>
+                      <p className="text-gray-600 text-sm">
+                        The owner has chosen to keep their contact details private. You can still contact them using the buttons below.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Contact Action Buttons - Always show */}
               <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
                 <CardHeader>
                   <CardTitle className="text-xl text-black">Contact Owner</CardTitle>
@@ -1114,7 +1225,7 @@ export default function ScanPage() {
                 <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-semibold">
                       <a 
                         href={`https://wa.me/${qrData.contact.phone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(
-                          `Hi ${qrData.contact.name}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details.name}". ${qrData.contact.message || 'Please let me know how to return it to you. Thank you!'}`
+                          `Hi ${qrData.contact.name}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -1126,7 +1237,7 @@ export default function ScanPage() {
                     </Button>
                   {/* Primary Contact Methods */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold">
+                      <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold">
                       <a href={`tel:${qrData.contact.phone}`} className="flex items-center justify-center gap-3">
                         <FaPhone className="h-5 w-5 text-blue-400" />
                         Call Owner
@@ -1135,7 +1246,7 @@ export default function ScanPage() {
                     
                     <Button asChild variant="outline" className="border-2 border-gray-300 hover:border-black text-black hover:text-black h-12 text-base font-semibold">
                       <a 
-                        href={`mailto:${qrData.contact.email}?subject=${encodeURIComponent(`Found your ${qrData.type === 'pet' ? 'pet' : 'item'} - ${qrData.details.name}`)}&body=${encodeURIComponent(`Hi ${qrData.contact.name},\n\nI found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details.name}". ${qrData.contact.message || 'Please let me know how to return it to you. Thank you!'}\n\nBest regards`)}`} 
+                        href={`mailto:${qrData.contact.email}?subject=${encodeURIComponent(`Found your ${qrData.type === 'pet' ? 'pet' : 'item'} - ${qrData.details.name}`)}&body=${encodeURIComponent(`Hi ${qrData.contact.name},\n\nI found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.\n\nBest regards`)}`} 
                         className="flex items-center justify-center gap-3"
                       >
                         <FaEnvelope className="h-5 w-5 text-blue-600" />
@@ -1146,16 +1257,14 @@ export default function ScanPage() {
 
                   {/* Messaging Apps */}
                   <div className="space-y-3">
-                    
-
-                    <Button asChild variant="outline" className="w-full border-2 border-purple-300 hover:border-purple-500 text-purple-700 hover:text-purple-900 h-12 text-base font-semibold">
+                      <Button asChild variant="outline" className="w-full border-2 border-gray-300 hover:border-black text-black hover:text-black h-12 text-base font-semibold">
                       <a 
                         href={`sms:${qrData.contact.phone}?body=${encodeURIComponent(
-                          `Hi ${qrData.contact.name}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details.name}". ${qrData.contact.message || 'Please let me know how to return it to you. Thank you!'}`
+                          `Hi ${qrData.contact.name}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.`
                         )}`}
                         className="flex items-center justify-center gap-3"
                       >
-                        <FaSms className="h-5 w-5 text-purple-600" />
+                          <FaSms className="h-5 w-5 text-blue-600" />
                         Send SMS
                       </a>
                     </Button>
@@ -1169,10 +1278,10 @@ export default function ScanPage() {
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-gray-200">
                     <CheckCircle className="h-8 w-8 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-black mb-2">Thank You for Your Help!</h3>
-                  <p className="text-gray-700">
+                  <h3 className="text-lg font-bold text-black mb-2">Thank you for your help. Your kindness is truly appreciated.</h3>
+                  {/* <p className="text-gray-700">
                     Your kindness in helping return this {qrData.type === 'pet' ? 'pet' : 'item'} to its owner is greatly appreciated.
-                  </p>
+                  </p> */}
                 </CardContent>
               </Card>
             </div>
@@ -1194,12 +1303,12 @@ export default function ScanPage() {
               </Link>
             </Button> */}
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-600 rounded-lg">
+              <div className="p-2 bg-black rounded-lg">
                 <QrCode className="h-6 w-6 text-white" />
               </div>
               <div>
-                <span className="font-bold text-black">ScanBack</span>
-                <p className="text-xs text-gray-600">QR Code Service</p>
+                <span className="font-bold text-black">ScanBack™</span>
+                <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
               </div>
             </div>
           </div>
@@ -1210,7 +1319,7 @@ export default function ScanPage() {
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-gray-300 shadow-lg">
             {qrData?.type === 'pet' ? (
-              <PawPrint className="h-10 w-10 text-black" />
+              <PawPrint className="h-10 w-10 text-yellow-500" />
             ) : (
               <Luggage className="h-10 w-10 text-black" />
             )}
@@ -1230,7 +1339,7 @@ export default function ScanPage() {
             </div>
           </div>
           <p className="text-gray-700 text-lg">
-            Fill in the details below to activate your QR tag
+          Get started in seconds — just enter a few quick details to activate your tag.
           </p>
         </div>
 
@@ -1353,6 +1462,131 @@ export default function ScanPage() {
                   />
               </div>
 
+              {/* Pet Image Upload - Only for Pet Tags */}
+              {qrData?.type === 'pet' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Pet Photo (Optional)</Label>
+                    <div className="mt-2">
+                      <div 
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                        onClick={triggerImageUpload}
+                      >
+                        <input
+                          id="pet-image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                        {petImage ? (
+                          <div className="space-y-3">
+                            <img 
+                              src={petImage} 
+                              alt="Pet" 
+                              className="w-24 h-24 object-cover rounded-lg mx-auto"
+                            />
+                            <p className="text-sm text-gray-600">Click to change photo</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto">
+                              <Camera className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Upload Image</p>
+                              <p className="text-xs text-gray-500">Tap to select from camera or gallery</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Pet-specific fields */}
+              {qrData?.type === 'pet' && (
+                <div className="space-y-4">
+
+                  {/* Emergency Details Toggle */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <Label className="text-sm font-medium text-black">Emergency Details</Label>
+                        <p className="text-xs text-gray-600 mt-1">Add medical info, special needs, or emergency contacts</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowEmergencyDetails(!showEmergencyDetails)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          showEmergencyDetails ? 'bg-blue-600' : 'bg-gray-300'
+                        }`}
+                        aria-pressed={showEmergencyDetails}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            showEmergencyDetails ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {showEmergencyDetails && (
+                      <div>
+                        <Label htmlFor="emergencyDetails">Emergency Details</Label>
+                        <Textarea
+                          id="emergencyDetails"
+                          value={formData.details.emergencyDetails}
+                          onChange={(e) => handleInputChange('details.emergencyDetails', e.target.value)}
+                          placeholder="e.g., Allergic to penicillin, needs medication twice daily, emergency vet contact..."
+                          rows={3}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Pedigree Info Toggle */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <Label className="text-sm font-medium text-black">Pedigree Information</Label>
+                        <p className="text-xs text-gray-600 mt-1">Add breeding info, registration details, or lineage</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowPedigreeInfo(!showPedigreeInfo)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          showPedigreeInfo ? 'bg-blue-600' : 'bg-gray-300'
+                        }`}
+                        aria-pressed={showPedigreeInfo}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            showPedigreeInfo ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {showPedigreeInfo && (
+                      <div>
+                        <Label htmlFor="pedigreeInfo">Pedigree Information</Label>
+                        <Textarea
+                          id="pedigreeInfo"
+                          value={formData.details.pedigreeInfo}
+                          onChange={(e) => handleInputChange('details.pedigreeInfo', e.target.value)}
+                          placeholder="e.g., AKC registered, champion bloodline, breeder contact info..."
+                          rows={3}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
                 <div>
                   <Label htmlFor="message">Finder Message (Optional)</Label>
                   <Textarea
@@ -1380,7 +1614,7 @@ export default function ScanPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg gap-3">
                   <div className="flex-1">
                     <Label className="text-sm font-medium text-black">Instant Alerts</Label>
-                    <p className="text-xs text-gray-600 mt-1">Get notified on WhatsApp and Email when someone finds your item</p>
+                    <p className="text-xs text-gray-600 mt-1">Get notified on Email when someone finds your item</p>
                   </div>
                   <button
                     type="button"
@@ -1418,6 +1652,28 @@ export default function ScanPage() {
                     />
                   </button>
                 </div>
+
+                {/* Contact Visibility Toggle - For both Item and Pet Tags */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg gap-3">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium text-black">Show Contact on Finder Page</Label>
+                    <p className="text-xs text-gray-600 mt-1">Display your contact details when someone finds your {qrData?.type === 'pet' ? 'pet' : 'item'}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('settings.showContactOnFinderPage', !formData.settings.showContactOnFinderPage)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      formData.settings.showContactOnFinderPage ? 'bg-blue-600' : 'bg-gray-300'
+                    }`}
+                    aria-pressed={formData.settings.showContactOnFinderPage}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        formData.settings.showContactOnFinderPage ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
 
               {error && (
@@ -1434,24 +1690,23 @@ export default function ScanPage() {
                 {submitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Activating...
                   </>
                 ) : (
                   'Activate My Tag'
                 )}
                 </Button>
 
-                {!isFormValid() && !submitting && (
+                
                   <p className="text-xs text-gray-500 text-center mt-2">
-                    Please fill in all required fields to activate your tag
+                  Protect what matters to you! Every scan makes a difference.
                   </p>
-                )}
+                
 
               <p className="text-xs text-gray-600 text-center">
                 By activating you agree to our{' '}
-                <a href="#" className="text-black hover:text-gray-700 hover:underline font-medium">Terms and Conditions</a>
+                <a href="#" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">Terms and Conditions</a>
                 {' '}and{' '}
-                <a href="#" className="text-black hover:text-gray-700 hover:underline font-medium">Privacy Policy</a>
+                <a href="#" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">Privacy Policy</a>
               </p>
             </form>
           </CardContent>

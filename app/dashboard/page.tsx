@@ -24,7 +24,10 @@ import {
   X,
   PawPrint,
   Luggage,
-  CheckCircle
+  CheckCircle,
+  Camera,
+  Upload,
+  Image as ImageIcon
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { apiClient } from "@/lib/api"
@@ -41,9 +44,9 @@ interface QRCode {
     color?: string
     brand?: string
     model?: string
-    species?: string
-    breed?: string
-    age?: number
+    image?: string
+    emergencyDetails?: string
+    pedigreeInfo?: string
   }
   contact?: {
     name: string
@@ -57,12 +60,22 @@ interface QRCode {
   settings?: {
     instantAlerts: boolean
     locationSharing: boolean
+    showContactOnFinderPage?: boolean
   }
   status: string
   isActivated: boolean
   createdAt: string
   scanCount: number
+  lastScanned?: string
   qrImageUrl?: string
+  metadata?: {
+    scanHistory: Array<{
+      scannedAt: string
+      ipAddress: string
+      userAgent: string
+      location: string
+    }>
+  }
 }
 
 // Country codes for phone number selection
@@ -220,11 +233,17 @@ export default function DashboardPage() {
       message: ""
     },
     details: {
-      name: ""
+      name: "",
+      image: "",
+      emergencyDetails: "",
+      pedigreeInfo: "",
+      showEmergencyDetails: false,
+      showPedigreeInfo: false
     },
     settings: {
       instantAlerts: true,
-      locationSharing: true
+      locationSharing: true,
+      showContactOnFinderPage: true
     }
   })
   const [showQRModal, setShowQRModal] = useState(false)
@@ -238,6 +257,10 @@ export default function DashboardPage() {
   const [otpError, setOtpError] = useState("")
   const [pendingUpdateData, setPendingUpdateData] = useState<any>(null)
   const [originalContact, setOriginalContact] = useState<any>(null)
+  const [showScanHistoryModal, setShowScanHistoryModal] = useState(false)
+  const [showFilteredListModal, setShowFilteredListModal] = useState(false)
+  const [filteredListType, setFilteredListType] = useState<'pet' | 'item' | null>(null)
+  const [expandedScanHistory, setExpandedScanHistory] = useState<Set<string>>(new Set())
   const router = useRouter()
 
   useEffect(() => {
@@ -276,11 +299,17 @@ export default function DashboardPage() {
         message: qr.contact?.message || ""
       },
       details: {
-        name: qr.details.name
+        name: qr.details.name,
+        image: qr.details.image || "",
+        emergencyDetails: qr.details.emergencyDetails || "",
+        pedigreeInfo: qr.details.pedigreeInfo || "",
+        showEmergencyDetails: !!qr.details.emergencyDetails,
+        showPedigreeInfo: !!qr.details.pedigreeInfo
       },
       settings: {
         instantAlerts: qr.settings?.instantAlerts ?? true,
-        locationSharing: qr.settings?.locationSharing ?? true
+        locationSharing: qr.settings?.locationSharing ?? true,
+        showContactOnFinderPage: qr.settings?.showContactOnFinderPage ?? true
       }
     })
   }
@@ -298,11 +327,17 @@ export default function DashboardPage() {
         message: ""
       },
       details: {
-        name: ""
+        name: "",
+        image: "",
+        emergencyDetails: "",
+        pedigreeInfo: "",
+        showEmergencyDetails: false,
+        showPedigreeInfo: false
       },
       settings: {
         instantAlerts: true,
-        locationSharing: true
+        locationSharing: true,
+        showContactOnFinderPage: true
       }
     })
     setPhoneErrors({ main: "", backup: "" })
@@ -316,6 +351,66 @@ export default function DashboardPage() {
   const closeQRModal = () => {
     setShowQRModal(false)
     setSelectedQR(null)
+  }
+
+  const handleTotalScansClick = () => {
+    setShowScanHistoryModal(true)
+  }
+
+  const handlePetsClick = () => {
+    setFilteredListType('pet')
+    setShowFilteredListModal(true)
+  }
+
+  const handleItemsClick = () => {
+    setFilteredListType('item')
+    setShowFilteredListModal(true)
+  }
+
+  const closeScanHistoryModal = () => {
+    setShowScanHistoryModal(false)
+  }
+
+  const closeFilteredListModal = () => {
+    setShowFilteredListModal(false)
+    setFilteredListType(null)
+  }
+
+  const toggleScanHistoryExpansion = (qrId: string) => {
+    setExpandedScanHistory(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(qrId)) {
+        newSet.delete(qrId)
+      } else {
+        newSet.add(qrId)
+      }
+      return newSet
+    })
+  }
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file')
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size must be less than 5MB')
+        return
+      }
+      
+      // Convert to base64 data URL directly
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        handleEditInputChange('details.image', result)
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   const closeUpdateSuccess = () => {
@@ -409,23 +504,29 @@ export default function DashboardPage() {
       return
     }
 
-    // Check if email or phone has changed
+    // Check if any fields have changed
     const emailChanged = editForm.contact.email !== editingQR.contact?.email
     const phoneChanged = `${editForm.contact.countryCode}${editForm.contact.phone}` !== editingQR.contact?.phone
+    const detailsChanged = editForm.details.name !== editingQR.details.name ||
+                          editForm.details.image !== editingQR.details.image ||
+                          editForm.details.emergencyDetails !== editingQR.details.emergencyDetails ||
+                          editForm.details.pedigreeInfo !== editingQR.details.pedigreeInfo
+    const settingsChanged = editForm.settings.instantAlerts !== editingQR.settings?.instantAlerts ||
+                           editForm.settings.locationSharing !== editingQR.settings?.locationSharing ||
+                           editForm.settings.showContactOnFinderPage !== editingQR.settings?.showContactOnFinderPage
 
     console.log('Change detection:', { 
       emailChanged, 
-      phoneChanged, 
+      phoneChanged,
+      detailsChanged,
+      settingsChanged,
       currentEmail: editingQR.contact?.email, 
       newEmail: editForm.contact.email,
       currentPhone: editingQR.contact?.phone,
       newPhone: `${editForm.contact.countryCode}${editForm.contact.phone}`
     });
 
-    if (emailChanged || phoneChanged) {
-      // Store original contact for comparison
-      setOriginalContact(editingQR.contact)
-      
+    if (emailChanged || phoneChanged || detailsChanged || settingsChanged) {
       // Prepare update data
       const updateData = {
         contact: {
@@ -433,79 +534,75 @@ export default function DashboardPage() {
           phone: `${editForm.contact.countryCode}${editForm.contact.phone}`,
           backupPhone: editForm.contact.backupPhone ? `${editForm.contact.backupCountryCode}${editForm.contact.backupPhone}` : undefined
         },
-        details: editForm.details,
+        details: {
+          ...editForm.details,
+          // Clear emergency details if toggle is disabled
+          emergencyDetails: editForm.details.showEmergencyDetails ? editForm.details.emergencyDetails : '',
+          // Clear pedigree info if toggle is disabled
+          pedigreeInfo: editForm.details.showPedigreeInfo ? editForm.details.pedigreeInfo : ''
+        },
         settings: editForm.settings
       }
       
-      setPendingUpdateData(updateData)
-      
-      // Send OTP for verification
-      try {
-        setOtpLoading(true)
-        setOtpError("")
+      // Only require OTP verification for contact changes
+      if (emailChanged || phoneChanged) {
+        // Store original contact for comparison
+        setOriginalContact(editingQR.contact)
+        setPendingUpdateData(updateData)
         
-        const otpParams = {
-          code: editingQR.code,
-          newEmail: emailChanged ? editForm.contact.email : undefined,
-          newPhone: phoneChanged ? `${editForm.contact.countryCode}${editForm.contact.phone}` : undefined
-        };
+        // Send OTP for verification
+        try {
+          setOtpLoading(true)
+          setOtpError("")
         
-        console.log('Sending OTP request:', otpParams);
-        
-        const otpResponse = await apiClient.sendUpdateOTP(
-          editingQR.code,
-          emailChanged ? editForm.contact.email : undefined,
-          phoneChanged ? `${editForm.contact.countryCode}${editForm.contact.phone}` : undefined
-        )
-        
-        console.log('OTP response:', otpResponse);
-        
-        if (otpResponse.success) {
-          setShowOTPVerification(true)
-        } else {
-          console.error('OTP send failed:', otpResponse);
-          setOtpError(otpResponse.message || "Failed to send OTP")
+          const otpParams = {
+            code: editingQR.code,
+            newEmail: emailChanged ? editForm.contact.email : undefined,
+            newPhone: phoneChanged ? `${editForm.contact.countryCode}${editForm.contact.phone}` : undefined
+          };
+          
+          console.log('Sending OTP request:', otpParams);
+          
+          const otpResponse = await apiClient.sendUpdateOTP(
+            editingQR.code,
+            emailChanged ? editForm.contact.email : undefined,
+            phoneChanged ? `${editForm.contact.countryCode}${editForm.contact.phone}` : undefined
+          )
+          
+          console.log('OTP response:', otpResponse);
+          
+          if (otpResponse.success) {
+            setShowOTPVerification(true)
+          } else {
+            console.error('OTP send failed:', otpResponse);
+            setOtpError(otpResponse.message || "Failed to send OTP")
+          }
+        } catch (error: any) {
+          console.error('OTP send error:', error);
+          setOtpError(error.message || "Failed to send OTP")
+        } finally {
+          setOtpLoading(false)
         }
-      } catch (error: any) {
-        console.error('OTP send error:', error);
-        setOtpError(error.message || "Failed to send OTP")
-      } finally {
-        setOtpLoading(false)
+      } else {
+        // No contact changes, proceed with direct update
+        console.log('No contact changes, proceeding with direct update');
+        await performUpdate(updateData)
       }
     } else {
-      // No sensitive data changed, proceed with direct update
-      console.log('No sensitive data changed, proceeding with direct update');
-      
-      const updateData = {
-        contact: {
-          ...editForm.contact,
-          phone: `${editForm.contact.countryCode}${editForm.contact.phone}`,
-          backupPhone: editForm.contact.backupPhone ? `${editForm.contact.backupCountryCode}${editForm.contact.backupPhone}` : undefined
-        },
-        details: editForm.details,
-        settings: editForm.settings
-      }
-      
-      console.log('Direct update data:', updateData);
-      setPendingUpdateData(updateData)
-      await performUpdate(updateData)
+      // No changes detected
+      console.log('No changes detected');
     }
   }
 
   const performUpdate = async (updateData?: any) => {
     const dataToUse = updateData || pendingUpdateData;
-    console.log('performUpdate called with:', { editingQR: editingQR?.code, dataToUse });
     
     if (!editingQR || !dataToUse) {
-      console.log('performUpdate: Missing editingQR or updateData');
       return;
     }
 
     try {
-      console.log('Calling updateQRCode with:', dataToUse);
       const response = await apiClient.updateQRCode(editingQR.code, dataToUse)
-      
-      console.log('updateQRCode response:', response);
       
       if (response.success) {
         const updatedQRData = {
@@ -631,8 +728,8 @@ export default function DashboardPage() {
                 <QrCode className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <span className="font-bold text-black text-sm sm:text-base">ScanBack</span>
-                <p className="text-xs text-gray-600 hidden sm:block">QR Code Service</p>
+                <span className="font-bold text-black text-sm sm:text-base">ScanBack™</span>
+                <p className="text-xs text-gray-600 hidden sm:block">Smart Lost & Found QR Tag</p>
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -666,7 +763,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={handleItemsClick}>
             <CardContent className="p-3 sm:p-6 text-center">
               <div className="text-xl sm:text-3xl font-bold text-green-600 mb-1 sm:mb-2">
                 {qrCodes.filter(qr => qr.type === 'item').length}
@@ -675,7 +772,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={handlePetsClick}>
             <CardContent className="p-3 sm:p-6 text-center">
               <div className="text-xl sm:text-3xl font-bold text-orange-600 mb-1 sm:mb-2">
                 {qrCodes.filter(qr => qr.type === 'pet').length}
@@ -684,7 +781,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={handleTotalScansClick}>
             <CardContent className="p-3 sm:p-6 text-center">
               <div className="text-xl sm:text-3xl font-bold text-purple-600 mb-1 sm:mb-2">
                 {qrCodes.reduce((sum, qr) => sum + qr.scanCount, 0)}
@@ -748,6 +845,18 @@ export default function DashboardPage() {
                         <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 truncate">
                           {qr.details.name}
                         </h3>
+                        
+                        {/* Pet Image Display */}
+                        {qr.type === 'pet' && qr.details.image && (
+                          <div className="mb-2">
+                            <img 
+                              src={qr.details.image} 
+                              alt={qr.details.name}
+                              className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                            />
+                          </div>
+                        )}
+                        
                         {qr.details.description && (
                           <p className="text-gray-600 text-xs sm:text-sm mb-2 line-clamp-2">
                             {qr.details.description}
@@ -989,18 +1098,150 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
+                  {/* Pet-specific fields */}
+                  {editingQR.type === 'pet' && (
+                    <div className="space-y-3 sm:space-y-4">
+                      <h4 className="text-base sm:text-lg font-semibold text-gray-900 border-b pb-2">Pet Details</h4>
+                      
+                      {/* Pet Image Upload */}
+                      <div>
+                        <Label className="text-sm">Pet Photo (Optional)</Label>
+                        <div className="mt-2">
+                          <div 
+                            className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                            onClick={() => document.getElementById('edit-pet-image-upload')?.click()}
+                          >
+                            <input
+                              id="edit-pet-image-upload"
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                            {editForm.details.image ? (
+                              <div className="space-y-3">
+                                <img 
+                                  src={editForm.details.image} 
+                                  alt="Pet" 
+                                  className="w-24 h-24 object-cover rounded-lg mx-auto"
+                                />
+                                <p className="text-sm text-gray-600">Click to change photo</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto">
+                                  <Camera className="h-8 w-8 text-gray-400" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700">Upload Image</p>
+                                  <p className="text-xs text-gray-500">Tap to select from camera or gallery</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Emergency Details */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                          <div className="flex-1">
+                            <Label className="text-sm font-medium text-black">Emergency Details</Label>
+                            <p className="text-xs text-gray-600 mt-1">Add medical info, special needs, or emergency contacts</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newValue = !editForm.details.showEmergencyDetails
+                              handleEditInputChange('details.showEmergencyDetails', newValue)
+                              if (!newValue) {
+                                handleEditInputChange('details.emergencyDetails', '')
+                              }
+                            }}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                              editForm.details.showEmergencyDetails ? 'bg-blue-600' : 'bg-gray-300'
+                            }`}
+                            aria-pressed={editForm.details.showEmergencyDetails}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                editForm.details.showEmergencyDetails ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                        {editForm.details.showEmergencyDetails && (
+                          <div>
+                            <Label htmlFor="editEmergencyDetails" className="text-sm">Emergency Details</Label>
+                            <Textarea
+                              id="editEmergencyDetails"
+                              value={editForm.details.emergencyDetails || ''}
+                              onChange={(e) => handleEditInputChange('details.emergencyDetails', e.target.value)}
+                              placeholder="e.g., Allergic to penicillin, needs medication twice daily, emergency vet contact..."
+                              rows={3}
+                              className="mt-1 text-sm"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Pedigree Information */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                          <div className="flex-1">
+                            <Label className="text-sm font-medium text-black">Pedigree Information</Label>
+                            <p className="text-xs text-gray-600 mt-1">Add breeding, registration, or lineage details</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newValue = !editForm.details.showPedigreeInfo
+                              handleEditInputChange('details.showPedigreeInfo', newValue)
+                              if (!newValue) {
+                                handleEditInputChange('details.pedigreeInfo', '')
+                              }
+                            }}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                              editForm.details.showPedigreeInfo ? 'bg-blue-600' : 'bg-gray-300'
+                            }`}
+                            aria-pressed={editForm.details.showPedigreeInfo}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                editForm.details.showPedigreeInfo ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                        {editForm.details.showPedigreeInfo && (
+                          <div>
+                            <Label htmlFor="editPedigreeInfo" className="text-sm">Pedigree Information</Label>
+                            <Textarea
+                              id="editPedigreeInfo"
+                              value={editForm.details.pedigreeInfo || ''}
+                              onChange={(e) => handleEditInputChange('details.pedigreeInfo', e.target.value)}
+                              placeholder="e.g., AKC registered, champion bloodline, breeder information..."
+                              rows={3}
+                              className="mt-1 text-sm"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Toggle Settings */}
                   <div className="space-y-3 sm:space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
                       <div className="flex-1">
                         <Label className="text-sm font-medium text-black">Instant Alerts</Label>
-                        <p className="text-xs text-gray-600 mt-1">Get notified on WhatsApp and Email when someone finds your item</p>
+                        <p className="text-xs text-gray-600 mt-1">Get notified on Email when someone finds your item</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleEditInputChange('settings.instantAlerts', !editForm.settings.instantAlerts)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
-                          editForm.settings.instantAlerts ? 'bg-black' : 'bg-gray-300'
+                          editForm.settings.instantAlerts ? 'bg-blue-600' : 'bg-gray-300'
                         }`}
                         aria-pressed={editForm.settings.instantAlerts}
                       >
@@ -1021,13 +1262,34 @@ export default function DashboardPage() {
                         type="button"
                         onClick={() => handleEditInputChange('settings.locationSharing', !editForm.settings.locationSharing)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
-                          editForm.settings.locationSharing ? 'bg-black' : 'bg-gray-300'
+                          editForm.settings.locationSharing ? 'bg-blue-600' : 'bg-gray-300'
                         }`}
                         aria-pressed={editForm.settings.locationSharing}
                       >
                         <span
                           className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                             editForm.settings.locationSharing ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
+                      <div className="flex-1">
+                        <Label className="text-sm font-medium text-black">Show Contact Information</Label>
+                        <p className="text-xs text-gray-600 mt-1">Display your contact details on the finder page</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleEditInputChange('settings.showContactOnFinderPage', !editForm.settings.showContactOnFinderPage)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
+                          editForm.settings.showContactOnFinderPage ? 'bg-blue-600' : 'bg-gray-300'
+                        }`}
+                        aria-pressed={editForm.settings.showContactOnFinderPage}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            editForm.settings.showContactOnFinderPage ? 'translate-x-6' : 'translate-x-1'
                           }`}
                         />
                       </button>
@@ -1047,7 +1309,7 @@ export default function DashboardPage() {
                     <Button 
                       type="submit" 
                       disabled={!isEditFormValid()}
-                      className="w-full sm:w-auto bg-black hover:bg-gray-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Save Changes
                     </Button>
@@ -1104,7 +1366,7 @@ export default function DashboardPage() {
                     <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-1">QR Code URL:</p>
                       <p className="text-xs sm:text-sm font-mono break-all">
-                        {`${process.env.NEXT_PUBLIC_BASE_URL || 'http://192.168.100.16:3001'}/scan/${selectedQR.code}`}
+                        {`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app:3001'}/scan/${selectedQR.code}`}
                       </p>
                     </div>
                   </div>
@@ -1113,8 +1375,59 @@ export default function DashboardPage() {
                     <QrCode className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
                     <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">QR Code image not available</p>
                     <p className="text-xs sm:text-sm text-gray-500 break-all">
-                      QR Code URL: {`${process.env.NEXT_PUBLIC_BASE_URL || 'http://192.168.100.16:3001'}/scan/${selectedQR.code}`}
+                      QR Code URL: {`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app:3001'}/scan/${selectedQR.code}`}
                     </p>
+                  </div>
+                )}
+
+                {/* Pet-specific information display */}
+                {selectedQR.type === 'pet' && (
+                  <div className="mt-4 sm:mt-6 space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <PawPrint className="h-4 w-4 text-orange-600" />
+                      Pet Details
+                    </h4>
+                    
+                    {/* Pet Image */}
+                    {selectedQR.details.image && (
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                        <Label className="text-xs font-semibold text-gray-700 mb-2 block">Pet Photo</Label>
+                        <img 
+                          src={selectedQR.details.image} 
+                          alt={selectedQR.details.name}
+                          className="w-24 h-24 object-cover rounded-lg mx-auto"
+                        />
+                      </div>
+                    )}
+
+
+                    {/* Emergency Details */}
+                    {selectedQR.details.emergencyDetails && (
+                      <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                        <Label className="text-xs font-semibold text-red-700 mb-2 flex items-center gap-2">
+                          <X className="h-3 w-3" />
+                          Emergency Information
+                        </Label>
+                        <p className="text-red-800 text-xs leading-relaxed">{selectedQR.details.emergencyDetails}</p>
+                      </div>
+                    )}
+
+                    {/* Pedigree Information */}
+                    {selectedQR.details.pedigreeInfo && (
+                      <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                        <Label className="text-xs font-semibold text-blue-700 mb-2 block">Pedigree Information</Label>
+                        <p className="text-blue-800 text-xs leading-relaxed">{selectedQR.details.pedigreeInfo}</p>
+                      </div>
+                    )}
+
+                    {/* Contact Visibility Setting */}
+                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                      <Label className="text-xs font-semibold text-gray-700 mb-2 block">Finder Page Settings</Label>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Show contact details to finders</span>
+                        <div className={`w-4 h-4 rounded-full ${selectedQR.settings?.showContactOnFinderPage !== false ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
@@ -1130,7 +1443,7 @@ export default function DashboardPage() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://192.168.100.16:3001'}/scan/${selectedQR.code}`)
+                      navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app:3001'}/scan/${selectedQR.code}`)
                       // You could add a toast notification here
                     }}
                     className="flex-1 text-sm"
@@ -1350,6 +1663,12 @@ export default function DashboardPage() {
                         {updatedQR.settings?.locationSharing ? 'Enabled' : 'Disabled'}
                       </span>
                     </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs sm:text-sm text-gray-700">Show Contact Information</span>
+                      <span className={`text-xs px-2 py-1 rounded-full ${updatedQR.settings?.showContactOnFinderPage ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                        {updatedQR.settings?.showContactOnFinderPage ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1369,6 +1688,198 @@ export default function DashboardPage() {
                     <Scan className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     View Scan Page
                   </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Scan History Modal */}
+        {showScanHistoryModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Scan className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Scan History & Locations</h3>
+                    <p className="text-sm text-gray-600">Track all scans across your QR codes</p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeScanHistoryModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <div className="space-y-4">
+                  {qrCodes.map((qr) => (
+                    <div key={qr._id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          {qr.type === 'pet' ? (
+                            <PawPrint className="h-5 w-5 text-orange-600" />
+                          ) : (
+                            <Luggage className="h-5 w-5 text-green-600" />
+                          )}
+                          <div>
+                            <h4 className="font-semibold text-gray-900">{qr.details.name}</h4>
+                            <p className="text-sm text-gray-600">{qr.type === 'pet' ? 'Pet Tag' : 'Item Tag'}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-purple-600">{qr.scanCount}</div>
+                          <div className="text-xs text-gray-500">scans</div>
+                        </div>
+                      </div>
+                      
+                      {qr.scanCount > 0 ? (
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-sm text-gray-600 mb-3 font-medium">Scan History:</p>
+                          <div className="space-y-2 max-h-32 overflow-y-auto">
+                            {qr.metadata?.scanHistory && qr.metadata.scanHistory.length > 0 ? (
+                              <>
+                                {qr.metadata.scanHistory
+                                  .sort((a, b) => new Date(b.scannedAt).getTime() - new Date(a.scannedAt).getTime())
+                                  .slice(0, expandedScanHistory.has(qr._id) ? qr.metadata.scanHistory.length : 5)
+                                  .map((scan, index) => (
+                                    <div key={index} className="flex items-center justify-between text-xs">
+                                      <div className="flex items-center space-x-2">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span className="text-gray-700">
+                                          {new Date(scan.scannedAt).toLocaleString()}
+                                        </span>
+                                      </div>
+                                      <div className="text-gray-500">
+                                        {scan.location !== 'unknown' ? scan.location : 'Unknown location'}
+                                      </div>
+                                    </div>
+                                  ))}
+                              </>
+                            ) : (
+                              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span>Last scanned: {qr.lastScanned ? new Date(qr.lastScanned).toLocaleString() : 'Recently'}</span>
+                              </div>
+                            )}
+                          </div>
+                          {qr.metadata?.scanHistory && qr.metadata.scanHistory.length > 5 && (
+                            <button
+                              onClick={() => toggleScanHistoryExpansion(qr._id)}
+                              className="text-xs text-blue-600 hover:text-blue-800 mt-2 font-medium transition-colors"
+                            >
+                              {expandedScanHistory.has(qr._id) 
+                                ? 'Show less' 
+                                : `+${qr.metadata.scanHistory.length - 5} more scans`
+                              }
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-lg p-3 text-center">
+                          <p className="text-sm text-gray-500">No scans yet</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            This QR code hasn't been scanned by anyone yet
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Filtered List Modal */}
+        {showFilteredListModal && filteredListType && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b">
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-lg ${filteredListType === 'pet' ? 'bg-orange-100' : 'bg-green-100'}`}>
+                    {filteredListType === 'pet' ? (
+                      <PawPrint className="h-6 w-6 text-orange-600" />
+                    ) : (
+                      <Luggage className="h-6 w-6 text-green-600" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {filteredListType === 'pet' ? 'Pet Tags' : 'Item Tags'}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {qrCodes.filter(qr => qr.type === filteredListType).length} {filteredListType === 'pet' ? 'pets' : 'items'} registered
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeFilteredListModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <div className="space-y-4">
+                  {qrCodes
+                    .filter(qr => qr.type === filteredListType)
+                    .map((qr) => (
+                      <div key={qr._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className={`p-2 rounded-lg ${qr.isActivated ? 'bg-green-100' : 'bg-gray-100'}`}>
+                              {qr.type === 'pet' ? (
+                                <PawPrint className={`h-5 w-5 ${qr.isActivated ? 'text-green-600' : 'text-gray-400'}`} />
+                              ) : (
+                                <Luggage className={`h-5 w-5 ${qr.isActivated ? 'text-green-600' : 'text-gray-400'}`} />
+                              )}
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{qr.details.name}</h4>
+                              <p className="text-sm text-gray-600">
+                                {qr.details.description || 'No description'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`text-sm px-2 py-1 rounded-full ${
+                              qr.isActivated 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {qr.isActivated ? 'Active' : 'Inactive'}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {qr.scanCount} scans
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  
+                  {qrCodes.filter(qr => qr.type === filteredListType).length === 0 && (
+                    <div className="text-center py-8">
+                      <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                        filteredListType === 'pet' ? 'bg-orange-100' : 'bg-green-100'
+                      }`}>
+                        {filteredListType === 'pet' ? (
+                          <PawPrint className="h-8 w-8 text-orange-600" />
+                        ) : (
+                          <Luggage className="h-8 w-8 text-green-600" />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        No {filteredListType === 'pet' ? 'Pet Tags' : 'Item Tags'} Yet
+                      </h3>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

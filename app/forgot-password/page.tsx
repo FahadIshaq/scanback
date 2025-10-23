@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
       if (response.success) {
         setMessage("Verification code has been sent to your email address. Please check your inbox.")
         setStep('otp')
-        setResendCooldown(60) // Start 30-second cooldown
+        setResendCooldown(240) // Start 30-second cooldown
       } else {
         setError(response.message || "Failed to send verification code")
       }
@@ -140,7 +140,7 @@ export default function ForgotPasswordPage() {
       const response = await apiClient.sendPasswordResetOTP(email)
       if (response.success) {
         setMessage("Verification code resent to your email address.")
-        setResendCooldown(60) // Start 30-second cooldown
+        setResendCooldown(240) // Start 30-second cooldown
       } else {
         setError(response.message || "Failed to resend verification code")
       }

@@ -8,94 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, CheckCircle, AlertCircle, Heart, Package, QrCode, Shield, Copy, Check, PawPrint, Luggage, Loader2, Upload, Camera, Image as ImageIcon } from "lucide-react"
+import { ArrowLeft, CheckCircle, AlertCircle, Heart, Package, QrCode, Shield, Copy, Check, PawPrint, Luggage, Loader2, Upload, Camera, Image as ImageIcon, Tag } from "lucide-react"
 import { FaWhatsapp, FaSms, FaPhone, FaEnvelope } from "react-icons/fa"
 import Link from "next/link"
 import { apiClient } from "@/lib/api"
-
-// Phone number validation utilities
-const phoneValidationRules = {
-  "+27": { // South Africa
-    pattern: /^[1-9]\d{8}$/,
-    placeholder: "82 123 4567",
-    format: (phone: string) => phone.replace(/(\d{2})(\d{3})(\d{4})/, "$1 $2 $3"),
-    error: "SA numbers start with 1-9, 9 digits total (e.g., 82 123 4567)"
-  },
-  "+1": { // US/Canada
-    pattern: /^[2-9]\d{2}[2-9]\d{2}\d{4}$/,
-    placeholder: "555 123 4567",
-    format: (phone: string) => phone.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3"),
-    error: "US/CA format: 10 digits, area code 2-9, exchange 2-9"
-  },
-  "+44": { // UK
-    pattern: /^[1-9]\d{8,9}$/,
-    placeholder: "20 7946 0958",
-    format: (phone: string) => phone.replace(/(\d{2})(\d{4})(\d{4})/, "$1 $2 $3"),
-    error: "UK format: 9-10 digits, starts with 1-9"
-  },
-  "+49": { // Germany
-    pattern: /^[1-9]\d{10,11}$/,
-    placeholder: "30 12345678",
-    format: (phone: string) => phone.replace(/(\d{2})(\d{4})(\d{4})/, "$1 $2 $3"),
-    error: "German format: 11-12 digits, starts with 1-9"
-  },
-  "+33": { // France
-    pattern: /^[1-9]\d{8}$/,
-    placeholder: "1 23 45 67 89",
-    format: (phone: string) => phone.replace(/(\d)(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5"),
-    error: "French format: 9 digits, starts with 1-9"
-  },
-  "+86": { // China
-    pattern: /^1[3-9]\d{9}$/,
-    placeholder: "138 0013 8000",
-    format: (phone: string) => phone.replace(/(\d{3})(\d{4})(\d{4})/, "$1 $2 $3"),
-    error: "Chinese format: 11 digits, starts with 1, second digit 3-9"
-  },
-  "+91": { // India
-    pattern: /^[6-9]\d{9}$/,
-    placeholder: "98765 43210",
-    format: (phone: string) => phone.replace(/(\d{5})(\d{5})/, "$1 $2"),
-    error: "Indian format: 10 digits, starts with 6-9"
-  },
-  "+81": { // Japan
-    pattern: /^[789]0\d{8}$/,
-    placeholder: "90 1234 5678",
-    format: (phone: string) => phone.replace(/(\d{2})(\d{4})(\d{4})/, "$1 $2 $3"),
-    error: "Japanese format: 11 digits, starts with 7/8/9, second digit 0"
-  },
-  "+61": { // Australia
-    pattern: /^[2-9]\d{8}$/,
-    placeholder: "412 345 678",
-    format: (phone: string) => phone.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3"),
-    error: "Australian format: 9 digits, starts with 2-9"
-  },
-  "+55": { // Brazil
-    pattern: /^[1-9]\d{10}$/,
-    placeholder: "11 99999 9999",
-    format: (phone: string) => phone.replace(/(\d{2})(\d{5})(\d{4})/, "$1 $2 $3"),
-    error: "Brazilian format: 11 digits, starts with 1-9"
-  }
-}
-
-// Default validation for other countries
-const getDefaultValidation = (countryCode: string) => ({
-  pattern: /^\d{7,15}$/,
-  placeholder: "123 456 7890",
-  format: (phone: string) => phone,
-  error: "Enter a valid phone number (7-15 digits)"
-})
-
-const validatePhoneNumber = (phone: string, countryCode: string) => {
-  const cleanPhone = phone.replace(/\D/g, '')
-  const rules = phoneValidationRules[countryCode as keyof typeof phoneValidationRules] || getDefaultValidation(countryCode)
-  
-  return {
-    isValid: rules.pattern.test(cleanPhone),
-    formatted: rules.format(cleanPhone),
-    error: rules.error,
-    placeholder: rules.placeholder
-  }
-}
+import PhoneInput from "@/components/phone-input"
+import { getCountryCallingCode } from "libphonenumber-js"
 
 interface QRData {
     code: string
@@ -111,6 +29,18 @@ interface QRData {
     image?: string
     emergencyDetails?: string
     pedigreeInfo?: string
+    // Emergency Details fields
+    medicalNotes?: string
+    vetName?: string
+    vetPhone?: string
+    vetCountryCode?: string
+    emergencyContact?: string
+    emergencyCountryCode?: string
+    // Pedigree Information fields
+    breed?: string
+    age?: string
+    registrationNumber?: string
+    breederInfo?: string
   }
   contact: {
     name: string
@@ -127,214 +57,6 @@ interface QRData {
   createdAt: string
 }
 
-// Country codes data - Popular countries first
-const countryCodes = [
-  { code: "+27", country: "South Africa", flag: "🇿🇦" },
-  { code: "+1", country: "United States", flag: "🇺🇸" },
-  { code: "+1", country: "Canada", flag: "🇨🇦" },
-  { code: "+44", country: "United Kingdom", flag: "🇬🇧" },
-  { code: "+49", country: "Germany", flag: "🇩🇪" },
-  { code: "+33", country: "France", flag: "🇫🇷" },
-  { code: "+86", country: "China", flag: "🇨🇳" },
-  { code: "+91", country: "India", flag: "🇮🇳" },
-  { code: "+81", country: "Japan", flag: "🇯🇵" },
-  { code: "+61", country: "Australia", flag: "🇦🇺" },
-  { code: "+55", country: "Brazil", flag: "🇧🇷" },
-  { code: "+93", country: "Afghanistan", flag: "🇦🇫" },
-  { code: "+355", country: "Albania", flag: "🇦🇱" },
-  { code: "+213", country: "Algeria", flag: "🇩🇿" },
-  { code: "+376", country: "Andorra", flag: "🇦🇩" },
-  { code: "+244", country: "Angola", flag: "🇦🇴" },
-  { code: "+1-268", country: "Antigua and Barbuda", flag: "🇦🇬" },
-  { code: "+54", country: "Argentina", flag: "🇦🇷" },
-  { code: "+374", country: "Armenia", flag: "🇦🇲" },
-  { code: "+43", country: "Austria", flag: "🇦🇹" },
-  { code: "+994", country: "Azerbaijan", flag: "🇦🇿" },
-  { code: "+1-242", country: "Bahamas", flag: "🇧🇸" },
-  { code: "+973", country: "Bahrain", flag: "🇧🇭" },
-  { code: "+880", country: "Bangladesh", flag: "🇧🇩" },
-  { code: "+1-246", country: "Barbados", flag: "🇧🇧" },
-  { code: "+375", country: "Belarus", flag: "🇧🇾" },
-  { code: "+32", country: "Belgium", flag: "🇧🇪" },
-  { code: "+501", country: "Belize", flag: "🇧🇿" },
-  { code: "+229", country: "Benin", flag: "🇧🇯" },
-  { code: "+975", country: "Bhutan", flag: "🇧🇹" },
-  { code: "+591", country: "Bolivia", flag: "🇧🇴" },
-  { code: "+387", country: "Bosnia and Herzegovina", flag: "🇧🇦" },
-  { code: "+267", country: "Botswana", flag: "🇧🇼" },
-  { code: "+55", country: "Brazil", flag: "🇧🇷" },
-  { code: "+673", country: "Brunei", flag: "🇧🇳" },
-  { code: "+359", country: "Bulgaria", flag: "🇧🇬" },
-  { code: "+226", country: "Burkina Faso", flag: "🇧🇫" },
-  { code: "+257", country: "Burundi", flag: "🇧🇮" },
-  { code: "+855", country: "Cambodia", flag: "🇰🇭" },
-  { code: "+237", country: "Cameroon", flag: "🇨🇲" },
-  { code: "+1", country: "Canada", flag: "🇨🇦" },
-  { code: "+238", country: "Cape Verde", flag: "🇨🇻" },
-  { code: "+236", country: "Central African Republic", flag: "🇨🇫" },
-  { code: "+235", country: "Chad", flag: "🇹🇩" },
-  { code: "+56", country: "Chile", flag: "🇨🇱" },
-  { code: "+86", country: "China", flag: "🇨🇳" },
-  { code: "+57", country: "Colombia", flag: "🇨🇴" },
-  { code: "+269", country: "Comoros", flag: "🇰🇲" },
-  { code: "+506", country: "Costa Rica", flag: "🇨🇷" },
-  { code: "+385", country: "Croatia", flag: "🇭🇷" },
-  { code: "+53", country: "Cuba", flag: "🇨🇺" },
-  { code: "+357", country: "Cyprus", flag: "🇨🇾" },
-  { code: "+420", country: "Czech Republic", flag: "🇨🇿" },
-  { code: "+243", country: "DR Congo", flag: "🇨🇩" },
-  { code: "+45", country: "Denmark", flag: "🇩🇰" },
-  { code: "+253", country: "Djibouti", flag: "🇩🇯" },
-  { code: "+1-767", country: "Dominica", flag: "🇩🇲" },
-  { code: "+1-809", country: "Dominican Republic", flag: "🇩🇴" },
-  { code: "+593", country: "Ecuador", flag: "🇪🇨" },
-  { code: "+20", country: "Egypt", flag: "🇪🇬" },
-  { code: "+503", country: "El Salvador", flag: "🇸🇻" },
-  { code: "+240", country: "Equatorial Guinea", flag: "🇬🇶" },
-  { code: "+291", country: "Eritrea", flag: "🇪🇷" },
-  { code: "+372", country: "Estonia", flag: "🇪🇪" },
-  { code: "+251", country: "Ethiopia", flag: "🇪🇹" },
-  { code: "+679", country: "Fiji", flag: "🇫🇯" },
-  { code: "+358", country: "Finland", flag: "🇫🇮" },
-  { code: "+33", country: "France", flag: "🇫🇷" },
-  { code: "+241", country: "Gabon", flag: "🇬🇦" },
-  { code: "+220", country: "Gambia", flag: "🇬🇲" },
-  { code: "+995", country: "Georgia", flag: "🇬🇪" },
-  { code: "+49", country: "Germany", flag: "🇩🇪" },
-  { code: "+233", country: "Ghana", flag: "🇬🇭" },
-  { code: "+30", country: "Greece", flag: "🇬🇷" },
-  { code: "+1-473", country: "Grenada", flag: "🇬🇩" },
-  { code: "+502", country: "Guatemala", flag: "🇬🇹" },
-  { code: "+224", country: "Guinea", flag: "🇬🇳" },
-  { code: "+245", country: "Guinea-Bissau", flag: "🇬🇼" },
-  { code: "+592", country: "Guyana", flag: "🇬🇾" },
-  { code: "+509", country: "Haiti", flag: "🇭🇹" },
-  { code: "+504", country: "Honduras", flag: "🇭🇳" },
-  { code: "+36", country: "Hungary", flag: "🇭🇺" },
-  { code: "+354", country: "Iceland", flag: "🇮🇸" },
-  { code: "+91", country: "India", flag: "🇮🇳" },
-  { code: "+62", country: "Indonesia", flag: "🇮🇩" },
-  { code: "+98", country: "Iran", flag: "🇮🇷" },
-  { code: "+964", country: "Iraq", flag: "🇮🇶" },
-  { code: "+353", country: "Ireland", flag: "🇮🇪" },
-  { code: "+972", country: "Israel", flag: "🇮🇱" },
-  { code: "+39", country: "Italy", flag: "🇮🇹" },
-  { code: "+1-876", country: "Jamaica", flag: "🇯🇲" },
-  { code: "+81", country: "Japan", flag: "🇯🇵" },
-  { code: "+962", country: "Jordan", flag: "🇯🇴" },
-  { code: "+7", country: "Kazakhstan", flag: "🇰🇿" },
-  { code: "+254", country: "Kenya", flag: "🇰🇪" },
-  { code: "+686", country: "Kiribati", flag: "🇰🇮" },
-  { code: "+965", country: "Kuwait", flag: "🇰🇼" },
-  { code: "+996", country: "Kyrgyzstan", flag: "🇰🇬" },
-  { code: "+856", country: "Laos", flag: "🇱🇦" },
-  { code: "+371", country: "Latvia", flag: "🇱🇻" },
-  { code: "+961", country: "Lebanon", flag: "🇱🇧" },
-  { code: "+266", country: "Lesotho", flag: "🇱🇸" },
-  { code: "+231", country: "Liberia", flag: "🇱🇷" },
-  { code: "+218", country: "Libya", flag: "🇱🇾" },
-  { code: "+423", country: "Liechtenstein", flag: "🇱🇮" },
-  { code: "+370", country: "Lithuania", flag: "🇱🇹" },
-  { code: "+352", country: "Luxembourg", flag: "🇱🇺" },
-  { code: "+853", country: "Macao", flag: "🇲🇴" },
-  { code: "+389", country: "North Macedonia", flag: "🇲🇰" },
-  { code: "+261", country: "Madagascar", flag: "🇲🇬" },
-  { code: "+265", country: "Malawi", flag: "🇲🇼" },
-  { code: "+60", country: "Malaysia", flag: "🇲🇾" },
-  { code: "+960", country: "Maldives", flag: "🇲🇻" },
-  { code: "+223", country: "Mali", flag: "🇲🇱" },
-  { code: "+356", country: "Malta", flag: "🇲🇹" },
-  { code: "+692", country: "Marshall Islands", flag: "🇲🇭" },
-  { code: "+222", country: "Mauritania", flag: "🇲🇷" },
-  { code: "+230", country: "Mauritius", flag: "🇲🇺" },
-  { code: "+52", country: "Mexico", flag: "🇲🇽" },
-  { code: "+691", country: "Micronesia", flag: "🇫🇲" },
-  { code: "+373", country: "Moldova", flag: "🇲🇩" },
-  { code: "+377", country: "Monaco", flag: "🇲🇨" },
-  { code: "+976", country: "Mongolia", flag: "🇲🇳" },
-  { code: "+382", country: "Montenegro", flag: "🇲🇪" },
-  { code: "+212", country: "Morocco", flag: "🇲🇦" },
-  { code: "+258", country: "Mozambique", flag: "🇲🇿" },
-  { code: "+95", country: "Myanmar", flag: "🇲🇲" },
-  { code: "+264", country: "Namibia", flag: "🇳🇦" },
-  { code: "+674", country: "Nauru", flag: "🇳🇷" },
-  { code: "+977", country: "Nepal", flag: "🇳🇵" },
-  { code: "+31", country: "Netherlands", flag: "🇳🇱" },
-  { code: "+64", country: "New Zealand", flag: "🇳🇿" },
-  { code: "+505", country: "Nicaragua", flag: "🇳🇮" },
-  { code: "+227", country: "Niger", flag: "🇳🇪" },
-  { code: "+234", country: "Nigeria", flag: "🇳🇬" },
-  { code: "+850", country: "North Korea", flag: "🇰🇵" },
-  { code: "+47", country: "Norway", flag: "🇳🇴" },
-  { code: "+968", country: "Oman", flag: "🇴🇲" },
-  { code: "+92", country: "Pakistan", flag: "🇵🇰" },
-  { code: "+680", country: "Palau", flag: "🇵🇼" },
-  { code: "+970", country: "Palestine", flag: "🇵🇸" },
-  { code: "+507", country: "Panama", flag: "🇵🇦" },
-  { code: "+675", country: "Papua New Guinea", flag: "🇵🇬" },
-  { code: "+595", country: "Paraguay", flag: "🇵🇾" },
-  { code: "+51", country: "Peru", flag: "🇵🇪" },
-  { code: "+63", country: "Philippines", flag: "🇵🇭" },
-  { code: "+48", country: "Poland", flag: "🇵🇱" },
-  { code: "+351", country: "Portugal", flag: "🇵🇹" },
-  { code: "+974", country: "Qatar", flag: "🇶🇦" },
-  { code: "+40", country: "Romania", flag: "🇷🇴" },
-  { code: "+7", country: "Russia", flag: "🇷🇺" },
-  { code: "+250", country: "Rwanda", flag: "🇷🇼" },
-  { code: "+590", country: "Saint Barthélemy", flag: "🇧🇱" },
-  { code: "+1-869", country: "Saint Kitts and Nevis", flag: "🇰🇳" },
-  { code: "+1-758", country: "Saint Lucia", flag: "🇱🇨" },
-  { code: "+590", country: "Saint Martin", flag: "🇲🇫" },
-  { code: "+508", country: "Saint Pierre and Miquelon", flag: "🇵🇲" },
-  { code: "+1-784", country: "Saint Vincent and the Grenadines", flag: "🇻🇨" },
-  { code: "+685", country: "Samoa", flag: "🇼🇸" },
-  { code: "+378", country: "San Marino", flag: "🇸🇲" },
-  { code: "+239", country: "Sao Tome and Principe", flag: "🇸🇹" },
-  { code: "+966", country: "Saudi Arabia", flag: "🇸🇦" },
-  { code: "+221", country: "Senegal", flag: "🇸🇳" },
-  { code: "+381", country: "Serbia", flag: "🇷🇸" },
-  { code: "+248", country: "Seychelles", flag: "🇸🇨" },
-  { code: "+232", country: "Sierra Leone", flag: "🇸🇱" },
-  { code: "+65", country: "Singapore", flag: "🇸🇬" },
-  { code: "+421", country: "Slovakia", flag: "🇸🇰" },
-  { code: "+386", country: "Slovenia", flag: "🇸🇮" },
-  { code: "+677", country: "Solomon Islands", flag: "🇸🇧" },
-  { code: "+252", country: "Somalia", flag: "🇸🇴" },
-  { code: "+82", country: "South Korea", flag: "🇰🇷" },
-  { code: "+34", country: "Spain", flag: "🇪🇸" },
-  { code: "+94", country: "Sri Lanka", flag: "🇱🇰" },
-  { code: "+249", country: "Sudan", flag: "🇸🇩" },
-  { code: "+597", country: "Suriname", flag: "🇸🇷" },
-  { code: "+268", country: "Eswatini", flag: "🇸🇿" },
-  { code: "+46", country: "Sweden", flag: "🇸🇪" },
-  { code: "+41", country: "Switzerland", flag: "🇨🇭" },
-  { code: "+963", country: "Syria", flag: "🇸🇾" },
-  { code: "+886", country: "Taiwan", flag: "🇹🇼" },
-  { code: "+992", country: "Tajikistan", flag: "🇹🇯" },
-  { code: "+255", country: "Tanzania", flag: "🇹🇿" },
-  { code: "+66", country: "Thailand", flag: "🇹🇭" },
-  { code: "+228", country: "Togo", flag: "🇹🇬" },
-  { code: "+676", country: "Tonga", flag: "🇹🇴" },
-  { code: "+1-868", country: "Trinidad and Tobago", flag: "🇹🇹" },
-  { code: "+216", country: "Tunisia", flag: "🇹🇳" },
-  { code: "+90", country: "Turkey", flag: "🇹🇷" },
-  { code: "+993", country: "Turkmenistan", flag: "🇹🇲" },
-  { code: "+688", country: "Tuvalu", flag: "🇹🇻" },
-  { code: "+256", country: "Uganda", flag: "🇺🇬" },
-  { code: "+380", country: "Ukraine", flag: "🇺🇦" },
-  { code: "+971", country: "United Arab Emirates", flag: "🇦🇪" },
-  { code: "+44", country: "United Kingdom", flag: "🇬🇧" },
-  { code: "+1", country: "United States", flag: "🇺🇸" },
-  { code: "+598", country: "Uruguay", flag: "🇺🇾" },
-  { code: "+998", country: "Uzbekistan", flag: "🇺🇿" },
-  { code: "+678", country: "Vanuatu", flag: "🇻🇺" },
-  { code: "+379", country: "Vatican City", flag: "🇻🇦" },
-  { code: "+58", country: "Venezuela", flag: "🇻🇪" },
-  { code: "+84", country: "Vietnam", flag: "🇻🇳" },
-  { code: "+967", country: "Yemen", flag: "🇾🇪" },
-  { code: "+260", country: "Zambia", flag: "🇿🇲" },
-  { code: "+263", country: "Zimbabwe", flag: "🇿🇼" },
-]
 
 export default function ScanPage() {
   const params = useParams()
@@ -357,9 +79,14 @@ export default function ScanPage() {
   const [copiedPassword, setCopiedPassword] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [messageClicked, setMessageClicked] = useState(false)
-  const [petImage, setPetImage] = useState<string | null>(null)
+  const [itemImage, setItemImage] = useState<string | null>(null)
   const [showEmergencyDetails, setShowEmergencyDetails] = useState(false)
   const [showPedigreeInfo, setShowPedigreeInfo] = useState(false)
+  
+  // Validation errors for additional fields
+  const [ageError, setAgeError] = useState("")
+  const [vetPhoneError, setVetPhoneError] = useState("")
+  const [emergencyPhoneError, setEmergencyPhoneError] = useState("")
 
   const [formData, setFormData] = useState({
     details: {
@@ -371,21 +98,33 @@ export default function ScanPage() {
       model: "",
       image: "",
       emergencyDetails: "",
-      pedigreeInfo: ""
+      pedigreeInfo: "",
+      // Emergency Details fields
+      medicalNotes: "",
+      vetName: "",
+      vetPhone: "",
+      vetCountryCode: "ZA",
+      emergencyContact: "",
+      emergencyCountryCode: "ZA",
+      // Pedigree Information fields
+      breed: "",
+      age: "",
+      registrationNumber: "",
+      breederInfo: ""
     },
     contact: {
       name: "",
       email: "",
       phone: "",
       backupPhone: "",
-      countryCode: "+27",
-      backupCountryCode: "+27",
+      countryCode: "ZA", // Changed to country code instead of phone code
+      backupCountryCode: "ZA",
       message: ""
     },
     settings: {
       instantAlerts: true,
       locationSharing: true,
-      showContactOnFinderPage: true
+      showContactOnFinderPage: false
     }
   })
 
@@ -409,9 +148,20 @@ export default function ScanPage() {
     }
   }, [formData.details.name, messageClicked])
 
+  // Scroll to top when success page is shown
+  useEffect(() => {
+    if (success) {
+      window.scrollTo(0, 0)
+    }
+  }, [success])
+
   const loadQRCode = async () => {
     try {
-      const response = await apiClient.getQRCode(code)
+      // Show loading state
+      setLoading(true)
+      setError('')
+      
+      const response = await apiClient.getPublicQRCode(code)
       if (response.success) {
         setQrData(response.data)
         
@@ -433,15 +183,48 @@ export default function ScanPage() {
         }
       }
     } catch (error: any) {
-      // Handle 403 status for inactive QR codes
-      if (error.status === 403 || error.message?.includes('inactive')) {
+      console.error('Load QR code error:', error)
+      
+      // Handle timeout errors specifically
+      if (error.message?.includes('timeout') || error.message?.includes('Request timeout')) {
+        setError("The server is taking too long to respond. This might be a temporary issue. Please try again in a moment.")
+      } else if (error.status === 403 || error.message?.includes('inactive')) {
         setError("This QR code is currently inactive. The owner has temporarily disabled it.")
       } else {
-        setError(error.message || "Failed to load QR code")
+        setError(error.message || "Failed to load QR code. Please check your internet connection and try again.")
       }
     } finally {
       setLoading(false)
     }
+  }
+
+  // Validation functions
+  const validateAge = (age: string): string => {
+    if (!age.trim()) return "" // Age is optional
+    const ageNum = parseInt(age)
+    if (isNaN(ageNum) || ageNum < 0 || ageNum > 50) {
+      return "Age must be a number between 0 and 50"
+    }
+    return ""
+  }
+
+  const validatePhoneNumber = (phone: string): string => {
+    if (!phone.trim()) return "" // Phone is optional
+    // Remove all non-digit characters for validation
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 7 || cleanPhone.length > 15) {
+      return "Phone number must be between 7 and 15 digits"
+    }
+    return ""
+  }
+
+  const validateEmail = (email: string): string => {
+    if (!email.trim()) return "" // Email is optional
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address"
+    }
+    return ""
   }
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -461,53 +244,8 @@ export default function ScanPage() {
       }))
     }
 
-    // Validate phone numbers in real-time
-    if (field === 'contact.phone') {
-      const validation = validatePhoneNumber(value as string, formData.contact.countryCode)
-      setPhoneErrors(prev => ({
-        ...prev,
-        main: validation.isValid ? "" : validation.error
-      }))
-    } else if (field === 'contact.backupPhone') {
-      const phoneValue = value as string
-      if (phoneValue.trim() === '') {
-        // Clear error if field is empty (since it's optional)
-        setPhoneErrors(prev => ({
-          ...prev,
-          backup: ""
-        }))
-      } else {
-        // Only validate if there's a value
-        const validation = validatePhoneNumber(phoneValue, formData.contact.backupCountryCode)
-      setPhoneErrors(prev => ({
-        ...prev,
-        backup: validation.isValid ? "" : validation.error
-      }))
-      }
-    } else if (field === 'contact.countryCode') {
-      // Re-validate main phone when country changes
-      const validation = validatePhoneNumber(formData.contact.phone, value as string)
-      setPhoneErrors(prev => ({
-        ...prev,
-        main: validation.isValid ? "" : validation.error
-      }))
-    } else if (field === 'contact.backupCountryCode') {
-      // Re-validate backup phone when country changes (only if there's a value)
-      if (formData.contact.backupPhone.trim() !== '') {
-      const validation = validatePhoneNumber(formData.contact.backupPhone, value as string)
-      setPhoneErrors(prev => ({
-        ...prev,
-        backup: validation.isValid ? "" : validation.error
-      }))
-      } else {
-        // Clear error if backup phone is empty
-        setPhoneErrors(prev => ({
-          ...prev,
-          backup: ""
-        }))
-      }
-    } else if (field === 'contact.email') {
       // Validate email in real-time
+    if (field === 'contact.email') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       const emailValue = value as string
       if (emailValue.trim() === '') {
@@ -518,12 +256,19 @@ export default function ScanPage() {
         setEmailError("")
       }
     }
+
+    // Validate specific fields
+    if (field === 'details.age') {
+      setAgeError(validateAge(value as string))
+    } else if (field === 'details.vetPhone') {
+      // The PhoneInput component handles its own validation via onErrorChange
+    } else if (field === 'details.emergencyContact') {
+      // The PhoneInput component handles its own validation via onErrorChange
+    } else if (field === 'contact.backupPhone') {
+      // The PhoneInput component handles its own validation via onErrorChange
+    }
   }
 
-  const getPhonePlaceholder = (countryCode: string) => {
-    const rules = phoneValidationRules[countryCode as keyof typeof phoneValidationRules] || getDefaultValidation(countryCode)
-    return rules.placeholder
-  }
 
   const copyToClipboard = async (text: string, type: 'password' | 'email') => {
     try {
@@ -574,7 +319,7 @@ export default function ScanPage() {
       const reader = new FileReader()
       reader.onload = (e) => {
         const result = e.target?.result as string
-        setPetImage(result)
+        setItemImage(result)
         setFormData(prev => ({
           ...prev,
           details: {
@@ -588,7 +333,8 @@ export default function ScanPage() {
   }
 
   const triggerImageUpload = () => {
-    const input = document.getElementById('pet-image-upload') as HTMLInputElement
+    const inputId = qrData?.type === 'pet' ? 'pet-image-upload' : 'item-image-upload'
+    const input = document.getElementById(inputId) as HTMLInputElement
     input?.click()
   }
 
@@ -607,13 +353,58 @@ export default function ScanPage() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     const isEmailValid = emailRegex.test(contact.email)
     
-    // Check phone validation
-    const mainPhoneValidation = validatePhoneNumber(contact.phone, contact.countryCode)
-    const backupPhoneValidation = contact.backupPhone ? 
-      validatePhoneNumber(contact.backupPhone, contact.backupCountryCode) : 
-      { isValid: true }
+    // Check phone validation errors
+    const hasPhoneErrors = phoneErrors.main !== "" || phoneErrors.backup !== ""
     
-    return hasRequiredFields && isEmailValid && mainPhoneValidation.isValid && backupPhoneValidation.isValid
+    // Check additional validation errors
+    const hasAdditionalErrors = ageError !== "" || vetPhoneError !== "" || emergencyPhoneError !== ""
+    
+    return hasRequiredFields && isEmailValid && !hasPhoneErrors && !hasAdditionalErrors
+  }
+
+  // Function to focus on the first invalid field
+  const focusFirstInvalidField = () => {
+    // Check required fields in order of priority
+    if (formData.contact.name.trim() === '') {
+      document.getElementById('contactName')?.focus()
+      return
+    }
+    if (formData.contact.email.trim() === '') {
+      document.getElementById('email')?.focus()
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact.email)) {
+      document.getElementById('email')?.focus()
+      return
+    }
+    if (formData.contact.phone.trim() === '') {
+      document.getElementById('phone')?.focus()
+      return
+    }
+    if (phoneErrors.main) {
+      document.getElementById('phone')?.focus()
+      return
+    }
+    if (phoneErrors.backup) {
+      document.getElementById('backupPhone')?.focus()
+      return
+    }
+    if (formData.details.name.trim() === '') {
+      document.getElementById('name')?.focus()
+      return
+    }
+    if (ageError) {
+      document.getElementById('age')?.focus()
+      return
+    }
+    if (vetPhoneError) {
+      document.getElementById('vetPhone')?.focus()
+      return
+    }
+    if (emergencyPhoneError) {
+      document.getElementById('emergencyContact')?.focus()
+      return
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -622,21 +413,18 @@ export default function ScanPage() {
     setError("")
 
     // Check for validation errors before submission
-    if (phoneErrors.main || phoneErrors.backup || emailError) {
+    if (phoneErrors.main || phoneErrors.backup || emailError || ageError || vetPhoneError || emergencyPhoneError) {
       setError("Please fix validation errors before submitting.")
       setSubmitting(false)
+      focusFirstInvalidField()
       return
     }
 
-    // Final validation check
-    const mainPhoneValidation = validatePhoneNumber(formData.contact.phone, formData.contact.countryCode)
-    const backupPhoneValidation = formData.contact.backupPhone ? 
-      validatePhoneNumber(formData.contact.backupPhone, formData.contact.backupCountryCode) : 
-      { isValid: true, error: "" }
-
-    if (!mainPhoneValidation.isValid || !backupPhoneValidation.isValid) {
-      setError("Please enter valid phone numbers before submitting.")
+    // Check if form is valid, if not focus on first invalid field
+    if (!isFormValid()) {
+      setError("Please fill in all required fields.")
       setSubmitting(false)
+      focusFirstInvalidField()
       return
     }
 
@@ -645,13 +433,17 @@ export default function ScanPage() {
       const autoMessage = `Hi! Thanks for finding my ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
       const finalMessage = formData.contact.message?.trim() || autoMessage
 
-      // Combine country code with phone number
+      // Format phone numbers with country codes
       const submissionData = {
         ...formData,
+        details: {
+          ...formData.details,
+          image: itemImage || formData.details.image // Use itemImage if available, otherwise use formData
+        },
         contact: {
           ...formData.contact,
-          phone: `${formData.contact.countryCode}${formData.contact.phone}`,
-          backupPhone: formData.contact.backupPhone ? `${formData.contact.backupCountryCode}${formData.contact.backupPhone}` : undefined,
+          phone: `+${getCountryCallingCode(formData.contact.countryCode as any)}${formData.contact.phone}`,
+          backupPhone: formData.contact.backupPhone ? `+${getCountryCallingCode(formData.contact.backupCountryCode as any)}${formData.contact.backupPhone}` : undefined,
           message: finalMessage
         }
       }
@@ -680,6 +472,7 @@ export default function ScanPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
           <p className="text-gray-700 font-medium">Loading QR code...</p>
+          <p className="text-gray-500 text-sm mt-2">This may take a moment</p>
         </div>
       </div>
     )
@@ -714,11 +507,23 @@ export default function ScanPage() {
           <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-red-100">
             <AlertCircle className="h-12 w-12 text-red-500" />
           </div>
-          <h1 className="text-3xl font-bold text-black mb-3">QR Code Not Found</h1>
+          <h1 className="text-3xl font-bold text-black mb-3">
+            {error.includes('timeout') || error.includes('Request timeout') ? 'Connection Timeout' : 'QR Code Not Found'}
+          </h1>
           <p className="text-gray-700 mb-8 text-lg">{error}</p>
-          <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            {(error.includes('timeout') || error.includes('Request timeout')) && (
+              <Button 
+                onClick={() => loadQRCode()} 
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200"
+              >
+                Try Again
+              </Button>
+            )}
+            <Button asChild className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200">
             <Link href="/">Go Home</Link>
           </Button>
+          </div>
         </div>
       </div>
     )
@@ -915,7 +720,7 @@ export default function ScanPage() {
                     <div className="flex gap-1">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -931,9 +736,9 @@ export default function ScanPage() {
                       <FaWhatsapp className="text-green-600 text-lg" />
                       <span className="text-sm font-medium text-green-800">WhatsApp</span>
                     </div>
-                    <div className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg">
-                      <FaSms className="text-purple-600 text-lg" />
-                      <span className="text-sm font-medium text-purple-800">SMS</span>
+                    <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                      <FaSms className="text-blue-600 text-lg" />
+                      <span className="text-sm font-medium text-blue-800">SMS</span>
                     </div>
                   </div>
                 </div>
@@ -994,9 +799,9 @@ export default function ScanPage() {
           <div className="text-center mb-8">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-gray-300 shadow-lg">
               {qrData.type === 'pet' ? (
-                <PawPrint className="h-12 w-12 text-black" />
+                <PawPrint className="h-12 w-12 text-yellow-500" />
               ) : (
-                <Luggage className="h-12 w-12 text-black" />
+                <Tag className="h-12 w-12 text-blue-600 flex items-center justify-center" />
               )}
             </div>
             <h1 className="text-4xl font-bold text-black mb-3">
@@ -1015,13 +820,16 @@ export default function ScanPage() {
                 <CardHeader className="bg-gray-50">
                   <CardTitle className="flex items-center gap-3 text-xl text-black">
                     {qrData.type === 'pet' ? (
-                      <PawPrint className="h-6 w-6 text-black" />
+                      <PawPrint className="h-6 w-6 text-yellow-500" />
                     ) : (
-                      <Luggage className="h-6 w-6 text-black" />
+                      <Tag className="h-6 w-6 text-blue-600 flex items-center justify-center" />
                     )}
                     {qrData.details.name}
                   </CardTitle>
                 </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  {/* Item Image removed from finder's page - only shows in pet/item information sections */}
+                </CardContent>
                 {/* <CardContent className="p-6 space-y-4">
                   {qrData.details.description && (
                     <div className="bg-gray-50 rounded-lg p-4">
@@ -1082,8 +890,8 @@ export default function ScanPage() {
                 </CardContent> */}
               </Card>
 
-              {/* Owner Message Card - Only show if contact visibility is enabled */}
-              {qrData.settings?.showContactOnFinderPage === true && qrData.contact.message && (
+              {/* Owner Message Card - Always show if there's a message */}
+              {qrData.contact.message && (
                 <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-gray-50">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg text-black">
@@ -1118,7 +926,7 @@ export default function ScanPage() {
                   </div>
                   
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <Label className="text-sm font-semibold text-gray-700 mb-2 block">Phone Number</Label>
+                    <Label className="text-sm font-semibold text-gray-700 mb-2 block">Whatsapp Phone Number</Label>
                     <p className="text-black font-bold text-lg">{qrData.contact.phone}</p>
                   </div>
                   
@@ -1155,11 +963,11 @@ export default function ScanPage() {
 
 
               {/* Pet-specific information display */}
-              {qrData.type === 'pet' && (
+              {qrData.type === 'pet' && (qrData.details.image || qrData.details.medicalNotes || qrData.details.vetName || qrData.details.vetPhone || qrData.details.emergencyContact || qrData.details.breed || qrData.details.age || qrData.details.registrationNumber || qrData.details.breederInfo) && (
                 <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
                   <CardHeader className="bg-gray-50">
                     <CardTitle className="flex items-center gap-2 text-xl text-black">
-                      <PawPrint className="h-6 w-6 text-orange-600" />
+                      <PawPrint className="h-6 w-6 text-yellow-500" />
                       Pet Information
                     </CardTitle>
                   </CardHeader>
@@ -1178,43 +986,143 @@ export default function ScanPage() {
 
 
                     {/* Emergency Details */}
-                    {qrData.details.emergencyDetails && (
+                    {(qrData.details.medicalNotes || qrData.details.vetName || qrData.details.vetPhone || qrData.details.emergencyContact) && (
                       <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                        <Label className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
+                        <Label className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
                           <AlertCircle className="h-4 w-4" />
                           Emergency Information
                         </Label>
-                        <p className="text-red-800 text-sm leading-relaxed">{qrData.details.emergencyDetails}</p>
+                        <div className="space-y-3">
+                          {qrData.details.medicalNotes && (
+                            <div>
+                              <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Medical Notes</Label>
+                              <p className="text-red-800 text-sm leading-relaxed mt-1">{qrData.details.medicalNotes}</p>
+                            </div>
+                          )}
+                          {qrData.details.vetName && (
+                            <div>
+                              <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Veterinarian</Label>
+                              <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.vetName}</p>
+                            </div>
+                          )}
+                          {qrData.details.vetPhone && (
+                            <div>
+                              <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Vet Phone</Label>
+                              <p className="text-red-800 text-sm font-medium mt-1">
+                                {qrData.details.vetCountryCode && qrData.details.vetPhone ? 
+                                  `${qrData.details.vetCountryCode} ${qrData.details.vetPhone}` : 
+                                  qrData.details.vetPhone
+                                }
+                              </p>
+                            </div>
+                          )}
+                          {qrData.details.emergencyContact && (
+                            <div>
+                              <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Emergency Contact</Label>
+                              <p className="text-red-800 text-sm font-medium mt-1">
+                                {qrData.details.emergencyCountryCode && qrData.details.emergencyContact ? 
+                                  `${qrData.details.emergencyCountryCode} ${qrData.details.emergencyContact}` : 
+                                  qrData.details.emergencyContact
+                                }
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
 
                     {/* Pedigree Information */}
-                    {qrData.details.pedigreeInfo && (
+                    {(qrData.details.breed || qrData.details.age || qrData.details.registrationNumber || qrData.details.breederInfo) && (
                       <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                        <Label className="text-sm font-semibold text-blue-700 mb-2 block">Pedigree Information</Label>
-                        <p className="text-blue-800 text-sm leading-relaxed">{qrData.details.pedigreeInfo}</p>
+                        <Label className="text-sm font-semibold text-blue-700 mb-3 block">Pedigree Information</Label>
+                        <div className="space-y-3">
+                          {qrData.details.breed && (
+                            <div>
+                              <Label className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Breed</Label>
+                              <p className="text-blue-800 text-sm font-medium mt-1">{qrData.details.breed}</p>
+                            </div>
+                          )}
+                          {qrData.details.age && (
+                            <div>
+                              <Label className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Age</Label>
+                              <p className="text-blue-800 text-sm font-medium mt-1">{qrData.details.age}</p>
+                            </div>
+                          )}
+                          {qrData.details.registrationNumber && (
+                            <div>
+                              <Label className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Registration Number</Label>
+                              <p className="text-blue-800 text-sm font-medium mt-1">{qrData.details.registrationNumber}</p>
+                            </div>
+                          )}
+                          {qrData.details.breederInfo && (
+                            <div>
+                              <Label className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Breeder Information</Label>
+                              <p className="text-blue-800 text-sm leading-relaxed mt-1">{qrData.details.breederInfo}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </CardContent>
                 </Card>
               )}
 
-              {/* Contact Information Hidden Message */}
-              {qrData.settings?.showContactOnFinderPage === false && (
-                <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-gray-50">
-                  <CardContent className="p-6">
-                    <div className="text-center">
-                      <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <Shield className="h-8 w-8 text-gray-500" />
+              {/* Item-specific information display */}
+              {qrData.type === 'item' && (qrData.details.image || qrData.details.category || qrData.details.color || qrData.details.brand || qrData.details.model) && (
+                <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
+                  <CardHeader className="bg-gray-50">
+                    <CardTitle className="flex items-center gap-2 text-xl text-black">
+                      <Tag className="h-6 w-6 text-blue-600" />
+                      Item Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Item Image */}
+                    {qrData.details.image && (
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <Label className="text-sm font-semibold text-gray-700 mb-2 block">Item Photo</Label>
+                        <img 
+                          src={qrData.details.image} 
+                          alt={qrData.details.name}
+                          className="w-32 h-32 object-cover rounded-lg mx-auto"
+                        />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-700 mb-2">Contact Information Hidden</h3>
-                      <p className="text-gray-600 text-sm">
-                        The owner has chosen to keep their contact details private. You can still contact them using the buttons below.
-                      </p>
+                    )}
+
+                    {/* Item Details */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {qrData.details.category && (
+                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                          <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Category</Label>
+                          <p className="text-black font-medium mt-1">{qrData.details.category}</p>
+                        </div>
+                      )}
+                      
+                      {qrData.details.color && (
+                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                          <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Color</Label>
+                          <p className="text-black font-medium mt-1">{qrData.details.color}</p>
+                        </div>
+                      )}
+                      
+                      {qrData.details.brand && (
+                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                          <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Brand</Label>
+                          <p className="text-black font-medium mt-1">{qrData.details.brand}</p>
+                        </div>
+                      )}
+                      
+                      {qrData.details.model && (
+                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                          <Label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Model</Label>
+                          <p className="text-black font-medium mt-1">{qrData.details.model}</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
               )}
+
 
               {/* Contact Action Buttons - Always show */}
               <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
@@ -1321,7 +1229,7 @@ export default function ScanPage() {
             {qrData?.type === 'pet' ? (
               <PawPrint className="h-10 w-10 text-yellow-500" />
             ) : (
-              <Luggage className="h-10 w-10 text-black" />
+              <Tag className="h-10 w-10 text-blue-600 flex items-center justify-center" />
             )}
           </div>
           <h1 className="text-3xl font-bold text-black mb-3">
@@ -1360,76 +1268,29 @@ export default function ScanPage() {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <div className="flex flex-col sm:flex-row gap-2 mt-1">
-                    <Select value={formData.contact.countryCode} onValueChange={(value) => handleInputChange('contact.countryCode', value)}>
-                      <SelectTrigger className="w-full sm:w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {countryCodes.map((country) => (
-                          <SelectItem key={`main-${country.code}-${country.country}`} value={country.code} className="text-sm">
-                            <span className="flex items-center gap-2">
-                              <span>{country.flag}</span>
-                              <span className="font-medium">{country.country}</span>
-                              <span className="font-mono text-gray-500">{country.code}</span>
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="flex-1">
-                      <Input
-                        id="phone"
-                        type="tel"
+                <PhoneInput
                         value={formData.contact.phone}
-                        onChange={(e) => handleInputChange('contact.phone', e.target.value)}
-                        placeholder={getPhonePlaceholder(formData.contact.countryCode)}
+                  onChange={(value) => handleInputChange('contact.phone', value)}
+                  onCountryChange={(countryCode) => handleInputChange('contact.countryCode', countryCode)}
+                  onErrorChange={(error) => setPhoneErrors(prev => ({ ...prev, main: error }))}
+                  countryCode={formData.contact.countryCode}
+                  label="Whatsapp Phone Number"
                         required
-                        className={`flex-1 ${phoneErrors.main ? 'border-red-500 focus:border-red-500' : ''}`}
-                      />
-                      {phoneErrors.main && (
-                        <p className="text-red-500 text-xs mt-1">{phoneErrors.main}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  error={phoneErrors.main}
+                  id="phone"
+                />
 
-                  <div>
-                  <Label htmlFor="backupPhone">Backup Phone Number <span className="text-gray-500 font-normal">(Optional)</span></Label>
-                  <div className="flex flex-col sm:flex-row gap-2 mt-1">
-                    <Select value={formData.contact.backupCountryCode} onValueChange={(value) => handleInputChange('contact.backupCountryCode', value)}>
-                      <SelectTrigger className="w-full sm:w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60">
-                        {countryCodes.map((country) => (
-                          <SelectItem key={`backup-${country.code}-${country.country}`} value={country.code} className="text-sm">
-                            <span className="flex items-center gap-2">
-                              <span>{country.flag}</span>
-                              <span className="font-medium">{country.country}</span>
-                              <span className="font-mono text-gray-500">{country.code}</span>
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="flex-1">
-                      <Input
-                        id="backupPhone"
-                        type="tel"
+                <PhoneInput
                         value={formData.contact.backupPhone}
-                        onChange={(e) => handleInputChange('contact.backupPhone', e.target.value)}
-                        placeholder={`${getPhonePlaceholder(formData.contact.backupCountryCode)} (optional)`}
-                        className={`flex-1 ${phoneErrors.backup ? 'border-red-500 focus:border-red-500' : ''}`}
-                      />
-                      {phoneErrors.backup && (
-                        <p className="text-red-500 text-xs mt-1">{phoneErrors.backup}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  onChange={(value) => handleInputChange('contact.backupPhone', value)}
+                  onCountryChange={(countryCode) => handleInputChange('contact.backupCountryCode', countryCode)}
+                  onErrorChange={(error) => setPhoneErrors(prev => ({ ...prev, backup: error }))}
+                  countryCode={formData.contact.backupCountryCode}
+                  label="Backup Phone Number (Optional)"
+                  placeholder="Enter backup phone number (optional)"
+                  error={phoneErrors.backup}
+                  id="backupPhone"
+                />
 
                 <div>
                   <Label htmlFor="email">Email *</Label>
@@ -1462,6 +1323,49 @@ export default function ScanPage() {
                   />
               </div>
 
+              {/* Item Image Upload - Only for Item Tags */}
+              {qrData?.type === 'item' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Item Photo (Optional)</Label>
+                    <div className="mt-2">
+                      <div 
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                        onClick={triggerImageUpload}
+                      >
+                        <input
+                          id="item-image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                        {itemImage ? (
+                          <div className="space-y-3">
+                            <img 
+                              src={itemImage} 
+                              alt="Item" 
+                              className="w-24 h-24 object-cover rounded-lg mx-auto"
+                            />
+                            <p className="text-sm text-gray-600">Click to change photo</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto">
+                              <Camera className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Upload Image</p>
+                              <p className="text-xs text-gray-500">Tap to select from camera or gallery</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Pet Image Upload - Only for Pet Tags */}
               {qrData?.type === 'pet' && (
                 <div className="space-y-4">
@@ -1479,10 +1383,10 @@ export default function ScanPage() {
                           onChange={handleImageUpload}
                           className="hidden"
                         />
-                        {petImage ? (
+                        {itemImage ? (
                           <div className="space-y-3">
                             <img 
-                              src={petImage} 
+                              src={itemImage} 
                               alt="Pet" 
                               className="w-24 h-24 object-cover rounded-lg mx-auto"
                             />
@@ -1533,16 +1437,55 @@ export default function ScanPage() {
                     </div>
 
                     {showEmergencyDetails && (
+                      <div className="space-y-4">
                       <div>
-                        <Label htmlFor="emergencyDetails">Emergency Details</Label>
+                          <Label htmlFor="medicalNotes">Medical Notes (Optional)</Label>
                         <Textarea
-                          id="emergencyDetails"
-                          value={formData.details.emergencyDetails}
-                          onChange={(e) => handleInputChange('details.emergencyDetails', e.target.value)}
-                          placeholder="e.g., Allergic to penicillin, needs medication twice daily, emergency vet contact..."
+                            id="medicalNotes"
+                            value={formData.details.medicalNotes || ""}
+                            onChange={(e) => handleInputChange('details.medicalNotes', e.target.value)}
+                            placeholder="Any medical conditions, medications, or special care instructions"
                           rows={3}
                           className="mt-1"
                         />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="vetName">Veterinarian Name (Optional)</Label>
+                          <Input
+                            id="vetName"
+                            value={formData.details.vetName || ""}
+                            onChange={(e) => handleInputChange('details.vetName', e.target.value)}
+                            placeholder="e.g., Dr. Smith - Happy Paws Clinic"
+                            className="mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="vetPhone">Vet Phone Number (Optional)</Label>
+                          <PhoneInput
+                            value={formData.details.vetPhone || ""}
+                            countryCode={formData.details.vetCountryCode || "ZA"}
+                            onChange={(value) => handleInputChange('details.vetPhone', value)}
+                            onCountryChange={(countryCode) => handleInputChange('details.vetCountryCode', countryCode)}
+                            onErrorChange={(error) => setVetPhoneError(error)}
+                            error={vetPhoneError}
+                            id="vetPhone"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="emergencyContact">Emergency Contact (Optional)</Label>
+                          <PhoneInput
+                            value={formData.details.emergencyContact || ""}
+                            countryCode={formData.details.emergencyCountryCode || "ZA"}
+                            onChange={(value) => handleInputChange('details.emergencyContact', value)}
+                            onCountryChange={(countryCode) => handleInputChange('details.emergencyCountryCode', countryCode)}
+                            onErrorChange={(error) => setEmergencyPhoneError(error)}
+                            error={emergencyPhoneError}
+                            id="emergencyContact"
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1571,16 +1514,67 @@ export default function ScanPage() {
                     </div>
 
                     {showPedigreeInfo && (
+                      <div className="space-y-4">
                       <div>
-                        <Label htmlFor="pedigreeInfo">Pedigree Information</Label>
-                        <Textarea
-                          id="pedigreeInfo"
-                          value={formData.details.pedigreeInfo}
-                          onChange={(e) => handleInputChange('details.pedigreeInfo', e.target.value)}
-                          placeholder="e.g., AKC registered, champion bloodline, breeder contact info..."
-                          rows={3}
+                          <Label htmlFor="breed">Breed</Label>
+                          <Input
+                            id="breed"
+                            value={formData.details.breed || ""}
+                            onChange={(e) => handleInputChange('details.breed', e.target.value)}
+                            placeholder="e.g., Golden Retriever"
                           className="mt-1"
                         />
+                      </div>
+                        
+                        <div>
+                          <Label htmlFor="color">Color</Label>
+                          <Input
+                            id="color"
+                            value={formData.details.color || ""}
+                            onChange={(e) => handleInputChange('details.color', e.target.value)}
+                            placeholder="e.g., Golden/Cream"
+                            className="mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="age">Age</Label>
+                          <Input
+                            id="age"
+                            value={formData.details.age || ""}
+                            onChange={(e) => handleInputChange('details.age', e.target.value)}
+                            placeholder="e.g., 3"
+                            className={`mt-1 ${ageError ? 'border-red-500' : ''}`}
+                            type="number"
+                            min="0"
+                            max="50"
+                          />
+                          {ageError && (
+                            <p className="text-red-500 text-sm mt-1">{ageError}</p>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="registrationNumber">Registration Number (Optional)</Label>
+                          <Input
+                            id="registrationNumber"
+                            value={formData.details.registrationNumber || ""}
+                            onChange={(e) => handleInputChange('details.registrationNumber', e.target.value)}
+                            placeholder="e.g., AKC #123456789"
+                            className="mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="breederInfo">Breeder Information (Optional)</Label>
+                          <Input
+                            id="breederInfo"
+                            value={formData.details.breederInfo || ""}
+                            onChange={(e) => handleInputChange('details.breederInfo', e.target.value)}
+                            placeholder="e.g., Champion bloodline, breeder contact"
+                            className="mt-1"
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1588,7 +1582,7 @@ export default function ScanPage() {
               )}
 
                 <div>
-                  <Label htmlFor="message">Finder Message (Optional)</Label>
+                  <Label htmlFor="message">Finder Message (Auto generated) (Editable)</Label>
                   <Textarea
                     id="message"
                     value={messageClicked ? formData.contact.message : ""}
@@ -1611,11 +1605,12 @@ export default function ScanPage() {
 
               {/* Toggle Settings */}
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg gap-3">
-                  <div className="flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
+                  <div className="flex-1 min-w-0">
                     <Label className="text-sm font-medium text-black">Instant Alerts</Label>
-                    <p className="text-xs text-gray-600 mt-1">Get notified on Email when someone finds your item</p>
+                    <p className="text-xs text-gray-600 mt-1 leading-relaxed">Get notified on Email when someone finds your item</p>
                   </div>
+                  <div className="flex-shrink-0 sm:ml-4">
                   <button
                     type="button"
                     onClick={() => handleInputChange('settings.instantAlerts', !formData.settings.instantAlerts)}
@@ -1630,13 +1625,15 @@ export default function ScanPage() {
                       }`}
                     />
                   </button>
+                  </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg gap-3">
-                  <div className="flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
+                  <div className="flex-1 min-w-0">
                     <Label className="text-sm font-medium text-black">Location Sharing</Label>
-                    <p className="text-xs text-gray-600 mt-1">Allow finders to see your approximate location</p>
+                    <p className="text-xs text-gray-600 mt-1 leading-relaxed">Allow finders to see your approximate location</p>
                   </div>
+                  <div className="flex-shrink-0 sm:ml-4">
                   <button
                     type="button"
                     onClick={() => handleInputChange('settings.locationSharing', !formData.settings.locationSharing)}
@@ -1651,14 +1648,16 @@ export default function ScanPage() {
                       }`}
                     />
                   </button>
+                  </div>
                 </div>
 
                 {/* Contact Visibility Toggle - For both Item and Pet Tags */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg gap-3">
-                  <div className="flex-1">
-                    <Label className="text-sm font-medium text-black">Show Contact on Finder Page</Label>
-                    <p className="text-xs text-gray-600 mt-1">Display your contact details when someone finds your {qrData?.type === 'pet' ? 'pet' : 'item'}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-sm font-medium text-black">Show Owner Information on Finder Page</Label>
+                    <p className="text-xs text-gray-600 mt-1 leading-relaxed">Display your contact details when someone finds your {qrData?.type === 'pet' ? 'pet' : 'item'}</p>
                   </div>
+                  <div className="flex-shrink-0 sm:ml-4">
                   <button
                     type="button"
                     onClick={() => handleInputChange('settings.showContactOnFinderPage', !formData.settings.showContactOnFinderPage)}
@@ -1673,6 +1672,7 @@ export default function ScanPage() {
                       }`}
                     />
                   </button>
+                  </div>
                 </div>
               </div>
 
@@ -1697,7 +1697,7 @@ export default function ScanPage() {
                 </Button>
 
                 
-                  <p className="text-xs text-gray-500 text-center mt-2">
+                  <p className="text-xs text-gray-600 text-center mt-2">
                   Protect what matters to you! Every scan makes a difference.
                   </p>
                 

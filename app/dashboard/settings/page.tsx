@@ -374,7 +374,7 @@ export default function SettingsPage() {
                     <Label htmlFor="globalEmailToggle">Enable email notifications</Label>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     <Checkbox
                       id="globalSmsToggle"
                       checked={notificationSettings.globalSmsToggle}
@@ -383,7 +383,7 @@ export default function SettingsPage() {
                       }
                     />
                     <Label htmlFor="globalSmsToggle">Enable SMS notifications</Label>
-                  </div>
+                  </div> */}
                 </CardContent>
               </Card>
 

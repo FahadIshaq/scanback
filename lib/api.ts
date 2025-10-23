@@ -125,6 +125,39 @@ class ApiClient {
     return this.request(`/api/qr/${code}`)
   }
 
+  // Public method for scanning QR codes (no authentication required)
+  async getPublicQRCode(code: string) {
+    try {
+      // Create an AbortController for timeout handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const url = `${this.baseURL}/api/qr/${code}`
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      clearTimeout(timeoutId);
+      const data = await response.json()
+      
+      if (!response.ok) {
+        console.error('Public QR API Error:', response.status, data)
+        throw new Error(data.message || 'Failed to load QR code')
+      }
+      
+      return data
+    } catch (error: any) {
+      console.error('Get public QR code error:', error);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - server is taking too long to respond. Please try again.');
+      }
+      throw error;
+    }
+  }
+
   async activateQRCode(code: string, data: any) {
     return this.request(`/api/qr/${code}/activate`, {
       method: 'POST',

@@ -1,152 +1,245 @@
 "use client"
 
-import type React from "react"
-
-import { useMemo, useState } from "react"
-import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { parsePhoneNumber, isValidPhoneNumber, getCountryCallingCode } from "libphonenumber-js"
+import { getCountryFlagEmojiFromCountryCode, getCountryNameFromCountryCode } from "country-codes-flags-phone-codes"
 
-/**
- * Lightweight phone input with country selector (default ZA).
- * - Stores value as E.164-like string (e.g. +27 82 123 4567).
- * - Formats basic spacing for ZA/BW/NA. Falls back to plain spacing for others.
- * - No external deps to keep the bundle small and mobile-friendly.
- */
-
-type Country = {
-  code: "ZA" | "BW" | "NA"
-  name: string
-  dial: string
-  flag: string
-  formatBlocks: number[] // how we group digits after the national leading zero is removed
-}
-
-const COUNTRIES: Country[] = [
-  { code: "ZA", name: "South Africa", dial: "+27", flag: "🇿🇦", formatBlocks: [2, 3, 4] }, // 82 123 4567
-  { code: "BW", name: "Botswana", dial: "+267", flag: "🇧🇼", formatBlocks: [2, 3, 3] }, // 71 234 567
-  { code: "NA", name: "Namibia", dial: "+264", flag: "🇳🇦", formatBlocks: [2, 3, 4] }, // 81 123 4567
-]
-
-function formatLocalDigits(digits: string, blocks: number[]) {
-  const parts: string[] = []
-  let i = 0
-  for (const block of blocks) {
-    const end = i + block
-    const chunk = digits.slice(i, end)
-    if (!chunk) break
-    parts.push(chunk)
-    i = end
-  }
-  // append any remainder
-  if (i < digits.length) parts.push(digits.slice(i))
-  return parts.join(" ")
-}
-
-function toLocalDigits(raw: string) {
-  return raw.replace(/\D/g, "")
-}
-
-export type PhoneInputValue = {
-  country: Country["code"]
-  e164: string // e.g. +27 82 123 4567 (kept with spaces for readability)
-}
-
-export function PhoneInput({
-  id,
-  label,
-  helperText,
-  value,
-  onChange,
-  required,
-  className,
-}: {
-  id: string
-  label: string
-  helperText?: string
-  value: PhoneInputValue
-  onChange: (v: PhoneInputValue) => void
+interface PhoneInputProps {
+  value: string
+  onChange: (value: string) => void
+  onCountryChange: (countryCode: string) => void
+  countryCode: string
+  label?: string
+  placeholder?: string
   required?: boolean
   className?: string
-}) {
-  const country = useMemo(() => COUNTRIES.find((c) => c.code === value.country) ?? COUNTRIES[0], [value.country])
-  const [local, setLocal] = useState(() => {
-    // derive local digits from e164 if present (best effort)
-    const digits = value.e164.replace(/\D/g, "")
-    const dialDigits = country.dial.replace(/\D/g, "")
-    const stripped = digits.startsWith(dialDigits) ? digits.slice(dialDigits.length) : digits
-    return stripped
-  })
+  error?: string
+  disabled?: boolean
+  id?: string
+  onErrorChange?: (error: string) => void
+}
 
-  const display = useMemo(() => {
-    const clean = toLocalDigits(local)
-    return `${country.dial} ${formatLocalDigits(clean, country.formatBlocks)}`
-  }, [country, local])
+// Popular countries first, then alphabetical
+const POPULAR_COUNTRIES = [
+  'ZA', 'US', 'CA', 'GB', 'DE', 'FR', 'CN', 'IN', 'JP', 'AU', 'BR'
+]
 
-  const handleLocalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const clean = toLocalDigits(e.target.value)
-    setLocal(clean)
-    onChange({
-      country: country.code,
-      e164: `${country.dial} ${formatLocalDigits(clean, country.formatBlocks)}`.trim(),
-    })
+const ALL_COUNTRIES = [
+  'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ',
+  'BA', 'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BQ', 'BR', 'BS',
+  'BT', 'BV', 'BW', 'BY', 'BZ', 'CA', 'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN',
+  'CO', 'CR', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ', 'DE', 'DJ', 'DK', 'DM', 'DO', 'DZ', 'EC', 'EE',
+  'EG', 'EH', 'ER', 'ES', 'ET', 'FI', 'FJ', 'FK', 'FM', 'FO', 'FR', 'GA', 'GB', 'GD', 'GE', 'GF',
+  'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY', 'HK', 'HM',
+  'HN', 'HR', 'HT', 'HU', 'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT', 'JE', 'JM',
+  'JO', 'JP', 'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KP', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB', 'LC',
+  'LI', 'LK', 'LR', 'LS', 'LT', 'LU', 'LV', 'LY', 'MA', 'MC', 'MD', 'ME', 'MF', 'MG', 'MH', 'MK',
+  'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ', 'NA',
+  'NC', 'NE', 'NF', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ', 'OM', 'PA', 'PE', 'PF', 'PG',
+  'PH', 'PK', 'PL', 'PM', 'PN', 'PR', 'PS', 'PT', 'PW', 'PY', 'QA', 'RE', 'RO', 'RS', 'RU', 'RW',
+  'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'SS',
+  'ST', 'SV', 'SX', 'SY', 'SZ', 'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK', 'TL', 'TM', 'TN', 'TO',
+  'TR', 'TT', 'TV', 'TW', 'TZ', 'UA', 'UG', 'UM', 'US', 'UY', 'UZ', 'VA', 'VC', 'VE', 'VG', 'VI',
+  'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW'
+]
+
+export default function PhoneInput({
+  value,
+  onChange,
+  onCountryChange,
+  countryCode,
+  label,
+  placeholder,
+  required = false,
+  className = "",
+  error,
+  disabled = false,
+  id = "phone",
+  onErrorChange
+}: PhoneInputProps) {
+  const [phoneError, setPhoneError] = useState("")
+  const [formattedValue, setFormattedValue] = useState("")
+
+  // Get country data
+  const getCountryData = (code: string) => {
+    try {
+      const flag = getCountryFlagEmojiFromCountryCode(code)
+      const name = getCountryNameFromCountryCode(code)
+      const callingCode = getCountryCallingCode(code as any)
+      
+      // Return null if any of the data is invalid
+      if (!flag || !name || !callingCode) {
+        return null
+      }
+      
+      return { flag, name, callingCode }
+    } catch {
+      return null
+    }
   }
 
-  const handleCountryChange = (code: Country["code"]) => {
-    const next = COUNTRIES.find((c) => c.code === code) ?? country
-    // remap formatting to new country blocks
-    onChange({
-      country: next.code,
-      e164: `${next.dial} ${formatLocalDigits(toLocalDigits(local), next.formatBlocks)}`.trim(),
-    })
+  // Validate phone number
+  const validatePhone = (phone: string, country: string) => {
+    console.log('validatePhone called with:', { phone, country })
+    
+    if (!phone.trim()) {
+      console.log('Empty phone, clearing error')
+      setPhoneError("")
+      onErrorChange?.("")
+      return { isValid: true, formatted: phone }
+    }
+
+    try {
+      const fullNumber = `+${getCountryCallingCode(country as any)}${phone}`
+      console.log('Full number:', fullNumber)
+      const phoneNumber = parsePhoneNumber(fullNumber)
+      
+      if (phoneNumber && isValidPhoneNumber(phoneNumber.number)) {
+        console.log('Phone is valid, clearing error')
+        setPhoneError("")
+        onErrorChange?.("")
+        return { 
+          isValid: true, 
+          formatted: phoneNumber.nationalNumber,
+          international: phoneNumber.formatInternational()
+        }
+      } else {
+        const errorMsg = "Please enter a valid phone number"
+        console.log('Phone is invalid, setting error:', errorMsg)
+        setPhoneError(errorMsg)
+        onErrorChange?.(errorMsg)
+        return { isValid: false, formatted: phone }
+      }
+    } catch (error) {
+      const errorMsg = "Please enter a valid phone number"
+      console.log('Phone validation error, setting error:', errorMsg)
+      setPhoneError(errorMsg)
+      onErrorChange?.(errorMsg)
+      return { isValid: false, formatted: phone }
+    }
   }
+
+  // Handle phone number change
+  const handlePhoneChange = (newValue: string) => {
+    // Remove any non-digit characters except +
+    const cleanValue = newValue.replace(/[^\d]/g, '')
+    onChange(cleanValue)
+    
+    // Validate and format
+    const validation = validatePhone(cleanValue, countryCode)
+    setFormattedValue(validation.formatted)
+  }
+
+  // Handle country change
+  const handleCountryChange = (newCountryCode: string) => {
+    onCountryChange(newCountryCode)
+    // Re-validate with new country
+    const validation = validatePhone(value, newCountryCode)
+    setFormattedValue(validation.formatted)
+  }
+
+  // Get sorted countries list
+  const getSortedCountries = () => {
+    const popular = POPULAR_COUNTRIES
+      .map(code => {
+        const countryData = getCountryData(code)
+        return countryData ? { code, ...countryData } : null
+      })
+      .filter(country => country !== null) // Filter out null countries
+    
+    const others = ALL_COUNTRIES
+      .filter(code => !POPULAR_COUNTRIES.includes(code))
+      .map(code => {
+        const countryData = getCountryData(code)
+        return countryData ? { code, ...countryData } : null
+      })
+      .filter(country => country !== null) // Filter out null countries
+      .sort((a, b) => a.name.localeCompare(b.name))
+    
+    return [...popular, ...others]
+  }
+
+  const sortedCountries = getSortedCountries()
+  const currentCountry = getCountryData(countryCode) || { flag: "🏳️", name: "Unknown", callingCode: "+1" }
+  
+  // Fallback to a valid country if current one is invalid
+  const validCountryCode = currentCountry.name === "Unknown" ? "ZA" : countryCode
+
+  // Re-validate when country changes
+  useEffect(() => {
+    if (value) {
+      const validation = validatePhone(value, countryCode)
+      setFormattedValue(validation.formatted)
+    }
+  }, [countryCode, value])
+
+  // Update country code if current one is invalid
+  useEffect(() => {
+    if (currentCountry.name === "Unknown" && validCountryCode !== countryCode) {
+      onCountryChange(validCountryCode)
+    }
+  }, [currentCountry.name, validCountryCode, countryCode, onCountryChange])
 
   return (
-    <div className={cn("w-full", className)}>
-      <Label htmlFor={id} className="text-gray-700">
-        {label} {required ? <span className="text-red-500">*</span> : null}
+    <div className={className}>
+      {label && (
+        <Label htmlFor="phone">
+          {label} {required && <span className="text-red-500">*</span>}
       </Label>
-      <div className="mt-1 flex items-stretch gap-2">
-        <Select value={country.code} onValueChange={(val) => handleCountryChange(val as Country["code"])}>
-          <SelectTrigger className="w-[120px] rounded-xl">
-            <SelectValue placeholder="Country" aria-label={`${country.name} ${country.dial}`}>
+      )}
+      
+      <div className="flex flex-col sm:flex-row gap-2 mt-1">
+        {/* Country Selector */}
+        <Select 
+          value={validCountryCode} 
+          onValueChange={handleCountryChange}
+          disabled={disabled}
+        >
+          <SelectTrigger className="w-full sm:w-40 h-10">
+            <SelectValue>
               <div className="flex items-center gap-2">
-                <span aria-hidden>{country.flag}</span>
-                <span className="text-sm">{country.dial}</span>
+                <span className="text-lg">{currentCountry.flag}</span>
+                <span className="font-mono text-sm">+{currentCountry.callingCode}</span>
               </div>
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
-            {COUNTRIES.map((c) => (
-              <SelectItem key={c.code} value={c.code}>
-                <div className="flex items-center gap-2">
-                  <span aria-hidden>{c.flag}</span>
-                  <span>{c.name}</span>
-                  <span className="ml-2 text-muted-foreground">{c.dial}</span>
+          <SelectContent className="max-h-60 w-full sm:w-auto z-50">
+            {sortedCountries.map((country) => (
+              <SelectItem 
+                key={country.code} 
+                value={country.code}
+                className="text-sm cursor-pointer py-3 px-3 hover:bg-gray-50"
+              >
+                <div className="flex items-center gap-3 w-full">
+                  <span className="text-lg flex-shrink-0">{country.flag}</span>
+                  <span className="font-medium flex-1 truncate text-left">{country.name}</span>
+                  <span className="font-mono text-gray-500 text-xs flex-shrink-0">+{country.callingCode}</span>
                 </div>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
+        {/* Phone Number Input */}
+        <div className="flex-1 min-w-0">
         <Input
           id={id}
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder={`${country.dial} 82 123 4567`}
-          value={display}
-          onChange={handleLocalChange}
-          className="rounded-xl flex-1"
-          aria-describedby={`${id}-help`}
+            type="tel"
+            value={formattedValue}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            placeholder={placeholder || `Enter phone number`}
           required={required}
+            disabled={disabled}
+            className={`h-10 ${phoneError || error ? 'border-red-500 focus:border-red-500' : ''}`}
         />
+          {(phoneError || error) && (
+            <p className="text-red-500 text-xs mt-1">{phoneError || error}</p>
+          )}
+        </div>
       </div>
-      {helperText ? (
-        <p id={`${id}-help`} className="mt-1 text-xs text-gray-500">
-          {helperText}
-        </p>
-      ) : null}
     </div>
   )
 }

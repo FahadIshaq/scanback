@@ -1366,7 +1366,7 @@ export default function DashboardPage() {
                     <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-1">QR Code URL:</p>
                       <p className="text-xs sm:text-sm font-mono break-all">
-                        {`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app:3001'}/scan/${selectedQR.code}`}
+                        {`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app'}/scan/${selectedQR.code}`}
                       </p>
                     </div>
                   </div>
@@ -1375,7 +1375,7 @@ export default function DashboardPage() {
                     <QrCode className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
                     <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">QR Code image not available</p>
                     <p className="text-xs sm:text-sm text-gray-500 break-all">
-                      QR Code URL: {`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app:3001'}/scan/${selectedQR.code}`}
+                      QR Code URL: {`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app'}/scan/${selectedQR.code}`}
                     </p>
                   </div>
                 )}
@@ -1443,7 +1443,7 @@ export default function DashboardPage() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app:3001'}/scan/${selectedQR.code}`)
+                      navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://scanback.vercel.app'}/scan/${selectedQR.code}`)
                       // You could add a toast notification here
                     }}
                     className="flex-1 text-sm"

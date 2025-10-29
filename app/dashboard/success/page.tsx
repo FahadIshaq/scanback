@@ -1,27 +1,135 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { CheckCircle, QrCode, ArrowRight, Download, Eye } from 'lucide-react'
+import { CheckCircle, QrCode, ArrowRight, Download, Eye, Package, PawPrint, Stethoscope, Tag } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { apiClient } from "@/lib/api"
+
+interface QRData {
+  code: string
+  type: 'item' | 'pet' | 'emergency' | 'any'
+  isActivated: boolean
+  details: {
+    name: string
+    description?: string
+    [key: string]: any
+  }
+  contact: {
+    name: string
+    phone?: string
+    email?: string
+    [key: string]: any
+  }
+}
 
 export default function SuccessPage() {
   const searchParams = useSearchParams()
   const qrCode = searchParams.get("code") || "SB-ABC123"
+  const [qrData, setQrData] = useState<QRData | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Mock data - in real app, this would come from the registration
-  const registeredTag = {
+  useEffect(() => {
+    const fetchQRData = async () => {
+      try {
+        console.log('Fetching QR data for code:', qrCode)
+        const response = await fetch(`http://localhost:5001/api/qr/${qrCode}`)
+        const data = await response.json()
+        console.log('QR data response:', data)
+        if (data.success) {
+          console.log('QR data received:', data.data)
+          setQrData(data.data)
+        } else {
+          console.log('QR data fetch failed:', data.message)
+        }
+      } catch (error) {
+        console.error('Error fetching QR data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (qrCode) {
+      fetchQRData()
+    }
+  }, [qrCode])
+
+  const getTagIcon = (type: string) => {
+    switch (type) {
+      case 'pet':
+        return <PawPrint className="h-5 w-5 text-yellow-500" />
+      case 'emergency':
+        return <Stethoscope className="h-5 w-5 text-red-600" />
+      case 'item':
+        return <Package className="h-5 w-5 text-blue-600" />
+      default:
+        return <Tag className="h-5 w-5 text-purple-600" />
+    }
+  }
+
+  const getTagTypeLabel = (type: string) => {
+    switch (type) {
+      case 'pet':
+        return 'Pet Tag'
+      case 'emergency':
+        return 'Emergency Tag'
+      case 'item':
+        return 'Item Tag'
+      default:
+        return 'QR Tag'
+    }
+  }
+
+  const getSuccessMessage = (type: string) => {
+    switch (type) {
+      case 'pet':
+        return 'Your pet tag has been registered and is now active'
+      case 'emergency':
+        return 'Your emergency tag has been registered and is now active'
+      case 'item':
+        return 'Your item tag has been registered and is now active'
+      default:
+        return 'Your QR tag has been registered and is now active'
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Fallback data if QR data is not available
+  const registeredTag = qrData ? {
+    code: qrData.code,
+    tagType: qrData.type,
+    itemName: qrData.details?.name || 'Unknown',
+    customMessage: qrData.details?.description || 'Thank you for finding my item!',
+    ownerName: qrData.contact?.name || 'Unknown',
+    showPhone: qrData.contact?.phone ? true : false,
+    showEmail: qrData.contact?.email ? true : false,
+    scanAlerts: true,
+  } : {
     code: qrCode,
-    tagType: "pet",
-    itemName: "Luna",
-    customMessage: "Hi! Thanks for finding Luna. She's very friendly but might be scared. Please call me immediately!",
-    ownerName: "Sarah Johnson",
-    showPhone: true,
-    showEmail: true,
+    tagType: "item",
+    itemName: "Unknown",
+    customMessage: "Thank you for finding my item!",
+    ownerName: "Unknown",
+    showPhone: false,
+    showEmail: false,
     scanAlerts: true,
   }
+
+  console.log('Success page - qrData:', qrData)
+  console.log('Success page - registeredTag:', registeredTag)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -46,7 +154,7 @@ export default function SuccessPage() {
             <CheckCircle className="h-12 w-12 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold text-navy-900 mb-2">Registration Successful!</h1>
-          <p className="text-lg text-gray-600">Your QR tag has been registered and is now active</p>
+          <p className="text-lg text-gray-600">{getSuccessMessage(registeredTag.tagType)}</p>
         </div>
 
         {/* Tag Preview */}
@@ -54,8 +162,8 @@ export default function SuccessPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center space-x-2">
-                <QrCode className="h-5 w-5 text-navy-900" />
-                <span>Your QR Tag</span>
+                {getTagIcon(registeredTag.tagType)}
+                <span>Your {getTagTypeLabel(registeredTag.tagType)}</span>
               </CardTitle>
               <Badge className="bg-green-100 text-green-800">
                 Active
@@ -71,7 +179,7 @@ export default function SuccessPage() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-600">Type:</span>
                 <Badge variant="outline" className="capitalize">
-                  {registeredTag.tagType}
+                  {getTagTypeLabel(registeredTag.tagType)}
                 </Badge>
               </div>
               <div className="flex items-center justify-between mb-2">
@@ -119,7 +227,11 @@ export default function SuccessPage() {
               </div>
               <div>
                 <h4 className="font-medium text-navy-900">Attach Your QR Sticker</h4>
-                <p className="text-sm text-gray-600">Place the sticker on your item in a visible location</p>
+                <p className="text-sm text-gray-600">
+                  {registeredTag.tagType === 'pet' ? 'Place the sticker on your pet\'s collar or harness' :
+                   registeredTag.tagType === 'emergency' ? 'Place the sticker on your emergency contact card or medical bracelet' :
+                   'Place the sticker on your item in a visible location'}
+                </p>
               </div>
             </div>
 

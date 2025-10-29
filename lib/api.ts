@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://scanback-backend.onrender.com'
+const API_BASE_URL = 'http://localhost:5001'
 
 class ApiClient {
   private baseURL: string
@@ -42,8 +42,6 @@ class ApiClient {
       },
       ...options,
     }
-
-    console.log('API Request:', url, 'Token:', this.token ? 'Present' : 'Missing')
 
     const response = await fetch(url, config)
     const data = await response.json()

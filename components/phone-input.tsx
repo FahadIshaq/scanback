@@ -83,10 +83,7 @@ export default function PhoneInput({
 
   // Validate phone number
   const validatePhone = (phone: string, country: string) => {
-    console.log('validatePhone called with:', { phone, country })
-    
     if (!phone.trim()) {
-      console.log('Empty phone, clearing error')
       setPhoneError("")
       onErrorChange?.("")
       return { isValid: true, formatted: phone }
@@ -94,11 +91,9 @@ export default function PhoneInput({
 
     try {
       const fullNumber = `+${getCountryCallingCode(country as any)}${phone}`
-      console.log('Full number:', fullNumber)
       const phoneNumber = parsePhoneNumber(fullNumber)
       
       if (phoneNumber && isValidPhoneNumber(phoneNumber.number)) {
-        console.log('Phone is valid, clearing error')
         setPhoneError("")
         onErrorChange?.("")
         return { 
@@ -108,14 +103,12 @@ export default function PhoneInput({
         }
       } else {
         const errorMsg = "Please enter a valid phone number"
-        console.log('Phone is invalid, setting error:', errorMsg)
         setPhoneError(errorMsg)
         onErrorChange?.(errorMsg)
         return { isValid: false, formatted: phone }
       }
     } catch (error) {
       const errorMsg = "Please enter a valid phone number"
-      console.log('Phone validation error, setting error:', errorMsg)
       setPhoneError(errorMsg)
       onErrorChange?.(errorMsg)
       return { isValid: false, formatted: phone }

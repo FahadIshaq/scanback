@@ -1,23 +1,25 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, CheckCircle, AlertCircle, Heart, Package, QrCode, Shield, Copy, Check, PawPrint, Luggage, Loader2, Upload, Camera, Image as ImageIcon, Tag } from "lucide-react"
+import { ArrowLeft, CheckCircle, AlertCircle, Heart, Package, QrCode, Shield, Copy, Check, PawPrint, Luggage, Loader2, Upload, Camera, Image as ImageIcon, Tag, Info, Stethoscope } from "lucide-react"
 import { FaWhatsapp, FaSms, FaPhone, FaEnvelope } from "react-icons/fa"
 import Link from "next/link"
 import { apiClient } from "@/lib/api"
 import PhoneInput from "@/components/phone-input"
 import { getCountryCallingCode } from "libphonenumber-js"
+import { TermsPrivacyPopup } from "@/components/terms-privacy-popup"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface QRData {
-    code: string
-  type: 'item' | 'pet'
+  code: string
+  type: 'item' | 'pet' | 'emergency' | 'any'
   isActivated: boolean
   details: {
     name: string
@@ -41,17 +43,34 @@ interface QRData {
     age?: string
     registrationNumber?: string
     breederInfo?: string
+    // Emergency Details fields
+    medicalAidProvider?: string
+    medicalAidNumber?: string
+    bloodType?: string
+    allergies?: string
+    medications?: string
+    organDonor?: boolean
+    iceNote?: string
+    // Emergency Contacts fields
+    emergencyContact1Name?: string
+    emergencyContact1Phone?: string
+    emergencyContact1CountryCode?: string
+    emergencyContact2Name?: string
+    emergencyContact2Phone?: string
+    emergencyContact2CountryCode?: string
   }
   contact: {
     name: string
     email: string
     phone: string
+    backupPhone?: string
     message?: string
   }
   settings?: {
     instantAlerts: boolean
     locationSharing: boolean
     showContactOnFinderPage?: boolean
+    useBackupNumber?: boolean
   }
   status: string
   createdAt: string
@@ -60,6 +79,7 @@ interface QRData {
 
 export default function ScanPage() {
   const params = useParams()
+  const router = useRouter()
   const code = params.code as string
   
   const [qrData, setQrData] = useState<QRData | null>(null)
@@ -67,6 +87,7 @@ export default function ScanPage() {
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [submittedTagType, setSubmittedTagType] = useState<'item' | 'pet' | 'emergency' | 'any'>('item')
   const [tempPassword, setTempPassword] = useState("")
   const [userEmail, setUserEmail] = useState("")
   const [isNewUser, setIsNewUser] = useState(false)
@@ -80,13 +101,22 @@ export default function ScanPage() {
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [messageClicked, setMessageClicked] = useState(false)
   const [itemImage, setItemImage] = useState<string | null>(null)
+  const [petImage, setPetImage] = useState<string | null>(null)
+  const [emergencyImage, setEmergencyImage] = useState<string | null>(null)
   const [showEmergencyDetails, setShowEmergencyDetails] = useState(false)
   const [showPedigreeInfo, setShowPedigreeInfo] = useState(false)
+  const [showEmergencyMedicalDetails, setShowEmergencyMedicalDetails] = useState(false)
+  const [showEmergencyContacts, setShowEmergencyContacts] = useState(false)
+  const [showTermsPopup, setShowTermsPopup] = useState(false)
+  const [showPrivacyPopup, setShowPrivacyPopup] = useState(false)
+  const [selectedTagType, setSelectedTagType] = useState<'item' | 'pet' | 'emergency'>('item')
   
   // Validation errors for additional fields
   const [ageError, setAgeError] = useState("")
   const [vetPhoneError, setVetPhoneError] = useState("")
   const [emergencyPhoneError, setEmergencyPhoneError] = useState("")
+  const [emergencyContact1PhoneError, setEmergencyContact1PhoneError] = useState("")
+  const [emergencyContact2PhoneError, setEmergencyContact2PhoneError] = useState("")
 
   const [formData, setFormData] = useState({
     details: {
@@ -110,7 +140,22 @@ export default function ScanPage() {
       breed: "",
       age: "",
       registrationNumber: "",
-      breederInfo: ""
+      breederInfo: "",
+      // Emergency Details fields
+      medicalAidProvider: "",
+      medicalAidNumber: "",
+      bloodType: "",
+      allergies: "",
+      medications: "",
+      organDonor: false,
+      iceNote: "",
+      // Emergency Contacts fields
+      emergencyContact1Name: "",
+      emergencyContact1Phone: "",
+      emergencyContact1CountryCode: "ZA",
+      emergencyContact2Name: "",
+      emergencyContact2Phone: "",
+      emergencyContact2CountryCode: "ZA"
     },
     contact: {
       name: "",
@@ -124,7 +169,8 @@ export default function ScanPage() {
     settings: {
       instantAlerts: true,
       locationSharing: true,
-      showContactOnFinderPage: false
+      showContactOnFinderPage: false,
+      useBackupNumber: true
     }
   })
 
@@ -133,6 +179,16 @@ export default function ScanPage() {
       loadQRCode()
     }
   }, [code])
+
+  // Handle type parameter from URL (for "any" type QR codes)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const typeParam = urlParams.get('type')
+    if (typeParam && qrData?.type === 'any' && ['item', 'pet', 'emergency'].includes(typeParam)) {
+      // Update the QR data type to the selected type
+      setQrData(prev => prev ? { ...prev, type: typeParam as 'item' | 'pet' | 'emergency' } : null)
+    }
+  }, [qrData])
 
   // Update message when item name changes (only if message is active)
   useEffect(() => {
@@ -227,6 +283,14 @@ export default function ScanPage() {
     return ""
   }
 
+  // Helper function to get current tag type (handles "any" type)
+  const getCurrentTagType = () => {
+    if (qrData?.type === 'any') {
+      return selectedTagType
+    }
+    return qrData?.type || 'item'
+  }
+
   const handleInputChange = (field: string, value: string | boolean) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.')
@@ -266,6 +330,16 @@ export default function ScanPage() {
       // The PhoneInput component handles its own validation via onErrorChange
     } else if (field === 'contact.backupPhone') {
       // The PhoneInput component handles its own validation via onErrorChange
+      // If backup phone is cleared, reset the useBackupNumber setting
+      if (!value || (value as string).trim() === '') {
+        setFormData(prev => ({
+          ...prev,
+          settings: {
+            ...prev.settings,
+            useBackupNumber: false
+          }
+        }))
+      }
     }
   }
 
@@ -332,9 +406,82 @@ export default function ScanPage() {
     }
   }
 
+  const handlePetImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file')
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size must be less than 5MB')
+        return
+      }
+      
+      // Convert to base64 data URL directly
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        setPetImage(result)
+        setFormData(prev => ({
+          ...prev,
+          details: {
+            ...prev.details,
+            image: result
+          }
+        }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleEmergencyImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file')
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size must be less than 5MB')
+        return
+      }
+      
+      // Convert to base64 data URL directly
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        setEmergencyImage(result)
+        setFormData(prev => ({
+          ...prev,
+          details: {
+            ...prev.details,
+            image: result
+          }
+        }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const triggerEmergencyImageUpload = () => {
+    const input = document.getElementById('emergency-image-upload') as HTMLInputElement
+    input?.click()
+  }
+
   const triggerImageUpload = () => {
-    const inputId = qrData?.type === 'pet' ? 'pet-image-upload' : 'item-image-upload'
-    const input = document.getElementById(inputId) as HTMLInputElement
+    const input = document.getElementById('item-image-upload') as HTMLInputElement
+    input?.click()
+  }
+
+  const triggerPetImageUpload = () => {
+    const input = document.getElementById('pet-image-upload') as HTMLInputElement
     input?.click()
   }
 
@@ -357,7 +504,7 @@ export default function ScanPage() {
     const hasPhoneErrors = phoneErrors.main !== "" || phoneErrors.backup !== ""
     
     // Check additional validation errors
-    const hasAdditionalErrors = ageError !== "" || vetPhoneError !== "" || emergencyPhoneError !== ""
+    const hasAdditionalErrors = ageError !== "" || vetPhoneError !== "" || emergencyPhoneError !== "" || emergencyContact1PhoneError !== "" || emergencyContact2PhoneError !== ""
     
     return hasRequiredFields && isEmailValid && !hasPhoneErrors && !hasAdditionalErrors
   }
@@ -413,7 +560,7 @@ export default function ScanPage() {
     setError("")
 
     // Check for validation errors before submission
-    if (phoneErrors.main || phoneErrors.backup || emailError || ageError || vetPhoneError || emergencyPhoneError) {
+    if (phoneErrors.main || phoneErrors.backup || emailError || ageError || vetPhoneError || emergencyPhoneError || emergencyContact1PhoneError || emergencyContact2PhoneError) {
       setError("Please fix validation errors before submitting.")
       setSubmitting(false)
       focusFirstInvalidField()
@@ -435,22 +582,29 @@ export default function ScanPage() {
 
       // Format phone numbers with country codes
       const submissionData = {
+        type: getCurrentTagType(),
         ...formData,
-        details: {
-          ...formData.details,
-          image: itemImage || formData.details.image // Use itemImage if available, otherwise use formData
-        },
         contact: {
           ...formData.contact,
           phone: `+${getCountryCallingCode(formData.contact.countryCode as any)}${formData.contact.phone}`,
           backupPhone: formData.contact.backupPhone ? `+${getCountryCallingCode(formData.contact.backupCountryCode as any)}${formData.contact.backupPhone}` : undefined,
           message: finalMessage
+        },
+        details: {
+          ...formData.details,
+          image: getCurrentTagType() === 'emergency' ? (emergencyImage || formData.details.image) : 
+                 getCurrentTagType() === 'pet' ? (petImage || formData.details.image) : 
+                 (itemImage || formData.details.image), // Use appropriate image state
+          emergencyContact1Phone: formData.details.emergencyContact1Phone ? `+${getCountryCallingCode(formData.details.emergencyContact1CountryCode as any)}${formData.details.emergencyContact1Phone}` : undefined,
+          emergencyContact2Phone: formData.details.emergencyContact2Phone ? `+${getCountryCallingCode(formData.details.emergencyContact2CountryCode as any)}${formData.details.emergencyContact2Phone}` : undefined
         }
       }
 
+      
       const response = await apiClient.activateQRCode(code, submissionData)
       
       if (response.success) {
+        setSubmittedTagType(getCurrentTagType())
         setSuccess(true)
         setTempPassword(response.data.tempPassword || "")
         setUserEmail(response.data.user.email)
@@ -555,12 +709,12 @@ export default function ScanPage() {
           </div>
           <h2 className="text-3xl font-bold text-black mb-4">Registration Successful!</h2>
           <div className="mb-6">
-            <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mx-auto max-w-md">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mx-auto max-w-md">
               <h2 className="text-sm sm:text-lg font-semibold text-gray-800 text-center">
                 <span className="inline">No App</span>
-                <span className="mx-2 text-gray-400">|</span>
+                <span className="mx-2 text-blue-400">|</span>
                 <span className="inline">No Subscription</span>
-                <span className="mx-2 text-gray-400">|</span>
+                <span className="mx-2 text-blue-400">|</span>
                 <span className="inline">Free Notifications</span>
               </h2>
             </div>
@@ -690,14 +844,16 @@ export default function ScanPage() {
                 <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-semibold text-gray-600">Type</span>
-                    {qrData?.type === 'pet' ? (
+                    {submittedTagType === 'pet' ? (
                       <Heart className="h-4 w-4 text-orange-500" />
+                    ) : submittedTagType === 'emergency' ? (
+                      <Stethoscope className="h-4 w-4 text-red-500" />
                     ) : (
                       <Package className="h-4 w-4 text-blue-500" />
                     )}
                   </div>
                   <span className="text-lg font-bold text-black">
-                    {qrData?.type === 'pet' ? 'Pet Tag' : 'Item Tag'}
+                    {submittedTagType === 'pet' ? 'Pet Tag' : submittedTagType === 'emergency' ? 'Emergency Tag' : 'Item Tag'}
                   </span>
                 </div>
 
@@ -800,15 +956,17 @@ export default function ScanPage() {
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-gray-300 shadow-lg">
               {qrData.type === 'pet' ? (
                 <PawPrint className="h-12 w-12 text-yellow-500" />
+              ) : qrData.type === 'emergency' ? (
+                <Stethoscope className="h-12 w-12 text-red-600" />
               ) : (
                 <Tag className="h-12 w-12 text-blue-600 flex items-center justify-center" />
               )}
             </div>
             <h1 className="text-4xl font-bold text-black mb-3">
-              Found {qrData.type === 'pet' ? 'Pet' : 'Item'}
+              Found {qrData.type === 'pet' ? 'Pet' : qrData.type === 'emergency' ? 'Emergency Contact' : 'Item'}
             </h1>
             <p className="text-gray-700 text-xl">
-            Thanks for scanning — let’s help return it safely.
+            {qrData.type === 'emergency' ? 'Emergency contact information found — please contact immediately.' : 'Thanks for scanning — let\'s help return it safely.'}
             </p>
           </div>
 
@@ -934,6 +1092,14 @@ export default function ScanPage() {
                     <Label className="text-sm font-semibold text-gray-700 mb-2 block">Email Address</Label>
                     <p className="text-black font-bold text-lg break-all">{qrData.contact.email}</p>
                   </div>
+
+                  {/* Backup Phone - Only show if useBackupNumber is true and backup phone exists */}
+                  {qrData.settings?.useBackupNumber && qrData.contact.backupPhone && (
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <Label className="text-sm font-semibold text-gray-700 mb-2 block">Backup Phone Number</Label>
+                      <p className="text-black font-bold text-lg">{qrData.contact.backupPhone}</p>
+                    </div>
+                  )}
 
                   {/* Contact Methods Available */}
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -1067,6 +1233,110 @@ export default function ScanPage() {
                 </Card>
               )}
 
+              {/* Emergency-specific information display */}
+              {qrData.type === 'emergency' && (
+                <Card className="shadow-xl border-2 border-red-200 rounded-xl bg-white">
+                  <CardHeader className="bg-red-50">
+                    <CardTitle className="flex items-center gap-2 text-xl text-black">
+                      <Stethoscope className="h-6 w-6 text-red-600" />
+                      Emergency Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Emergency Contact Photo */}
+                    {qrData.details.image && (
+                      <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                        <Label className="text-sm font-semibold text-red-700 mb-2 block">Emergency Contact Photo</Label>
+                        <img 
+                          src={qrData.details.image} 
+                          alt={qrData.details.name}
+                          className="w-32 h-32 object-cover rounded-lg mx-auto"
+                        />
+                      </div>
+                    )}
+
+                    {/* Medical Information */}
+                    <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                      <Label className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
+                        <Stethoscope className="h-4 w-4" />
+                        Medical Information
+                      </Label>
+                      <div className="space-y-3">
+                        {qrData.details.medicalAidProvider && (
+                          <div>
+                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Medical Aid Provider</Label>
+                            <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.medicalAidProvider}</p>
+                          </div>
+                        )}
+                        {qrData.details.medicalAidNumber && (
+                          <div>
+                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Medical Aid Number</Label>
+                            <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.medicalAidNumber}</p>
+                          </div>
+                        )}
+                        {qrData.details.bloodType && (
+                          <div>
+                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Blood Type</Label>
+                            <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.bloodType}</p>
+                          </div>
+                        )}
+                        {qrData.details.allergies && (
+                          <div>
+                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Allergies / Medical Conditions</Label>
+                            <p className="text-red-800 text-sm leading-relaxed mt-1">{qrData.details.allergies}</p>
+                          </div>
+                        )}
+                        {qrData.details.medications && (
+                          <div>
+                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Medications</Label>
+                            <p className="text-red-800 text-sm leading-relaxed mt-1">{qrData.details.medications}</p>
+                          </div>
+                        )}
+                        {qrData.details.organDonor && (
+                          <div>
+                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Organ Donor</Label>
+                            <p className="text-red-800 text-sm font-medium mt-1">Yes - Registered Organ Donor</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Emergency Contacts */}
+                    <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                      <Label className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        Emergency Contacts
+                      </Label>
+                      <div className="space-y-3">
+                        {qrData.details.emergencyContact1Name && qrData.details.emergencyContact1Phone && (
+                          <div>
+                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Emergency Contact 1</Label>
+                            <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.emergencyContact1Name} - {qrData.details.emergencyContact1Phone}</p>
+                          </div>
+                        )}
+                        {qrData.details.emergencyContact2Name && qrData.details.emergencyContact2Phone && (
+                          <div>
+                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Emergency Contact 2</Label>
+                            <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.emergencyContact2Name} - {qrData.details.emergencyContact2Phone}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ICE Note */}
+                    {qrData.details.iceNote && (
+                      <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                        <Label className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4" />
+                          ICE Note / Special Instructions
+                        </Label>
+                        <p className="text-red-800 text-sm leading-relaxed">{qrData.details.iceNote}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Item-specific information display */}
               {qrData.type === 'item' && (qrData.details.image || qrData.details.category || qrData.details.color || qrData.details.brand || qrData.details.model) && (
                 <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
@@ -1133,7 +1403,7 @@ export default function ScanPage() {
                 <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-semibold">
                       <a 
                         href={`https://wa.me/${qrData.contact.phone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(
-                          `Hi ${qrData.contact.name}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.`
+                          `Hi ${qrData.contact.name}! I found your ${qrData.type === 'pet' ? 'pet' : qrData.type === 'emergency' ? 'emergency contact' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -1154,7 +1424,7 @@ export default function ScanPage() {
                     
                     <Button asChild variant="outline" className="border-2 border-gray-300 hover:border-black text-black hover:text-black h-12 text-base font-semibold">
                       <a 
-                        href={`mailto:${qrData.contact.email}?subject=${encodeURIComponent(`Found your ${qrData.type === 'pet' ? 'pet' : 'item'} - ${qrData.details.name}`)}&body=${encodeURIComponent(`Hi ${qrData.contact.name},\n\nI found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.\n\nBest regards`)}`} 
+                        href={`mailto:${qrData.contact.email}?subject=${encodeURIComponent(`Found your ${qrData.type === 'pet' ? 'pet' : qrData.type === 'emergency' ? 'emergency contact' : 'item'} - ${qrData.details.name}`)}&body=${encodeURIComponent(`Hi ${qrData.contact.name},\n\nI found your ${qrData.type === 'pet' ? 'pet' : qrData.type === 'emergency' ? 'emergency contact' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.\n\nBest regards`)}`} 
                         className="flex items-center justify-center gap-3"
                       >
                         <FaEnvelope className="h-5 w-5 text-blue-600" />
@@ -1168,7 +1438,7 @@ export default function ScanPage() {
                       <Button asChild variant="outline" className="w-full border-2 border-gray-300 hover:border-black text-black hover:text-black h-12 text-base font-semibold">
                       <a 
                         href={`sms:${qrData.contact.phone}?body=${encodeURIComponent(
-                          `Hi ${qrData.contact.name}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.`
+                          `Hi ${qrData.contact.name}! I found your ${qrData.type === 'pet' ? 'pet' : qrData.type === 'emergency' ? 'emergency contact' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.`
                         )}`}
                         className="flex items-center justify-center gap-3"
                       >
@@ -1226,22 +1496,29 @@ export default function ScanPage() {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-gray-300 shadow-lg">
-            {qrData?.type === 'pet' ? (
+            {getCurrentTagType() === 'pet' ? (
               <PawPrint className="h-10 w-10 text-yellow-500" />
+            ) : getCurrentTagType() === 'emergency' ? (
+              <Stethoscope className="h-10 w-10 text-red-600" />
+            ) : getCurrentTagType() === 'item' ? (
+              <Package className="h-10 w-10 text-blue-600" />
             ) : (
-              <Tag className="h-10 w-10 text-blue-600 flex items-center justify-center" />
+              <Tag className="h-10 w-10 text-purple-600 flex items-center justify-center" />
             )}
           </div>
           <h1 className="text-3xl font-bold text-black mb-3">
-            Activate Your Tag
+            {getCurrentTagType() === 'pet' ? 'Activate Your Pet Tag' : 
+             getCurrentTagType() === 'emergency' ? 'Activate Your Emergency Tag' : 
+             getCurrentTagType() === 'item' ? 'Activate Your Item Tag' : 
+             'Activate Your Tag'}
           </h1>
           <div className="mb-6">
-            <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mx-auto max-w-md">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mx-auto max-w-md">
               <h2 className="text-sm sm:text-lg font-semibold text-gray-800 text-center">
                 <span className="inline">No App</span>
-                <span className="mx-2 text-gray-400">|</span>
+                <span className="mx-2 text-blue-400">|</span>
                 <span className="inline">No Subscription</span>
-                <span className="mx-2 text-gray-400">|</span>
+                <span className="mx-2 text-blue-400">|</span>
                 <span className="inline">Free Notifications</span>
               </h2>
             </div>
@@ -1254,6 +1531,25 @@ export default function ScanPage() {
         <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
           <CardContent className="pt-8">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Tag Type Selection - Only for "any" type QR codes */}
+              {qrData?.type === 'any' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="tagType">Tag Type *</Label>
+                    <Select value={selectedTagType} onValueChange={(value: 'item' | 'pet' | 'emergency') => setSelectedTagType(value)}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select tag type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="item">📱 Item</SelectItem>
+                        <SelectItem value="pet">🐕 Pet</SelectItem>
+                        <SelectItem value="emergency">🚨 Emergency</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
               {/* Contact Information */}
               <div className="space-y-4">
                 <div>
@@ -1280,17 +1576,61 @@ export default function ScanPage() {
                   id="phone"
                 />
 
-                <PhoneInput
-                        value={formData.contact.backupPhone}
-                  onChange={(value) => handleInputChange('contact.backupPhone', value)}
-                  onCountryChange={(countryCode) => handleInputChange('contact.backupCountryCode', countryCode)}
-                  onErrorChange={(error) => setPhoneErrors(prev => ({ ...prev, backup: error }))}
-                  countryCode={formData.contact.backupCountryCode}
-                  label="Backup Phone Number (Optional)"
-                  placeholder="Enter backup phone number (optional)"
-                  error={phoneErrors.backup}
-                  id="backupPhone"
-                />
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Label htmlFor="backupPhone">Backup Phone Number</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">Make sure the person listed has agreed to be contacted in case your item is found.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <PhoneInput
+                    value={formData.contact.backupPhone}
+                    onChange={(value) => handleInputChange('contact.backupPhone', value)}
+                    onCountryChange={(countryCode) => handleInputChange('contact.backupCountryCode', countryCode)}
+                    onErrorChange={(error) => setPhoneErrors(prev => ({ ...prev, backup: error }))}
+                    countryCode={formData.contact.backupCountryCode}
+                    placeholder="e.g. 083 123 4567 – must have owner's permission"
+                    error={phoneErrors.backup}
+                    id="backupPhone"
+                  />
+                  
+                  {/* Backup Number Consent Toggle */}
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mt-3">
+                    <div className="flex-1">
+                      <Label className="text-sm font-medium text-black">Use backup number if I can't be reached</Label>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {formData.contact.backupPhone.trim() ? 
+                          "If unchecked, backup number won't appear on the public scan page" : 
+                          "Enter a backup phone number above to enable this option"
+                        }
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0 ml-4">
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange('settings.useBackupNumber', !formData.settings.useBackupNumber)}
+                        disabled={!formData.contact.backupPhone.trim()}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          formData.contact.backupPhone.trim() 
+                            ? (formData.settings.useBackupNumber ? 'bg-blue-600' : 'bg-gray-300')
+                            : 'bg-gray-200 cursor-not-allowed'
+                        }`}
+                        aria-pressed={formData.settings.useBackupNumber}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            formData.settings.useBackupNumber && formData.contact.backupPhone.trim() ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
                 <div>
                   <Label htmlFor="email">Email *</Label>
@@ -1312,19 +1652,19 @@ export default function ScanPage() {
               {/* Item/Pet Name */}
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name">{qrData?.type === 'pet' ? 'Pet Name' : 'Item Name'} *</Label>
+                  <Label htmlFor="name">{getCurrentTagType() === 'pet' ? 'Pet Name' : getCurrentTagType() === 'emergency' ? 'Emergency Contact Name' : 'Item Name'} *</Label>
                   <Input
                     id="name"
                     value={formData.details.name}
                     onChange={(e) => handleInputChange('details.name', e.target.value)}
-                    placeholder={`Enter your ${qrData?.type === 'pet' ? 'pet' : 'item'} name`}
+                    placeholder={`Enter your ${getCurrentTagType() === 'pet' ? 'pet' : getCurrentTagType() === 'emergency' ? 'emergency contact' : 'item'} name`}
                     required
                     className="mt-1"
                   />
               </div>
 
               {/* Item Image Upload - Only for Item Tags */}
-              {qrData?.type === 'item' && (
+              {getCurrentTagType() === 'item' && (
                 <div className="space-y-4">
                   <div>
                     <Label>Item Photo (Optional)</Label>
@@ -1367,26 +1707,26 @@ export default function ScanPage() {
               )}
 
               {/* Pet Image Upload - Only for Pet Tags */}
-              {qrData?.type === 'pet' && (
+              {getCurrentTagType() === 'pet' && (
                 <div className="space-y-4">
                   <div>
                     <Label>Pet Photo (Optional)</Label>
                     <div className="mt-2">
                       <div 
                         className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
-                        onClick={triggerImageUpload}
+                        onClick={triggerPetImageUpload}
                       >
                         <input
                           id="pet-image-upload"
                           type="file"
                           accept="image/*"
-                          onChange={handleImageUpload}
+                          onChange={handlePetImageUpload}
                           className="hidden"
                         />
-                        {itemImage ? (
+                        {petImage ? (
                           <div className="space-y-3">
                             <img 
-                              src={itemImage} 
+                              src={petImage} 
                               alt="Pet" 
                               className="w-24 h-24 object-cover rounded-lg mx-auto"
                             />
@@ -1581,6 +1921,302 @@ export default function ScanPage() {
                 </div>
               )}
 
+              {/* Emergency Photo Upload */}
+              {getCurrentTagType() === 'emergency' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Emergency Contact Photo (Optional)</Label>
+                    <div className="mt-2">
+                      <div 
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-red-400 hover:bg-red-50 transition-colors"
+                        onClick={triggerEmergencyImageUpload}
+                      >
+                        <input
+                          id="emergency-image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleEmergencyImageUpload}
+                          className="hidden"
+                        />
+                        {emergencyImage ? (
+                          <div className="space-y-3">
+                            <img 
+                              src={emergencyImage} 
+                              alt="Emergency Contact" 
+                              className="w-24 h-24 object-cover rounded-lg mx-auto"
+                            />
+                            <p className="text-sm text-gray-600">Click to change photo</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mx-auto">
+                              <Camera className="h-8 w-8 text-red-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Upload Emergency Contact Photo</p>
+                              <p className="text-xs text-gray-500">Tap to select from camera or gallery</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Emergency-specific fields */}
+              {getCurrentTagType() === 'emergency' && (
+                <div className="space-y-4">
+
+                  {/* Emergency Medical Details Toggle */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
+                      <div className="flex-1">
+                        <Label className="text-sm font-medium text-black flex items-center gap-2">
+                          <Stethoscope className="h-4 w-4 text-red-600" />
+                          Add Emergency Details
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">Medical aid info, blood type, allergies, medications</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowEmergencyMedicalDetails(!showEmergencyMedicalDetails)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
+                          showEmergencyMedicalDetails ? 'bg-red-600' : 'bg-gray-300'
+                        }`}
+                        aria-pressed={showEmergencyMedicalDetails}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            showEmergencyMedicalDetails ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {showEmergencyMedicalDetails && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="medicalAidProvider">Medical Aid Provider</Label>
+                            <Input
+                              id="medicalAidProvider"
+                              value={formData.details.medicalAidProvider || ""}
+                              onChange={(e) => handleInputChange('details.medicalAidProvider', e.target.value)}
+                              placeholder="e.g., Discovery Health"
+                              className="mt-1"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="medicalAidNumber">Medical Aid Number</Label>
+                            <Input
+                              id="medicalAidNumber"
+                              value={formData.details.medicalAidNumber || ""}
+                              onChange={(e) => handleInputChange('details.medicalAidNumber', e.target.value)}
+                              placeholder="e.g., 123 456 7890"
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="bloodType">Blood Type</Label>
+                          <Select
+                            value={formData.details.bloodType || ""}
+                            onValueChange={(value) => handleInputChange('details.bloodType', value)}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Select blood type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="A+">A+</SelectItem>
+                              <SelectItem value="A-">A-</SelectItem>
+                              <SelectItem value="B+">B+</SelectItem>
+                              <SelectItem value="B-">B-</SelectItem>
+                              <SelectItem value="AB+">AB+</SelectItem>
+                              <SelectItem value="AB-">AB-</SelectItem>
+                              <SelectItem value="O+">O+</SelectItem>
+                              <SelectItem value="O-">O-</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="allergies">Allergies / Medical Conditions</Label>
+                          <Textarea
+                            id="allergies"
+                            value={formData.details.allergies || ""}
+                            onChange={(e) => handleInputChange('details.allergies', e.target.value)}
+                            placeholder="e.g., Penicillin Allergy, Asthma, Epilepsy"
+                            rows={3}
+                            className="mt-1"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="medications">Medications</Label>
+                          <Textarea
+                            id="medications"
+                            value={formData.details.medications || ""}
+                            onChange={(e) => handleInputChange('details.medications', e.target.value)}
+                            placeholder="e.g., Ventolin, Epipen, Insulin"
+                            rows={3}
+                            className="mt-1"
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex-1">
+                            <Label className="text-sm font-medium text-black">Organ Donor</Label>
+                            <p className="text-xs text-gray-600 mt-1">Are you registered as an organ donor?</p>
+                          </div>
+                          <div className="flex-shrink-0 ml-4">
+                            <button
+                              type="button"
+                              onClick={() => handleInputChange('details.organDonor', !formData.details.organDonor)}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
+                                formData.details.organDonor ? 'bg-red-600' : 'bg-gray-300'
+                              }`}
+                              aria-pressed={formData.details.organDonor}
+                            >
+                              <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                  formData.details.organDonor ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="iceNote">ICE Note / Special Instruction</Label>
+                          <Textarea
+                            id="iceNote"
+                            value={formData.details.iceNote || ""}
+                            onChange={(e) => handleInputChange('details.iceNote', e.target.value)}
+                            placeholder="e.g., Please notify both emergency contacts immediately."
+                            rows={2}
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Emergency Contacts Toggle */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
+                      <div className="flex-1">
+                        <Label className="text-sm font-medium text-black flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 text-red-600" />
+                          Emergency Contacts
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">Primary and secondary emergency contacts</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowEmergencyContacts(!showEmergencyContacts)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
+                          showEmergencyContacts ? 'bg-red-600' : 'bg-gray-300'
+                        }`}
+                        aria-pressed={showEmergencyContacts}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            showEmergencyContacts ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {showEmergencyContacts && (
+                      <div className="space-y-4">
+                        {/* Emergency Contact 1 */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm font-medium text-black">Emergency Contact 1</Label>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Make sure they have agreed to be contacted in case of emergency.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="emergencyContact1Name">Contact Name</Label>
+                            <Input
+                              id="emergencyContact1Name"
+                              value={formData.details.emergencyContact1Name || ""}
+                              onChange={(e) => handleInputChange('details.emergencyContact1Name', e.target.value)}
+                              placeholder="e.g., Sarah Khan"
+                              className="mt-1"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="emergencyContact1Phone">Contact Number</Label>
+                            <PhoneInput
+                              value={formData.details.emergencyContact1Phone || ""}
+                              countryCode={formData.details.emergencyContact1CountryCode || "ZA"}
+                              onChange={(value) => handleInputChange('details.emergencyContact1Phone', value)}
+                              onCountryChange={(countryCode) => handleInputChange('details.emergencyContact1CountryCode', countryCode)}
+                              onErrorChange={(error) => setEmergencyContact1PhoneError(error)}
+                              error={emergencyContact1PhoneError}
+                              id="emergencyContact1Phone"
+                              placeholder="e.g., 083 123 4567"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Emergency Contact 2 */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm font-medium text-black">Emergency Contact 2</Label>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Make sure they have agreed to be contacted in case of emergency.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="emergencyContact2Name">Contact Name</Label>
+                            <Input
+                              id="emergencyContact2Name"
+                              value={formData.details.emergencyContact2Name || ""}
+                              onChange={(e) => handleInputChange('details.emergencyContact2Name', e.target.value)}
+                              placeholder="e.g., John Patel"
+                              className="mt-1"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="emergencyContact2Phone">Contact Number</Label>
+                            <PhoneInput
+                              value={formData.details.emergencyContact2Phone || ""}
+                              countryCode={formData.details.emergencyContact2CountryCode || "ZA"}
+                              onChange={(value) => handleInputChange('details.emergencyContact2Phone', value)}
+                              onCountryChange={(countryCode) => handleInputChange('details.emergencyContact2CountryCode', countryCode)}
+                              onErrorChange={(error) => setEmergencyContact2PhoneError(error)}
+                              error={emergencyContact2PhoneError}
+                              id="emergencyContact2Phone"
+                              placeholder="e.g., 082 987 6543"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
                 <div>
                   <Label htmlFor="message">Finder Message (Auto generated) (Editable)</Label>
                   <Textarea
@@ -1697,21 +2333,46 @@ export default function ScanPage() {
                 </Button>
 
                 
-                  <p className="text-xs text-gray-600 text-center mt-2">
+                  <p className="text-sm text-gray-600 text-center mt-2">
                   Protect what matters to you! Every scan makes a difference.
                   </p>
                 
 
-              <p className="text-xs text-gray-600 text-center">
-                By activating you agree to our{' '}
-                <a href="#" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">Terms and Conditions</a>
+              <p className="text-sm text-gray-600 text-center">
+                By activating, you agree to our{' '}
+                <button 
+                  type="button"
+                  onClick={() => setShowTermsPopup(true)}
+                  className="text-blue-600 hover:text-blue-700 hover:underline font-medium cursor-pointer"
+                >
+                  Terms and Conditions
+                </button>
                 {' '}and{' '}
-                <a href="#" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">Privacy Policy</a>
+                <button 
+                  type="button"
+                  onClick={() => setShowPrivacyPopup(true)}
+                  className="text-blue-600 hover:text-blue-700 hover:underline font-medium cursor-pointer"
+                >
+                  Privacy Policy
+                </button>
+                , and confirm you have consent to provide any backup contact number.
               </p>
             </form>
           </CardContent>
         </Card>
       </div>
+
+      {/* Terms and Privacy Popups */}
+      <TermsPrivacyPopup 
+        isOpen={showTermsPopup} 
+        onClose={() => setShowTermsPopup(false)} 
+        type="terms" 
+      />
+      <TermsPrivacyPopup 
+        isOpen={showPrivacyPopup} 
+        onClose={() => setShowPrivacyPopup(false)} 
+        type="privacy" 
+      />
     </div>
   )
 }

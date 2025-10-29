@@ -27,7 +27,8 @@ import {
   CheckCircle,
   Camera,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Stethoscope
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { apiClient } from "@/lib/api"
@@ -36,7 +37,7 @@ import Link from "next/link"
 interface QRCode {
   _id: string
   code: string
-  type: 'item' | 'pet'
+  type: 'item' | 'pet' | 'emergency'
   details: {
     name: string
     description?: string
@@ -47,6 +48,20 @@ interface QRCode {
     image?: string
     emergencyDetails?: string
     pedigreeInfo?: string
+    // Emergency Details fields
+    medicalAidProvider?: string
+    medicalAidNumber?: string
+    bloodType?: string
+    allergies?: string
+    medications?: string
+    organDonor?: boolean
+    iceNote?: string
+    emergencyContact1Name?: string
+    emergencyContact1Phone?: string
+    emergencyContact1CountryCode?: string
+    emergencyContact2Name?: string
+    emergencyContact2Phone?: string
+    emergencyContact2CountryCode?: string
   }
   contact?: {
     name: string
@@ -259,7 +274,7 @@ export default function DashboardPage() {
   const [originalContact, setOriginalContact] = useState<any>(null)
   const [showScanHistoryModal, setShowScanHistoryModal] = useState(false)
   const [showFilteredListModal, setShowFilteredListModal] = useState(false)
-  const [filteredListType, setFilteredListType] = useState<'pet' | 'item' | null>(null)
+  const [filteredListType, setFilteredListType] = useState<'pet' | 'item' | 'emergency' | null>(null)
   const [expandedScanHistory, setExpandedScanHistory] = useState<Set<string>>(new Set())
   const router = useRouter()
 
@@ -364,6 +379,11 @@ export default function DashboardPage() {
 
   const handleItemsClick = () => {
     setFilteredListType('item')
+    setShowFilteredListModal(true)
+  }
+
+  const handleEmergencyClick = () => {
+    setFilteredListType('emergency')
     setShowFilteredListModal(true)
   }
 
@@ -515,16 +535,6 @@ export default function DashboardPage() {
                            editForm.settings.locationSharing !== editingQR.settings?.locationSharing ||
                            editForm.settings.showContactOnFinderPage !== editingQR.settings?.showContactOnFinderPage
 
-    console.log('Change detection:', { 
-      emailChanged, 
-      phoneChanged,
-      detailsChanged,
-      settingsChanged,
-      currentEmail: editingQR.contact?.email, 
-      newEmail: editForm.contact.email,
-      currentPhone: editingQR.contact?.phone,
-      newPhone: `${editForm.contact.countryCode}${editForm.contact.phone}`
-    });
 
     if (emailChanged || phoneChanged || detailsChanged || settingsChanged) {
       // Prepare update data
@@ -755,7 +765,7 @@ export default function DashboardPage() {
 
       <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl">
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <Card className="hover:shadow-md transition-shadow">
             <CardContent className="p-3 sm:p-6 text-center">
               <div className="text-xl sm:text-3xl font-bold text-blue-600 mb-1 sm:mb-2">{qrCodes.length}</div>
@@ -778,6 +788,15 @@ export default function DashboardPage() {
                 {qrCodes.filter(qr => qr.type === 'pet').length}
               </div>
               <div className="text-xs sm:text-sm text-gray-600">Pets</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={handleEmergencyClick}>
+            <CardContent className="p-3 sm:p-6 text-center">
+              <div className="text-xl sm:text-3xl font-bold text-red-600 mb-1 sm:mb-2">
+                {qrCodes.filter(qr => qr.type === 'emergency').length}
+              </div>
+              <div className="text-xs sm:text-sm text-gray-600">Emergency</div>
             </CardContent>
           </Card>
 
@@ -827,6 +846,11 @@ export default function DashboardPage() {
                               <>
                                 <Heart className="h-3 w-3 mr-1" />
                                 Pet
+                              </>
+                            ) : qr.type === 'emergency' ? (
+                              <>
+                                <Stethoscope className="h-3 w-3 mr-1" />
+                                Emergency
                               </>
                             ) : (
                               <>
@@ -1074,12 +1098,12 @@ export default function DashboardPage() {
                   {/* Item/Pet Name */}
                   <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <Label htmlFor="editName" className="text-sm">{editingQR.type === 'pet' ? 'Pet Name' : 'Item Name'} *</Label>
+                      <Label htmlFor="editName" className="text-sm">{editingQR.type === 'pet' ? 'Pet Name' : editingQR.type === 'emergency' ? 'Emergency Contact Name' : 'Item Name'} *</Label>
                       <Input
                         id="editName"
                         value={editForm.details.name}
                         onChange={(e) => handleEditInputChange('details.name', e.target.value)}
-                        placeholder={`Enter your ${editingQR.type === 'pet' ? 'pet' : 'item'} name`}
+                        placeholder={`Enter your ${editingQR.type === 'pet' ? 'pet' : editingQR.type === 'emergency' ? 'emergency contact' : 'item'} name`}
                         required
                         className="mt-1 text-sm"
                       />
@@ -1361,7 +1385,7 @@ export default function DashboardPage() {
                       className="mx-auto max-w-full h-auto border border-gray-200 rounded-lg"
                     />
                     <p className="text-xs sm:text-sm text-gray-600 mt-3 sm:mt-4">
-                      Scan this QR code to view the {selectedQR.type === 'pet' ? 'pet' : 'item'} details
+                      Scan this QR code to view the {selectedQR.type === 'pet' ? 'pet' : selectedQR.type === 'emergency' ? 'emergency contact' : 'item'} details
                     </p>
                     <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-500 mb-1">QR Code URL:</p>
@@ -1811,10 +1835,10 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {filteredListType === 'pet' ? 'Pet Tags' : 'Item Tags'}
+                      {filteredListType === 'pet' ? 'Pet Tags' : filteredListType === 'emergency' ? 'Emergency Tags' : 'Item Tags'}
                     </h3>
                     <p className="text-sm text-gray-600">
-                      {qrCodes.filter(qr => qr.type === filteredListType).length} {filteredListType === 'pet' ? 'pets' : 'items'} registered
+                      {qrCodes.filter(qr => qr.type === filteredListType).length} {filteredListType === 'pet' ? 'pets' : filteredListType === 'emergency' ? 'emergency contacts' : 'items'} registered
                     </p>
                   </div>
                 </div>
@@ -1837,6 +1861,8 @@ export default function DashboardPage() {
                             <div className={`p-2 rounded-lg ${qr.isActivated ? 'bg-green-100' : 'bg-gray-100'}`}>
                               {qr.type === 'pet' ? (
                                 <PawPrint className={`h-5 w-5 ${qr.isActivated ? 'text-green-600' : 'text-gray-400'}`} />
+                              ) : qr.type === 'emergency' ? (
+                                <Stethoscope className={`h-5 w-5 ${qr.isActivated ? 'text-green-600' : 'text-gray-400'}`} />
                               ) : (
                                 <Luggage className={`h-5 w-5 ${qr.isActivated ? 'text-green-600' : 'text-gray-400'}`} />
                               )}
@@ -1867,16 +1893,18 @@ export default function DashboardPage() {
                   {qrCodes.filter(qr => qr.type === filteredListType).length === 0 && (
                     <div className="text-center py-8">
                       <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
-                        filteredListType === 'pet' ? 'bg-orange-100' : 'bg-green-100'
+                        filteredListType === 'pet' ? 'bg-orange-100' : filteredListType === 'emergency' ? 'bg-red-100' : 'bg-green-100'
                       }`}>
                         {filteredListType === 'pet' ? (
                           <PawPrint className="h-8 w-8 text-orange-600" />
+                        ) : filteredListType === 'emergency' ? (
+                          <Stethoscope className="h-8 w-8 text-red-600" />
                         ) : (
                           <Luggage className="h-8 w-8 text-green-600" />
                         )}
                       </div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        No {filteredListType === 'pet' ? 'Pet Tags' : 'Item Tags'} Yet
+                        No {filteredListType === 'pet' ? 'Pet Tags' : filteredListType === 'emergency' ? 'Emergency Tags' : 'Item Tags'} Yet
                       </h3>
                     </div>
                   )}

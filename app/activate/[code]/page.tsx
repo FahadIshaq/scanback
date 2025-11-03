@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
@@ -12,8 +12,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { PhoneInput, type PhoneInputValue } from "@/components/phone-input"
+import PhoneInput from "@/components/phone-input"
 import { QRLogo } from "@/components/qr-logo"
+import { ScanHeader } from "@/components/scan-header"
 
 interface ActivateTagPageProps {
   params: Promise<{
@@ -26,14 +27,10 @@ export default function ActivateTagPage({ params }: ActivateTagPageProps) {
   const router = useRouter()
 
   // Form state
-  const [primary, setPrimary] = useState<PhoneInputValue>({
-    country: "ZA",
-    e164: "+27 ",
-  })
-  const [backup, setBackup] = useState<PhoneInputValue>({
-    country: "ZA",
-    e164: "",
-  })
+  const [primary, setPrimary] = useState("")
+  const [primaryCountry, setPrimaryCountry] = useState("ZA")
+  const [backup, setBackup] = useState("")
+  const [backupCountry, setBackupCountry] = useState("ZA")
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
   const [message, setMessage] = useState("If this is my item, please WhatsApp me here.")
@@ -56,7 +53,7 @@ export default function ActivateTagPage({ params }: ActivateTagPageProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim() || "User",
-          phone: primary.e164.trim(),
+          phone: primary.trim(),
           email: email.trim(),
           code: code,
           tagId: `tag_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -82,24 +79,7 @@ export default function ActivateTagPage({ params }: ActivateTagPageProps) {
   if (done) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-navy-900">
-                <Link href="/">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Link>
-              </Button>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-navy-900 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">S</span>
-                </div>
-                <span className="font-semibold text-navy-900">ScanBack™</span>
-              </div>
-            </div>
-          </div>
-        </header>
+        <ScanHeader />
 
         <div className="container mx-auto px-4 py-10 max-w-md">
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
@@ -135,10 +115,10 @@ export default function ActivateTagPage({ params }: ActivateTagPageProps) {
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2 items-center text-center">
-                <div className="p-3 rounded-xl bg-purple-50 border border-purple-200">
-                  <div className="text-xs font-medium text-purple-800">Arrange return</div>
+                <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
+                  <div className="text-xs font-medium text-blue-800">Arrange return</div>
                 </div>
-                <ChevronRight className="mx-auto text-purple-400 h-4 w-4" />
+                <ChevronRight className="mx-auto text-blue-400 h-4 w-4" />
                 <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
                   <div className="text-xs font-medium text-emerald-800">Item back</div>
                 </div>
@@ -174,22 +154,7 @@ export default function ActivateTagPage({ params }: ActivateTagPageProps) {
   // Activation form
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-navy-900">
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Link>
-            </Button>
-            <div className="flex items-center space-x-3">
-              <QRLogo />
-              <span className="font-semibold text-navy-900">ScanBack™</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ScanHeader />
 
       <div className="container mx-auto px-4 pt-6 pb-10 max-w-md">
         <div className="text-center mb-8">
@@ -225,18 +190,20 @@ export default function ActivateTagPage({ params }: ActivateTagPageProps) {
               <PhoneInput
                 id="primary"
                 label="WhatsApp (+ country dropdown, SA default)"
-                helperText="We'll notify you on WhatsApp when your tag is scanned."
                 required
                 value={primary}
                 onChange={setPrimary}
+                countryCode={primaryCountry}
+                onCountryChange={setPrimaryCountry}
               />
 
               <PhoneInput
                 id="backup"
                 label="Backup number (optional)"
-                helperText="If your main phone is lost, finders can use this number."
                 value={backup}
                 onChange={setBackup}
+                countryCode={backupCountry}
+                onCountryChange={setBackupCountry}
               />
 
               <div>
@@ -315,7 +282,7 @@ export default function ActivateTagPage({ params }: ActivateTagPageProps) {
           <Button
             type="submit"
             className="w-full rounded-xl bg-navy-900 hover:bg-navy-800 text-lg py-6 shadow-lg"
-            disabled={isSubmitting || primary.e164.trim() === "+27" || !name.trim()}
+            disabled={isSubmitting || primary.trim() === "" || !name.trim()}
           >
             {isSubmitting ? "Activating..." : "Activate My Tag"}
           </Button>

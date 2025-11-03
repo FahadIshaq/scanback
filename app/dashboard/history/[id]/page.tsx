@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { QRLogo } from "@/components/qr-logo"
+import { ScanHeader } from "@/components/scan-header"
 
 interface HistoryPageProps {
   params: Promise<{
@@ -73,23 +74,7 @@ export default function HistoryPage({ params }: HistoryPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-            <div className="flex items-center space-x-2">
-              <QRLogo />
-              <span className="font-semibold text-gray-900">ScanBack™</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ScanHeader />
 
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Tag Info */}

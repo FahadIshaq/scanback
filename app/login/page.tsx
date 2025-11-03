@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft, Eye, EyeOff, Key, Loader2, QrCode } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
-import { Header } from "@/components/header"
+import { ScanHeader } from "@/components/scan-header"
 import { Footer } from "@/components/footer"
 
 export default function LoginPage() {
@@ -73,7 +73,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <ScanHeader />
       <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4">
         <Card className="w-full max-w-md">
         <CardHeader className="text-center">

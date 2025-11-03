@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { ScanHeader } from "@/components/scan-header"
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -167,8 +168,8 @@ export default function SettingsPage() {
   // Password validation function
   const validatePassword = (password: string) => {
     const errors = []
-    if (password.length < 8) {
-      errors.push("At least 8 characters")
+    if (password.length < 4) {
+      errors.push("At least 4 characters")
     }
     if (!/[A-Z]/.test(password)) {
       errors.push("One uppercase letter")
@@ -176,12 +177,12 @@ export default function SettingsPage() {
     if (!/[a-z]/.test(password)) {
       errors.push("One lowercase letter")
     }
-    if (!/\d/.test(password)) {
-      errors.push("One number")
-    }
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      errors.push("One special character")
-    }
+    // if (!/\d/.test(password)) {
+    //   errors.push("One number")
+    // }
+    // if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    //   errors.push("One special character")
+    // }
     return errors
   }
 
@@ -235,33 +236,17 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-black rounded-lg">
-                <QrCode className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <span className="font-bold text-black">ScanBack™</span>
-                <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
-              </div>
-            </div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <ScanHeader />
 
       <div className="container mx-auto px-4 py-6 max-w-4xl min-h-[calc(100vh-80px)]">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Account Settings</h1>
           <p className="text-gray-600">Manage your profile and preferences</p>
+          <div className="mt-4">
+            <Button asChild variant="outline">
+              <Link href="/dashboard">Back to Home</Link>
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
@@ -387,12 +372,12 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
+              {/* <Card> */}
+                {/* <CardHeader>
                   <CardTitle>Default Settings for New Tags</CardTitle>
                   <p className="text-sm text-gray-600">These settings will be applied to newly registered tags</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                </CardHeader> */}
+                {/* <CardContent className="space-y-4">
                   <div className="space-y-3">
                     <h4 className="font-medium">Contact Visibility</h4>
                     <div className="flex items-center space-x-2">
@@ -436,8 +421,8 @@ export default function SettingsPage() {
                     {isSubmitting ? "Updating..." : "Save Notification Settings"}
                     <Save className="h-4 w-4 ml-2" />
                   </Button>
-                </CardContent>
-              </Card>
+                </CardContent> */}
+              {/* </Card> */}
             </div>
           </TabsContent>
 
@@ -601,9 +586,9 @@ export default function SettingsPage() {
                   <div className="bg-gray-50 rounded-lg p-4 mb-4">
                     <h4 className="text-sm font-semibold text-gray-700 mb-2">Password Requirements:</h4>
                     <ul className="text-xs text-gray-600 space-y-1">
-                      <li className={`flex items-center ${passwordData.newPassword.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
+                      <li className={`flex items-center ${passwordData.newPassword.length >= 4 ? 'text-green-600' : 'text-gray-500'}`}>
                         <span className="mr-2">{passwordData.newPassword.length >= 8 ? '✓' : '○'}</span>
-                        At least 8 characters
+                        At least 4 characters
                       </li>
                       <li className={`flex items-center ${/[A-Z]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
                         <span className="mr-2">{/[A-Z]/.test(passwordData.newPassword) ? '✓' : '○'}</span>
@@ -613,14 +598,14 @@ export default function SettingsPage() {
                         <span className="mr-2">{/[a-z]/.test(passwordData.newPassword) ? '✓' : '○'}</span>
                         One lowercase letter
                       </li>
-                      <li className={`flex items-center ${/\d/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      {/* <li className={`flex items-center ${/\d/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
                         <span className="mr-2">{/\d/.test(passwordData.newPassword) ? '✓' : '○'}</span>
                         One number
-                      </li>
-                      <li className={`flex items-center ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      </li> */}
+                      {/* <li className={`flex items-center ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
                         <span className="mr-2">{/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordData.newPassword) ? '✓' : '○'}</span>
                         One special character
-                      </li>
+                      </li> */}
                     </ul>
                   </div>
 

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://scanback-backend.onrender.com'
+const API_BASE_URL = 'https://scanback-backend.vercel.app'
 
 class ApiClient {
   private baseURL: string
@@ -165,6 +165,10 @@ class ApiClient {
 
   async getUserQRCodes() {
     return this.request('/api/qr/user')
+  }
+
+  async getRecentScansCount() {
+    return this.request('/api/qr/user/recent-scans')
   }
 
   async updateQRCode(code: string, data: any) {

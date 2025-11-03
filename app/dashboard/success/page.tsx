@@ -3,11 +3,12 @@
 import { useSearchParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { CheckCircle, QrCode, ArrowRight, Download, Eye, Package, PawPrint, Stethoscope, Tag } from 'lucide-react'
+import { CheckCircle, QrCode, ArrowRight, Download, Eye, PawPrint, Tag, Plus } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { apiClient } from "@/lib/api"
+import {ScanHeader} from "@/components/scan-header"
 
 interface QRData {
   code: string
@@ -36,7 +37,7 @@ export default function SuccessPage() {
     const fetchQRData = async () => {
       try {
         console.log('Fetching QR data for code:', qrCode)
-        const response = await fetch(`http://localhost:5001/api/qr/${qrCode}`)
+        const response = await fetch(`https://scanback-backend.vercel.app/api/qr/${qrCode}`)
         const data = await response.json()
         console.log('QR data response:', data)
         if (data.success) {
@@ -62,11 +63,11 @@ export default function SuccessPage() {
       case 'pet':
         return <PawPrint className="h-5 w-5 text-yellow-500" />
       case 'emergency':
-        return <Stethoscope className="h-5 w-5 text-red-600" />
+        return <Plus className="h-5 w-5 text-red-600" strokeWidth={3} />
       case 'item':
-        return <Package className="h-5 w-5 text-blue-600" />
+        return <Tag className="h-5 w-5 text-blue-600 flex items-center justify-center" />
       default:
-        return <Tag className="h-5 w-5 text-purple-600" />
+        return <Tag className="h-5 w-5 text-blue-600 flex items-center justify-center" />
     }
   }
 
@@ -133,19 +134,7 @@ export default function SuccessPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-navy-900 rounded-lg flex items-center justify-center">
-                <span className="text-white text-sm font-bold">S</span>
-              </div>
-              <span className="font-semibold text-navy-900">ScanBack™</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ScanHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         {/* Success Message */}

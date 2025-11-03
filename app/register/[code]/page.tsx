@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ScanHeader } from "@/components/scan-header"
 
 interface RegisterPageProps {
   params: {
@@ -92,28 +93,7 @@ export default function RegisterPage({ params }: RegisterPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Link>
-            </Button>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-black rounded-lg">
-                <QrCode className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <span className="font-bold text-black">ScanBack</span>
-                <p className="text-xs text-gray-600">QR Code Service</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ScanHeader />
 
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         <div className="text-center mb-8">

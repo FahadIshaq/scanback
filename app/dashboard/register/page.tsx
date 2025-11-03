@@ -5,7 +5,7 @@ import React from "react"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, QrCode, Upload, X, Camera, Heart, Package, CheckCircle } from 'lucide-react'
+import { ArrowLeft, QrCode, Upload, X, Camera, PawPrint, Tag, Plus, CheckCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { QRLogo } from "@/components/qr-logo"
+import { ScanHeader } from "@/components/scan-header"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -103,23 +104,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-navy-900">
-              <Link href="/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-            <div className="flex items-center space-x-3">
-              <QRLogo />
-              <span className="font-semibold text-navy-900">ScanBack™</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ScanHeader />
 
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         {/* Progress Steps */}
@@ -226,13 +211,13 @@ export default function RegisterPage() {
                     <SelectContent className="rounded-xl">
                       <SelectItem value="pet">
                         <div className="flex items-center space-x-2">
-                          <Heart className="h-4 w-4 text-red-500" />
+                          <PawPrint className="h-4 w-4 text-yellow-500" />
                           <span>Pet (Dog, Cat, etc.)</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="general">
                         <div className="flex items-center space-x-2">
-                          <Package className="h-4 w-4 text-blue-500" />
+                          <Tag className="h-4 w-4 text-blue-600 flex items-center justify-center" />
                           <span>General Item</span>
                         </div>
                       </SelectItem>
@@ -258,7 +243,7 @@ export default function RegisterPage() {
                 {formData.tagType === "pet" && (
                   <div className="space-y-4 p-4 bg-red-50 border border-red-200 rounded-2xl">
                     <h4 className="font-medium text-red-900 flex items-center">
-                      <Heart className="h-4 w-4 mr-2" />
+                      <PawPrint className="h-4 w-4 mr-2 text-yellow-500" />
                       Pet Details
                     </h4>
 

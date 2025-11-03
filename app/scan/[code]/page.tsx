@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,14 +8,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, CheckCircle, AlertCircle, Heart, Package, QrCode, Shield, Copy, Check, PawPrint, Luggage, Loader2, Upload, Camera, Image as ImageIcon, Tag, Info, Stethoscope } from "lucide-react"
+import { ArrowLeft, CheckCircle, AlertCircle, Heart, Package, QrCode, Shield, Copy, Check, PawPrint, Luggage, Loader2, Upload, Camera, Image as ImageIcon, Tag, Info, Plus, X } from "lucide-react"
 import { FaWhatsapp, FaSms, FaPhone, FaEnvelope } from "react-icons/fa"
 import Link from "next/link"
 import { apiClient } from "@/lib/api"
 import PhoneInput from "@/components/phone-input"
-import { getCountryCallingCode } from "libphonenumber-js"
+import { getCountryCallingCode, parsePhoneNumber } from "libphonenumber-js"
 import { TermsPrivacyPopup } from "@/components/terms-privacy-popup"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { ScanHeader } from "@/components/scan-header"
 
 interface QRData {
   code: string
@@ -58,6 +60,8 @@ interface QRData {
     emergencyContact2Name?: string
     emergencyContact2Phone?: string
     emergencyContact2CountryCode?: string
+    emergencyContact1Relation?: string
+    emergencyContact2Relation?: string
   }
   contact: {
     name: string
@@ -91,7 +95,6 @@ export default function ScanPage() {
   const [tempPassword, setTempPassword] = useState("")
   const [userEmail, setUserEmail] = useState("")
   const [isNewUser, setIsNewUser] = useState(false)
-  const [existingPassword, setExistingPassword] = useState("")
   const [phoneErrors, setPhoneErrors] = useState({
     main: "",
     backup: ""
@@ -110,6 +113,64 @@ export default function ScanPage() {
   const [showTermsPopup, setShowTermsPopup] = useState(false)
   const [showPrivacyPopup, setShowPrivacyPopup] = useState(false)
   const [selectedTagType, setSelectedTagType] = useState<'item' | 'pet' | 'emergency'>('item')
+  const [imageModalOpen, setImageModalOpen] = useState(false)
+  const [imageModalUrl, setImageModalUrl] = useState<string | null>(null)
+
+  // Map emergency services number by country code
+  const getEmergencyNumber = (countryCode?: string) => {
+    switch ((countryCode || '').toUpperCase()) {
+      case 'ZA':
+        return '112'
+      case 'GB':
+      case 'UK':
+        return '999'
+      case 'US':
+      case 'CA':
+        return '911'
+      case 'AU':
+        return '000'
+      case 'FR':
+      case 'DE':
+      case 'IT':
+      case 'ES':
+      case 'PT':
+      case 'NL':
+      case 'BE':
+      case 'IE':
+      case 'FI':
+      case 'SE':
+      case 'NO':
+      case 'CH':
+      case 'AT':
+      case 'DK':
+      case 'CZ':
+      case 'HU':
+      case 'RO':
+      case 'PL':
+      case 'SK':
+      case 'LT':
+      case 'LV':
+      case 'EE':
+        return '112'
+      default:
+        return '112'
+    }
+  }
+
+  // Extract country code from phone number
+  const extractCountryCodeFromPhone = (phone: string): string => {
+    try {
+      if (phone && phone.startsWith('+')) {
+        const phoneNumber = parsePhoneNumber(phone)
+        if (phoneNumber && phoneNumber.country) {
+          return phoneNumber.country
+        }
+      }
+    } catch (error) {
+      // Ignore parsing errors
+    }
+    return 'ZA' // Default to South Africa
+  }
   
   // Validation errors for additional fields
   const [ageError, setAgeError] = useState("")
@@ -117,6 +178,12 @@ export default function ScanPage() {
   const [emergencyPhoneError, setEmergencyPhoneError] = useState("")
   const [emergencyContact1PhoneError, setEmergencyContact1PhoneError] = useState("")
   const [emergencyContact2PhoneError, setEmergencyContact2PhoneError] = useState("")
+  
+  // Tooltip states for mobile click support
+  const [backupPhoneTooltipOpen, setBackupPhoneTooltipOpen] = useState(false)
+  const [emergencyContact1TooltipOpen, setEmergencyContact1TooltipOpen] = useState(false)
+  const [emergencyContact2TooltipOpen, setEmergencyContact2TooltipOpen] = useState(false)
+  const isMobile = useIsMobile()
 
   const [formData, setFormData] = useState({
     details: {
@@ -153,9 +220,11 @@ export default function ScanPage() {
       emergencyContact1Name: "",
       emergencyContact1Phone: "",
       emergencyContact1CountryCode: "ZA",
+      emergencyContact1Relation: "",
       emergencyContact2Name: "",
       emergencyContact2Phone: "",
-      emergencyContact2CountryCode: "ZA"
+      emergencyContact2CountryCode: "ZA",
+      emergencyContact2Relation: ""
     },
     contact: {
       name: "",
@@ -193,7 +262,10 @@ export default function ScanPage() {
   // Update message when item name changes (only if message is active)
   useEffect(() => {
     if (messageClicked && formData.details.name) {
-      const updatedMessage = `Hi! Thanks for finding my ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
+      const tagTypeText = getCurrentTagType() === 'pet' ? 'pet' : getCurrentTagType() === 'emergency' ? 'emergency contact' : 'item'
+      const updatedMessage = getCurrentTagType() === 'emergency'
+        ? "Hi! This is an emergency tag. If you've scanned this, I may need help. Please contact my emergency contacts listed below or seek medical attention if required. Thank you for your support."
+        : `Hi! Thanks for finding my ${tagTypeText} ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
       setFormData(prev => ({
         ...prev,
         contact: {
@@ -202,7 +274,134 @@ export default function ScanPage() {
         }
       }))
     }
-  }, [formData.details.name, messageClicked])
+  }, [formData.details.name, messageClicked, selectedTagType, qrData?.type])
+
+  // Track previous tag type to detect changes
+  const prevTagTypeRef = useRef<'item' | 'pet' | 'emergency'>('item')
+
+  // Clear form data and update message when tag type changes (for "any" type QR codes)
+  useEffect(() => {
+    if (qrData?.type === 'any') {
+      const currentType = getCurrentTagType()
+      const prevType = prevTagTypeRef.current
+      
+      // Only run if tag type actually changed (not on initial mount)
+      if (currentType !== prevType) {
+        prevTagTypeRef.current = currentType
+        
+        // Clear form data that doesn't belong to the current tag type
+        setFormData(prev => {
+          const clearedData = { ...prev }
+          
+          // Clear images
+          setItemImage(null)
+          setPetImage(null)
+          setEmergencyImage(null)
+          clearedData.details.image = ""
+          
+          // If switching to item, clear pet and emergency specific fields
+          if (currentType === 'item') {
+            clearedData.details.medicalNotes = ""
+            clearedData.details.vetName = ""
+            clearedData.details.vetPhone = ""
+            clearedData.details.vetCountryCode = "ZA"
+            clearedData.details.emergencyContact = ""
+            clearedData.details.emergencyCountryCode = "ZA"
+            clearedData.details.breed = ""
+            clearedData.details.age = ""
+            clearedData.details.registrationNumber = ""
+            clearedData.details.breederInfo = ""
+            clearedData.details.medicalAidProvider = ""
+            clearedData.details.medicalAidNumber = ""
+            clearedData.details.bloodType = ""
+            clearedData.details.allergies = ""
+            clearedData.details.medications = ""
+            clearedData.details.organDonor = false
+            clearedData.details.iceNote = ""
+            clearedData.details.emergencyContact1Name = ""
+            clearedData.details.emergencyContact1Phone = ""
+            clearedData.details.emergencyContact1CountryCode = "ZA"
+            clearedData.details.emergencyContact1Relation = ""
+            clearedData.details.emergencyContact2Name = ""
+            clearedData.details.emergencyContact2Phone = ""
+            clearedData.details.emergencyContact2CountryCode = "ZA"
+            clearedData.details.emergencyContact2Relation = ""
+            setShowEmergencyDetails(false)
+            setShowPedigreeInfo(false)
+            setShowEmergencyMedicalDetails(false)
+            setShowEmergencyContacts(false)
+          }
+          
+          // If switching to pet, clear item and emergency specific fields
+          if (currentType === 'pet') {
+            clearedData.details.category = ""
+            clearedData.details.color = ""
+            clearedData.details.brand = ""
+            clearedData.details.model = ""
+            clearedData.details.medicalAidProvider = ""
+            clearedData.details.medicalAidNumber = ""
+            clearedData.details.bloodType = ""
+            clearedData.details.allergies = ""
+            clearedData.details.medications = ""
+            clearedData.details.organDonor = false
+            clearedData.details.iceNote = ""
+            clearedData.details.emergencyContact1Name = ""
+            clearedData.details.emergencyContact1Phone = ""
+            clearedData.details.emergencyContact1CountryCode = "ZA"
+            clearedData.details.emergencyContact1Relation = ""
+            clearedData.details.emergencyContact2Name = ""
+            clearedData.details.emergencyContact2Phone = ""
+            clearedData.details.emergencyContact2CountryCode = "ZA"
+            clearedData.details.emergencyContact2Relation = ""
+            setShowEmergencyMedicalDetails(false)
+            setShowEmergencyContacts(false)
+          }
+          
+          // If switching to emergency, clear item and pet specific fields
+          if (currentType === 'emergency') {
+            clearedData.details.category = ""
+            clearedData.details.color = ""
+            clearedData.details.brand = ""
+            clearedData.details.model = ""
+            clearedData.details.medicalNotes = ""
+            clearedData.details.vetName = ""
+            clearedData.details.vetPhone = ""
+            clearedData.details.vetCountryCode = "ZA"
+            clearedData.details.emergencyContact = ""
+            clearedData.details.emergencyCountryCode = "ZA"
+            clearedData.details.breed = ""
+            clearedData.details.age = ""
+            clearedData.details.registrationNumber = ""
+            clearedData.details.breederInfo = ""
+            setShowEmergencyDetails(false)
+            setShowPedigreeInfo(false)
+          }
+          
+          // Update message if it was already clicked/edited
+          if (messageClicked) {
+            if (clearedData.details.name) {
+              const tagTypeText = currentType === 'pet' ? 'pet' : currentType === 'emergency' ? 'emergency contact' : 'item'
+              clearedData.contact.message = currentType === 'emergency'
+                ? "Hi! This is an emergency tag. If you've scanned this, I may need help. Please contact my emergency contacts listed below or seek medical attention if required. Thank you for your support."
+                : `Hi! Thanks for finding my ${tagTypeText} ${clearedData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
+            } else {
+              // If name is cleared but message was clicked, update to default without name
+              clearedData.contact.message = currentType === 'emergency'
+                ? "Hi! This is an emergency tag. If you've scanned this, I may need help. Please contact my emergency contacts listed below or seek medical attention if required. Thank you for your support."
+                : currentType === 'pet'
+                ? "Hi! Thanks for finding my pet. Please contact me so we can arrange a return. I really appreciate your honesty and help!"
+                : "Hi! Thanks for finding my item. Please contact me so we can arrange a return. I really appreciate your honesty and help!"
+            }
+          }
+          
+          return clearedData
+        })
+      } else {
+        // Initialize prevTagTypeRef on first render
+        prevTagTypeRef.current = currentType
+      }
+    }
+  }, [selectedTagType, qrData?.type, messageClicked])
 
   // Scroll to top when success page is shown
   useEffect(() => {
@@ -220,6 +419,15 @@ export default function ScanPage() {
       const response = await apiClient.getPublicQRCode(code)
       if (response.success) {
         setQrData(response.data)
+        
+        // Set selectedTagType based on QR code type (for activation form)
+        // This ensures the correct form is shown based on the tag type
+        if (response.data.type && ['item', 'pet', 'emergency'].includes(response.data.type)) {
+          setSelectedTagType(response.data.type as 'item' | 'pet' | 'emergency')
+        } else if (response.data.type === 'any') {
+          // For 'any' type, default to 'item' but allow user to select
+          setSelectedTagType('item')
+        }
         
         // Only track the scan if the QR code is activated
         if (response.data.isActivated) {
@@ -577,7 +785,11 @@ export default function ScanPage() {
 
     try {
       // Generate auto message if no custom message provided
-      const autoMessage = `Hi! Thanks for finding my ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
+      const autoMessage = getCurrentTagType() === 'emergency'
+        ? "Hi! This is an emergency tag. If you've scanned this, I may need help. Please contact my emergency contacts listed below or seek medical attention if required. Thank you for your support."
+        : getCurrentTagType() === 'pet'
+        ? `Hi! Thanks for finding my pet ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
+        : `Hi! Thanks for finding my item ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
       const finalMessage = formData.contact.message?.trim() || autoMessage
 
       // Format phone numbers with country codes
@@ -609,7 +821,6 @@ export default function ScanPage() {
         setTempPassword(response.data.tempPassword || "")
         setUserEmail(response.data.user.email)
         setIsNewUser(response.data.isNewUser || false)
-        setExistingPassword(response.data.user.existingPassword || "")
       } else {
         setError(response.message || "Failed to activate QR code")
       }
@@ -621,12 +832,120 @@ export default function ScanPage() {
   }
 
   if (loading) {
+    // Show finder page skeleton if QR data exists and is activated
+    // Otherwise show activation form skeleton
+    const showFinderSkeleton = qrData && qrData.isActivated
+
+    if (!showFinderSkeleton) {
+      // Activation Page Skeleton
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium">Loading QR code...</p>
-          <p className="text-gray-500 text-sm mt-2">This may take a moment</p>
+        <div className="min-h-screen bg-white">
+          <ScanHeader />
+
+          <div className="container mx-auto px-4 py-8 max-w-2xl">
+            {/* Hero Section Skeleton */}
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-6 animate-pulse"></div>
+              <div className="h-9 bg-gray-200 rounded w-64 mx-auto mb-3 animate-pulse"></div>
+              <div className="h-6 bg-gray-200 rounded w-80 mx-auto mb-6 animate-pulse"></div>
+              <div className="bg-gray-100 h-14 rounded-xl w-96 mx-auto animate-pulse"></div>
+              <div className="h-6 bg-gray-200 rounded w-72 mx-auto mt-4 animate-pulse"></div>
+            </div>
+
+            {/* Activation Form Card Skeleton */}
+            <div className="bg-white border-2 border-gray-200 rounded-xl shadow-xl animate-pulse">
+              <div className="p-8 space-y-6">
+                {/* Form Field Skeletons */}
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  <div className="h-10 bg-gray-100 rounded"></div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-32"></div>
+                  <div className="h-10 bg-gray-100 rounded"></div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-40"></div>
+                  <div className="h-10 bg-gray-100 rounded"></div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-36"></div>
+                  <div className="h-10 bg-gray-100 rounded"></div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-28"></div>
+                  <div className="h-24 bg-gray-100 rounded"></div>
+                </div>
+                {/* Button Skeleton */}
+                <div className="h-12 bg-gray-200 rounded mt-6"></div>
+              </div>
+            </div>
+        </div>
+      </div>
+    )
+  }
+
+    // Finder Page Skeleton (qrData exists and isActivated is true)
+    return (
+      <div className="min-h-screen bg-white">
+        <ScanHeader />
+
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          {/* Hero Section Skeleton */}
+          <div className="text-center mb-8">
+            <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-6 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-64 mx-auto mb-3 animate-pulse"></div>
+            <div className="h-6 bg-gray-200 rounded w-80 mx-auto animate-pulse"></div>
+                </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Column Skeleton */}
+            <div className="space-y-6">
+              {/* Item Information Card Skeleton */}
+              <div className="bg-white border-2 border-gray-200 rounded-xl shadow-xl animate-pulse">
+                <div className="bg-gray-100 h-16 rounded-t-xl"></div>
+                <div className="p-6 space-y-4">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              </div>
+
+              {/* Message Card Skeleton */}
+              <div className="bg-gray-50 border-2 border-gray-200 rounded-xl shadow-xl animate-pulse">
+                <div className="bg-gray-200 h-16 rounded-t-xl"></div>
+                <div className="p-6 space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                  <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+            </div>
+          </div>
+            </div>
+
+            {/* Right Column Skeleton */}
+            <div className="space-y-6">
+              {/* Owner Information Card Skeleton */}
+              <div className="bg-white border-2 border-gray-200 rounded-xl shadow-xl animate-pulse">
+                <div className="bg-gray-100 h-16 rounded-t-xl"></div>
+                <div className="p-6 space-y-4">
+                  <div className="h-20 bg-gray-200 rounded-lg"></div>
+                  <div className="h-20 bg-gray-200 rounded-lg"></div>
+                  <div className="h-20 bg-gray-200 rounded-lg"></div>
+                  <div className="h-24 bg-gray-200 rounded-lg"></div>
+                </div>
+              </div>
+
+              {/* Contact Actions Skeleton */}
+              <div className="bg-white border-2 border-gray-200 rounded-xl shadow-xl animate-pulse">
+                <div className="bg-gray-100 h-16 rounded-t-xl"></div>
+                <div className="p-6 space-y-3">
+                  <div className="h-12 bg-gray-200 rounded"></div>
+                  <div className="h-12 bg-gray-200 rounded"></div>
+                  <div className="h-12 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -635,27 +954,7 @@ export default function ScanPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-white">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" size="sm" asChild className="text-gray-700 hover:text-black transition-colors">
-                <Link href="/">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Link>
-              </Button>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-black rounded-lg">
-                  <QrCode className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <span className="font-bold text-black">ScanBack™</span>
-                  <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
+        <ScanHeader />
 
         <div className="container mx-auto px-4 py-12 max-w-2xl text-center">
           <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-red-100">
@@ -727,13 +1026,13 @@ export default function ScanPage() {
           </p>
 
           
-          {isNewUser && tempPassword ? (
+          {tempPassword ? (
             <div className="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6 text-left shadow-lg">
               <h3 className="text-lg font-bold text-black mb-4 flex items-center">
                 <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center mr-3">
                   <span className="text-white text-sm">✓</span>
                 </div>
-                Your Login Credentials
+                {isNewUser ? 'Your Login Credentials' : 'Your Password for This Tag'}
               </h3>
               <div className="space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -766,18 +1065,22 @@ export default function ScanPage() {
                 </div>
               </div>
               <p className="text-sm text-gray-600 mt-4 bg-gray-50 p-3 rounded-lg">
-                Check your email for confirmation. Use these credentials to login and manage your items.
+                {isNewUser 
+                  ? 'Check your email for confirmation. Use these credentials to login and manage your items.'
+                  : 'Use this password to login to your account.'}
               </p>
             </div>
           ) : (
-            <div className="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6 text-left shadow-lg">
-              <h3 className="text-lg font-bold text-black mb-4 flex items-center">
-                <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center mr-3">
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6 text-left">
+              <h3 className="text-lg font-bold text-black mb-2 flex items-center">
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-3">
                   <span className="text-white text-sm">✓</span>
                 </div>
-                Welcome Back!
+                Tag Activated Successfully!
               </h3>
-              <div className="space-y-3">
+              <p className="text-gray-700 mb-3">
+                Your tag has been activated. Please login to your dashboard using your existing password to manage your tags.
+              </p>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <span className="font-semibold text-gray-700 sm:w-24">Email:</span>
                   <div className="flex items-center gap-2 flex-1">
@@ -792,24 +1095,6 @@ export default function ScanPage() {
                     </Button>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <span className="font-semibold text-gray-700 sm:w-24">Password:</span>
-                  <div className="flex items-center gap-2 flex-1">
-                    <span className="font-mono bg-gray-100 text-black px-3 py-1 rounded border border-gray-300 text-sm flex-1">{existingPassword}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyToClipboard(existingPassword, 'password')}
-                      className="h-8 px-2"
-                    >
-                      {copiedPassword ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 mt-4 bg-gray-50 p-3 rounded-lg">
-                Your new QR code has been added to your existing account. Use these credentials to login and manage all your items.
-              </p>
             </div>
           )}
 
@@ -847,9 +1132,9 @@ export default function ScanPage() {
                     {submittedTagType === 'pet' ? (
                       <Heart className="h-4 w-4 text-orange-500" />
                     ) : submittedTagType === 'emergency' ? (
-                      <Stethoscope className="h-4 w-4 text-red-500" />
+                      <Plus className="h-4 w-4 text-red-600" />
                     ) : (
-                      <Package className="h-4 w-4 text-blue-500" />
+                      <Tag className="h-4 w-4 text-blue-600 flex items-center justify-center" />
                     )}
                   </div>
                   <span className="text-lg font-bold text-black">
@@ -906,7 +1191,11 @@ export default function ScanPage() {
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                     <p className="text-sm text-gray-700 italic leading-relaxed">
-                      "{formData.contact.message || `Hi! Thanks for finding my ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`}"
+                      "{formData.contact.message || (submittedTagType === 'pet' 
+                        ? `Hi! Thanks for finding my pet ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
+                        : submittedTagType === 'emergency'
+                        ? `Hi! Thanks for finding my emergency contact ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
+                        : `Hi! Thanks for finding my item ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`)}"
                     </p>
                   </div>
                 </div>
@@ -914,9 +1203,15 @@ export default function ScanPage() {
             </div>
           </div>
           
+          {/* Determine which password to use for login link */}
+          {(() => {
+            const passwordToUse = tempPassword || null
+            const loginUrl = `/login?email=${encodeURIComponent(userEmail)}${passwordToUse ? `&password=${encodeURIComponent(passwordToUse)}` : ''}`
+            
+            return (
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-200">
-              <Link href={`/login?email=${encodeURIComponent(userEmail)}${isNewUser && tempPassword ? `&password=${encodeURIComponent(tempPassword)}` : ''}`}>
+                  <Link href={loginUrl}>
                 Login to Dashboard
               </Link>
             </Button>
@@ -924,6 +1219,8 @@ export default function ScanPage() {
               <Link href="/">Go Home</Link>
             </Button>
           </div>
+            )
+          })()}
         </div>
       </div>
     )
@@ -933,22 +1230,7 @@ export default function ScanPage() {
   if (qrData && qrData.isActivated) {
     return (
       <div className="min-h-screen bg-white">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-black rounded-lg">
-                  <QrCode className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <span className="font-bold text-black">ScanBack™</span>
-                  <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
+        <ScanHeader />
 
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           {/* Hero Section */}
@@ -957,7 +1239,7 @@ export default function ScanPage() {
               {qrData.type === 'pet' ? (
                 <PawPrint className="h-12 w-12 text-yellow-500" />
               ) : qrData.type === 'emergency' ? (
-                <Stethoscope className="h-12 w-12 text-red-600" />
+                <Plus className="h-12 w-12 text-red-600" />
               ) : (
                 <Tag className="h-12 w-12 text-blue-600 flex items-center justify-center" />
               )}
@@ -975,19 +1257,18 @@ export default function ScanPage() {
             <div className="space-y-6">
               {/* Item Information Card */}
               <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
-                <CardHeader className="bg-gray-50">
+                <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4">
                   <CardTitle className="flex items-center gap-3 text-xl text-black">
+                    <div className="p-2 bg-white rounded-lg shadow-sm border border-gray-200">
                     {qrData.type === 'pet' ? (
-                      <PawPrint className="h-6 w-6 text-yellow-500" />
+                        <PawPrint className="h-5 w-5 text-yellow-500" />
                     ) : (
-                      <Tag className="h-6 w-6 text-blue-600 flex items-center justify-center" />
+                        <Tag className="h-5 w-5 text-blue-600 flex items-center justify-center" />
                     )}
-                    {qrData.details.name}
+                    </div>
+                    <span className="font-bold">{qrData.details.name}</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  {/* Item Image removed from finder's page - only shows in pet/item information sections */}
-                </CardContent>
                 {/* <CardContent className="p-6 space-y-4">
                   {qrData.details.description && (
                     <div className="bg-gray-50 rounded-lg p-4">
@@ -1096,7 +1377,7 @@ export default function ScanPage() {
                   {/* Backup Phone - Only show if useBackupNumber is true and backup phone exists */}
                   {qrData.settings?.useBackupNumber && qrData.contact.backupPhone && (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <Label className="text-sm font-semibold text-gray-700 mb-2 block">Backup Phone Number</Label>
+                      <Label className="text-sm font-semibold text-gray-700 mb-2 block">Backup Phone Number (Optional)</Label>
                       <p className="text-black font-bold text-lg">{qrData.contact.backupPhone}</p>
                     </div>
                   )}
@@ -1142,11 +1423,21 @@ export default function ScanPage() {
                     {qrData.details.image && (
                       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                         <Label className="text-sm font-semibold text-gray-700 mb-2 block">Pet Photo</Label>
+                        <div 
+                          className="flex justify-center cursor-pointer"
+                          onClick={() => {
+                            if (qrData.details.image) {
+                              setImageModalUrl(qrData.details.image)
+                              setImageModalOpen(true)
+                            }
+                          }}
+                        >
                         <img 
                           src={qrData.details.image} 
                           alt={qrData.details.name}
-                          className="w-32 h-32 object-cover rounded-lg mx-auto"
+                            className="w-32 h-32 object-cover rounded-lg hover:opacity-80 transition-opacity"
                         />
+                        </div>
                       </div>
                     )}
 
@@ -1238,90 +1529,202 @@ export default function ScanPage() {
                 <Card className="shadow-xl border-2 border-red-200 rounded-xl bg-white">
                   <CardHeader className="bg-red-50">
                     <CardTitle className="flex items-center gap-2 text-xl text-black">
-                      <Stethoscope className="h-6 w-6 text-red-600" />
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-red-600">
+                        <Plus className="h-4 w-4 text-white" strokeWidth={3} />
+                      </span>
                       Emergency Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    
                     {/* Emergency Contact Photo */}
                     {qrData.details.image && (
-                      <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                        <Label className="text-sm font-semibold text-red-700 mb-2 block">Emergency Contact Photo</Label>
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <Label className="text-sm font-semibold text-gray-700 mb-2 block">Emergency Contact Photo</Label>
+                        <div 
+                          className="flex justify-center cursor-pointer"
+                          onClick={() => {
+                            if (qrData.details.image) {
+                              setImageModalUrl(qrData.details.image)
+                              setImageModalOpen(true)
+                            }
+                          }}
+                        >
                         <img 
                           src={qrData.details.image} 
                           alt={qrData.details.name}
-                          className="w-32 h-32 object-cover rounded-lg mx-auto"
+                            className="w-32 h-32 object-cover rounded-lg hover:opacity-80 transition-opacity"
                         />
+                        </div>
                       </div>
                     )}
 
                     {/* Medical Information */}
-                    <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                      <Label className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
-                        <Stethoscope className="h-4 w-4" />
+                    {(qrData.details.medicalAidProvider || qrData.details.medicalAidNumber || qrData.details.bloodType || qrData.details.allergies || qrData.details.medications || qrData.details.organDonor) && (
+                      <div className="bg-red-50 rounded-lg p-5 border border-red-200">
+                        <Label className="text-base font-semibold text-red-700 mb-4 flex items-center gap-2">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-red-600">
+                            <Plus className="h-4 w-4 text-white" strokeWidth={3} />
+                          </span>
                         Medical Information
                       </Label>
                       <div className="space-y-3">
+                          {/* Medical Aid Info - Grouped */}
+                          {(qrData.details.medicalAidProvider || qrData.details.medicalAidNumber) && (
+                            <div className="bg-white rounded-lg p-4 border border-red-200 shadow-sm">
+                              <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-3 block">Medical Aid</Label>
+                              <div className="space-y-2">
                         {qrData.details.medicalAidProvider && (
                           <div>
-                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Medical Aid Provider</Label>
-                            <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.medicalAidProvider}</p>
+                                    <span className="text-xs text-gray-600 font-medium">Provider:</span>
+                                    <p className="text-red-900 text-sm font-semibold mt-0.5">{qrData.details.medicalAidProvider}</p>
                           </div>
                         )}
                         {qrData.details.medicalAidNumber && (
                           <div>
-                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Medical Aid Number</Label>
-                            <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.medicalAidNumber}</p>
+                                    <span className="text-xs text-gray-600 font-medium">Number:</span>
+                                    <p className="text-red-900 text-sm font-semibold mt-0.5">{qrData.details.medicalAidNumber}</p>
                           </div>
                         )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Blood Type - Highlighted */}
                         {qrData.details.bloodType && (
-                          <div>
-                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Blood Type</Label>
-                            <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.bloodType}</p>
+                            <div className="bg-white rounded-lg p-4 border-2 border-red-300 shadow-sm">
+                              <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2 block">Blood Type</Label>
+                              <p className="text-red-900 text-lg font-bold">{qrData.details.bloodType}</p>
                           </div>
                         )}
+                          
+                          {/* Allergies / Medical Conditions */}
                         {qrData.details.allergies && (
-                          <div>
-                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Allergies / Medical Conditions</Label>
-                            <p className="text-red-800 text-sm leading-relaxed mt-1">{qrData.details.allergies}</p>
+                            <div className="bg-white rounded-lg p-4 border border-red-200 shadow-sm">
+                              <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2 block">Allergies / Medical Conditions</Label>
+                              <p className="text-red-900 text-sm leading-relaxed">{qrData.details.allergies}</p>
                           </div>
                         )}
+                          
+                          {/* Medications */}
                         {qrData.details.medications && (
-                          <div>
-                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Medications</Label>
-                            <p className="text-red-800 text-sm leading-relaxed mt-1">{qrData.details.medications}</p>
+                            <div className="bg-white rounded-lg p-4 border border-red-200 shadow-sm">
+                              <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2 block">Medications</Label>
+                              <p className="text-red-900 text-sm leading-relaxed">{qrData.details.medications}</p>
                           </div>
                         )}
+                          
+                          {/* Organ Donor - Badge Style */}
                         {qrData.details.organDonor && (
-                          <div>
-                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Organ Donor</Label>
-                            <p className="text-red-800 text-sm font-medium mt-1">Yes - Registered Organ Donor</p>
+                            <div className="bg-white rounded-lg p-4 border-2 border-red-300 shadow-sm">
+                              <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2 block">Organ Donor Status</Label>
+                              <div className="inline-flex items-center px-3 py-1.5 bg-red-100 border border-red-300 rounded-full">
+                                <CheckCircle className="h-4 w-4 text-red-600 mr-2" />
+                                <p className="text-red-800 text-sm font-semibold">Registered Organ Donor</p>
+                              </div>
                           </div>
                         )}
                       </div>
                     </div>
+                    )}
 
                     {/* Emergency Contacts */}
+                    {((qrData.details.emergencyContact1Name && qrData.details.emergencyContact1Phone) || (qrData.details.emergencyContact2Name && qrData.details.emergencyContact2Phone)) && (
                     <div className="bg-red-50 rounded-lg p-4 border border-red-200">
                       <Label className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
                         <AlertCircle className="h-4 w-4" />
                         Emergency Contacts
                       </Label>
-                      <div className="space-y-3">
+                        <div className="space-y-4">
                         {qrData.details.emergencyContact1Name && qrData.details.emergencyContact1Phone && (
-                          <div>
-                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Emergency Contact 1</Label>
-                            <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.emergencyContact1Name} - {qrData.details.emergencyContact1Phone}</p>
+                            <div className="bg-white rounded-lg p-4 border border-red-300 shadow-sm hover:shadow-md transition-shadow">
+                              <div className="flex items-start justify-between gap-3 mb-3">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1.5">
+                                    <p className="text-red-900 text-lg font-bold">{qrData.details.emergencyContact1Name}</p>
+                                    {qrData.details.emergencyContact1Relation && (
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
+                                        {qrData.details.emergencyContact1Relation}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  asChild
+                                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                                  size="sm"
+                                >
+                                  <a href={`tel:${qrData.details.emergencyContact1Phone}`} className="flex items-center justify-center">
+                                    <FaPhone className="h-4 w-4 mr-1.5" />
+                                    Call
+                                  </a>
+                                </Button>
+                                <Button 
+                                  asChild
+                                  className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                                  size="sm"
+                                >
+                                  <a 
+                                    href={`https://wa.me/${qrData.details.emergencyContact1Phone.replace(/[^0-9]/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center"
+                                  >
+                                    <FaWhatsapp className="h-4 w-4 mr-1.5" />
+                                    WhatsApp
+                                  </a>
+                                </Button>
+                              </div>
                           </div>
                         )}
                         {qrData.details.emergencyContact2Name && qrData.details.emergencyContact2Phone && (
-                          <div>
-                            <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide">Emergency Contact 2</Label>
-                            <p className="text-red-800 text-sm font-medium mt-1">{qrData.details.emergencyContact2Name} - {qrData.details.emergencyContact2Phone}</p>
+                            <div className="bg-white rounded-lg p-4 border border-red-300 shadow-sm hover:shadow-md transition-shadow">
+                              <div className="flex items-start justify-between gap-3 mb-3">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1.5">
+                                    <p className="text-red-900 text-lg font-bold">{qrData.details.emergencyContact2Name}</p>
+                                    {qrData.details.emergencyContact2Relation && (
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
+                                        {qrData.details.emergencyContact2Relation}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  asChild
+                                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                                  size="sm"
+                                >
+                                  <a href={`tel:${qrData.details.emergencyContact2Phone}`} className="flex items-center justify-center">
+                                    <FaPhone className="h-4 w-4 mr-1.5" />
+                                    Call
+                                  </a>
+                                </Button>
+                                <Button 
+                                  asChild
+                                  className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                                  size="sm"
+                                >
+                                  <a 
+                                    href={`https://wa.me/${qrData.details.emergencyContact2Phone.replace(/[^0-9]/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center"
+                                  >
+                                    <FaWhatsapp className="h-4 w-4 mr-1.5" />
+                                    WhatsApp
+                                  </a>
+                                </Button>
+                              </div>
                           </div>
                         )}
                       </div>
                     </div>
+                    )}
 
                     {/* ICE Note */}
                     {qrData.details.iceNote && (
@@ -1333,6 +1736,19 @@ export default function ScanPage() {
                         <p className="text-red-800 text-sm leading-relaxed">{qrData.details.iceNote}</p>
                       </div>
                     )}
+
+                    {/* SOS Bar */}
+                    {(() => {
+                      const countryCode = extractCountryCodeFromPhone(qrData.contact.phone)
+                      const emergencyNumber = getEmergencyNumber(countryCode)
+                      return (
+                        <Button asChild className="w-full bg-red-600 hover:bg-red-700 text-white h-12 text-base font-semibold">
+                          <a href={`tel:${emergencyNumber}`} className="flex items-center justify-center gap-3">
+                            SOS • Call {emergencyNumber}
+                          </a>
+                        </Button>
+                      )
+                    })()}
                   </CardContent>
                 </Card>
               )}
@@ -1351,11 +1767,21 @@ export default function ScanPage() {
                     {qrData.details.image && (
                       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                         <Label className="text-sm font-semibold text-gray-700 mb-2 block">Item Photo</Label>
+                        <div 
+                          className="flex justify-center cursor-pointer"
+                          onClick={() => {
+                            if (qrData.details.image) {
+                              setImageModalUrl(qrData.details.image)
+                              setImageModalOpen(true)
+                            }
+                          }}
+                        >
                         <img 
                           src={qrData.details.image} 
                           alt={qrData.details.name}
-                          className="w-32 h-32 object-cover rounded-lg mx-auto"
+                            className="w-32 h-32 object-cover rounded-lg hover:opacity-80 transition-opacity"
                         />
+                        </div>
                       </div>
                     )}
 
@@ -1394,16 +1820,19 @@ export default function ScanPage() {
               )}
 
 
-              {/* Contact Action Buttons - Always show */}
+              {/* Contact Action Buttons - Always show for all tag types */}
               <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
                 <CardHeader>
                   <CardTitle className="text-xl text-black">Contact Owner</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                {qrData.contact?.phone ? (
                 <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-semibold">
                       <a 
                         href={`https://wa.me/${qrData.contact.phone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(
-                          `Hi ${qrData.contact.name}! I found your ${qrData.type === 'pet' ? 'pet' : qrData.type === 'emergency' ? 'emergency contact' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.`
+                          qrData.type === 'emergency' 
+                            ? `Hi ${qrData.contact.name || 'there'}! I've scanned your emergency tag. Please contact me if you need assistance.`
+                            : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange return.`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -1413,32 +1842,46 @@ export default function ScanPage() {
                         Message on WhatsApp
                       </a>
                     </Button>
+                ) : null}
                   {/* Primary Contact Methods */}
+                  {qrData.contact && (qrData.contact.phone || qrData.contact.email) ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {qrData.contact.phone && (
                       <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold">
                       <a href={`tel:${qrData.contact.phone}`} className="flex items-center justify-center gap-3">
                         <FaPhone className="h-5 w-5 text-blue-400" />
                         Call Owner
                       </a>
                     </Button>
+                      )}
                     
+                    {qrData.contact.email && (
                     <Button asChild variant="outline" className="border-2 border-gray-300 hover:border-black text-black hover:text-black h-12 text-base font-semibold">
                       <a 
-                        href={`mailto:${qrData.contact.email}?subject=${encodeURIComponent(`Found your ${qrData.type === 'pet' ? 'pet' : qrData.type === 'emergency' ? 'emergency contact' : 'item'} - ${qrData.details.name}`)}&body=${encodeURIComponent(`Hi ${qrData.contact.name},\n\nI found your ${qrData.type === 'pet' ? 'pet' : qrData.type === 'emergency' ? 'emergency contact' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.\n\nBest regards`)}`} 
+                        href={`mailto:${qrData.contact.email}?subject=${encodeURIComponent(qrData.type === 'emergency' ? 'Emergency Tag Scanned' : `Found your ${qrData.type === 'pet' ? 'pet' : 'item'} - ${qrData.details?.name || 'item'}`)}&body=${encodeURIComponent(qrData.type === 'emergency' ? `Hi ${qrData.contact.name || 'there'},\n\nI've scanned your emergency tag. Please contact me if you need assistance.\n\nBest regards` : `Hi ${qrData.contact.name || 'there'},\n\nI found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange return.\n\nBest regards`)}`} 
                         className="flex items-center justify-center gap-3"
                       >
                         <FaEnvelope className="h-5 w-5 text-blue-600" />
                         Email Owner
                       </a>
                     </Button>
+                    )}
                   </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm text-center py-4">
+                      Contact information is not available.
+                    </p>
+                  )}
 
                   {/* Messaging Apps */}
+                  {qrData.contact?.phone && (
                   <div className="space-y-3">
                       <Button asChild variant="outline" className="w-full border-2 border-gray-300 hover:border-black text-black hover:text-black h-12 text-base font-semibold">
                       <a 
                         href={`sms:${qrData.contact.phone}?body=${encodeURIComponent(
-                          `Hi ${qrData.contact.name}! I found your ${qrData.type === 'pet' ? 'pet' : qrData.type === 'emergency' ? 'emergency contact' : 'item'} "${qrData.details.name}". Please contact me so we can arrange return.`
+                          qrData.type === 'emergency'
+                            ? `Hi ${qrData.contact.name || 'there'}! I've scanned your emergency tag. Please contact me if you need assistance.`
+                            : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange return.`
                         )}`}
                         className="flex items-center justify-center gap-3"
                       >
@@ -1447,6 +1890,7 @@ export default function ScanPage() {
                       </a>
                     </Button>
                   </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -1465,33 +1909,45 @@ export default function ScanPage() {
             </div>
           </div>
         </div>
+
+        {/* Image Modal - Full Size View */}
+        {imageModalOpen && imageModalUrl && (
+          <div 
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/90"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setImageModalOpen(false)
+                setImageModalUrl(null)
+              }
+            }}
+          >
+            <div className="relative max-w-[95vw] max-h-[95vh] flex items-center justify-center">
+              <button
+                onClick={() => {
+                  setImageModalOpen(false)
+                  setImageModalUrl(null)
+                }}
+                className="absolute top-2 right-2 z-[100000] bg-black/70 hover:bg-black text-white rounded-full p-2 transition-colors"
+                aria-label="Close image"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              <img 
+                src={imageModalUrl} 
+                alt="Full size view"
+                className="max-w-full max-h-[95vh] w-auto h-auto object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </div>
+        )}
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* <Button variant="ghost" size="sm" asChild className="text-gray-700 hover:text-black transition-colors">
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Link>
-            </Button> */}
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-black rounded-lg">
-                <QrCode className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <span className="font-bold text-black">ScanBack™</span>
-                <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ScanHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="text-center mb-8">
@@ -1499,11 +1955,11 @@ export default function ScanPage() {
             {getCurrentTagType() === 'pet' ? (
               <PawPrint className="h-10 w-10 text-yellow-500" />
             ) : getCurrentTagType() === 'emergency' ? (
-              <Stethoscope className="h-10 w-10 text-red-600" />
+              <Plus className="h-10 w-10 text-red-600" />
             ) : getCurrentTagType() === 'item' ? (
-              <Package className="h-10 w-10 text-blue-600" />
+              <Tag className="h-10 w-10 text-blue-600 flex items-center justify-center" />
             ) : (
-              <Tag className="h-10 w-10 text-purple-600 flex items-center justify-center" />
+              <Tag className="h-10 w-10 text-blue-600 flex items-center justify-center" />
             )}
           </div>
           <h1 className="text-3xl font-bold text-black mb-3">
@@ -1533,19 +1989,92 @@ export default function ScanPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Tag Type Selection - Only for "any" type QR codes */}
               {qrData?.type === 'any' && (
-                <div className="space-y-4">
-                  <div>
+                <div className="space-y-3">
                     <Label htmlFor="tagType">Tag Type *</Label>
-                    <Select value={selectedTagType} onValueChange={(value: 'item' | 'pet' | 'emergency') => setSelectedTagType(value)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select tag type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="item">📱 Item</SelectItem>
-                        <SelectItem value="pet">🐕 Pet</SelectItem>
-                        <SelectItem value="emergency">🚨 Emergency</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* Item Option */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTagType('item')}
+                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 ${
+                        selectedTagType === 'item'
+                          ? 'border-blue-600 bg-blue-50 shadow-md'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className={`p-3 rounded-lg mb-2 ${
+                        selectedTagType === 'item'
+                          ? 'bg-blue-600'
+                          : 'bg-gray-100'
+                      }`}>
+                        <Tag className={`h-6 w-6 ${
+                          selectedTagType === 'item'
+                            ? 'text-white'
+                            : 'text-blue-600'
+                        } flex items-center justify-center`} />
+                      </div>
+                      <span className={`text-sm font-semibold ${
+                        selectedTagType === 'item'
+                          ? 'text-blue-700'
+                          : 'text-gray-700'
+                      }`}>Item</span>
+                    </button>
+
+                    {/* Pet Option */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTagType('pet')}
+                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 ${
+                        selectedTagType === 'pet'
+                          ? 'border-yellow-600 bg-yellow-50 shadow-md'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className={`p-3 rounded-lg mb-2 ${
+                        selectedTagType === 'pet'
+                          ? 'bg-yellow-600'
+                          : 'bg-gray-100'
+                      }`}>
+                        <PawPrint className={`h-6 w-6 ${
+                          selectedTagType === 'pet'
+                            ? 'text-white'
+                            : 'text-yellow-500'
+                        }`} />
+                      </div>
+                      <span className={`text-sm font-semibold ${
+                        selectedTagType === 'pet'
+                          ? 'text-yellow-700'
+                          : 'text-gray-700'
+                      }`}>Pet</span>
+                    </button>
+
+                    {/* Emergency Option */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTagType('emergency')}
+                      className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 ${
+                        selectedTagType === 'emergency'
+                          ? 'border-red-600 bg-red-50 shadow-md'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className={`p-3 rounded-lg mb-2 ${
+                        selectedTagType === 'emergency'
+                          ? 'bg-red-600'
+                          : 'bg-gray-100'
+                      }`}>
+                        <Plus className={`h-6 w-6 ${
+                          selectedTagType === 'emergency'
+                            ? 'text-white'
+                            : 'text-red-600'
+                        } strokeWidth={3}`} />
+                      </div>
+                      <span className={`text-sm font-semibold ${
+                        selectedTagType === 'emergency'
+                          ? 'text-red-700'
+                          : 'text-gray-700'
+                      }`}>Emergency</span>
+                    </button>
                   </div>
                 </div>
               )}
@@ -1578,10 +2107,18 @@ export default function ScanPage() {
 
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <Label htmlFor="backupPhone">Backup Phone Number</Label>
-                    <Tooltip>
+                    <Label htmlFor="backupPhone">Backup Phone Number (Optional)</Label>
+                    <Tooltip open={backupPhoneTooltipOpen} onOpenChange={setBackupPhoneTooltipOpen}>
                       <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                        <Info 
+                          className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" 
+                          onClick={(e) => {
+                            if (isMobile) {
+                              e.preventDefault()
+                              setBackupPhoneTooltipOpen(!backupPhoneTooltipOpen)
+                            }
+                          }}
+                        />
                       </TooltipTrigger>
                       <TooltipContent>
                         <p className="max-w-xs">Make sure the person listed has agreed to be contacted in case your item is found.</p>
@@ -1594,7 +2131,7 @@ export default function ScanPage() {
                     onCountryChange={(countryCode) => handleInputChange('contact.backupCountryCode', countryCode)}
                     onErrorChange={(error) => setPhoneErrors(prev => ({ ...prev, backup: error }))}
                     countryCode={formData.contact.backupCountryCode}
-                    placeholder="e.g. 083 123 4567 – must have owner's permission"
+                    placeholder="Enter backup phone number"
                     error={phoneErrors.backup}
                     id="backupPhone"
                   />
@@ -1973,7 +2510,7 @@ export default function ScanPage() {
                     <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
                       <div className="flex-1">
                         <Label className="text-sm font-medium text-black flex items-center gap-2">
-                          <Stethoscope className="h-4 w-4 text-red-600" />
+                          <Plus className="h-4 w-4 text-red-600" />
                           Add Emergency Details
                         </Label>
                         <p className="text-xs text-gray-600 mt-1">Medical aid info, blood type, allergies, medications</p>
@@ -2136,9 +2673,17 @@ export default function ScanPage() {
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <Label className="text-sm font-medium text-black">Emergency Contact 1</Label>
-                            <Tooltip>
+                            <Tooltip open={emergencyContact1TooltipOpen} onOpenChange={setEmergencyContact1TooltipOpen}>
                               <TooltipTrigger asChild>
-                                <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                                <Info 
+                                  className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" 
+                                  onClick={(e) => {
+                                    if (isMobile) {
+                                      e.preventDefault()
+                                      setEmergencyContact1TooltipOpen(!emergencyContact1TooltipOpen)
+                                    }
+                                  }}
+                                />
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="max-w-xs">Make sure they have agreed to be contacted in case of emergency.</p>
@@ -2152,7 +2697,7 @@ export default function ScanPage() {
                               id="emergencyContact1Name"
                               value={formData.details.emergencyContact1Name || ""}
                               onChange={(e) => handleInputChange('details.emergencyContact1Name', e.target.value)}
-                              placeholder="e.g., Sarah Khan"
+                              placeholder="e.g., John Smith"
                               className="mt-1"
                             />
                           </div>
@@ -2167,7 +2712,18 @@ export default function ScanPage() {
                               onErrorChange={(error) => setEmergencyContact1PhoneError(error)}
                               error={emergencyContact1PhoneError}
                               id="emergencyContact1Phone"
-                              placeholder="e.g., 083 123 4567"
+                              placeholder="e.g., 083 456 7890"
+                            />
+                          </div>
+
+                        <div>
+                          <Label htmlFor="emergencyContact1Relation">Relation</Label>
+                          <Input
+                            id="emergencyContact1Relation"
+                            value={formData.details.emergencyContact1Relation || ""}
+                            onChange={(e) => handleInputChange('details.emergencyContact1Relation', e.target.value)}
+                            placeholder="e.g., Brother / Spouse / Doctor"
+                            className="mt-1"
                             />
                           </div>
                         </div>
@@ -2176,9 +2732,17 @@ export default function ScanPage() {
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <Label className="text-sm font-medium text-black">Emergency Contact 2</Label>
-                            <Tooltip>
+                            <Tooltip open={emergencyContact2TooltipOpen} onOpenChange={setEmergencyContact2TooltipOpen}>
                               <TooltipTrigger asChild>
-                                <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                                <Info 
+                                  className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" 
+                                  onClick={(e) => {
+                                    if (isMobile) {
+                                      e.preventDefault()
+                                      setEmergencyContact2TooltipOpen(!emergencyContact2TooltipOpen)
+                                    }
+                                  }}
+                                />
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="max-w-xs">Make sure they have agreed to be contacted in case of emergency.</p>
@@ -2192,7 +2756,7 @@ export default function ScanPage() {
                               id="emergencyContact2Name"
                               value={formData.details.emergencyContact2Name || ""}
                               onChange={(e) => handleInputChange('details.emergencyContact2Name', e.target.value)}
-                              placeholder="e.g., John Patel"
+                              placeholder="e.g., Jane Doe"
                               className="mt-1"
                             />
                           </div>
@@ -2207,7 +2771,18 @@ export default function ScanPage() {
                               onErrorChange={(error) => setEmergencyContact2PhoneError(error)}
                               error={emergencyContact2PhoneError}
                               id="emergencyContact2Phone"
-                              placeholder="e.g., 082 987 6543"
+                              placeholder="e.g., 083 456 7890"
+                            />
+                          </div>
+
+                        <div>
+                          <Label htmlFor="emergencyContact2Relation">Relation</Label>
+                          <Input
+                            id="emergencyContact2Relation"
+                            value={formData.details.emergencyContact2Relation || ""}
+                            onChange={(e) => handleInputChange('details.emergencyContact2Relation', e.target.value)}
+                            placeholder="e.g., Brother / Spouse / Doctor"
+                            className="mt-1"
                             />
                           </div>
                         </div>
@@ -2226,13 +2801,23 @@ export default function ScanPage() {
                     onFocus={() => {
                       if (!messageClicked) {
                         setMessageClicked(true)
-                        const defaultMessage = formData.details.name ? 
-                          `Hi! Thanks for finding my ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!` :
-                          "Hi! Thanks for finding my item. Please contact me so we can arrange a return. I really appreciate your honesty and help!"
+                        const defaultMessage = getCurrentTagType() === 'emergency'
+                          ? "Hi! This is an emergency tag. If you've scanned this, I may need help. Please contact my emergency contacts listed below or seek medical attention if required. Thank you for your support."
+                          : getCurrentTagType() === 'pet'
+                          ? (formData.details.name 
+                              ? `Hi! Thanks for finding my pet ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!` 
+                              : "Hi! Thanks for finding my pet. Please contact me so we can arrange a return. I really appreciate your honesty and help!")
+                          : (formData.details.name 
+                              ? `Hi! Thanks for finding my item ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!` 
+                              : "Hi! Thanks for finding my item. Please contact me so we can arrange a return. I really appreciate your honesty and help!")
                         handleInputChange('contact.message', defaultMessage)
                       }
                     }}
-                    placeholder={formData.details.name ? `Hi! Thanks for finding my ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!` : "Hi! Thanks for finding my item. Please contact me so we can arrange a return. I really appreciate your honesty and help!"}
+                    placeholder={getCurrentTagType() === 'emergency' 
+                      ? "Hi! This is an emergency tag. If you've scanned this, I may need help. Please contact my emergency contacts listed below or seek medical attention if required. Thank you for your support." 
+                      : getCurrentTagType() === 'pet'
+                      ? (formData.details.name ? `Hi! Thanks for finding my pet ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!` : "Hi! Thanks for finding my pet. Please contact me so we can arrange a return. I really appreciate your honesty and help!")
+                      : (formData.details.name ? `Hi! Thanks for finding my item ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!` : "Hi! Thanks for finding my item. Please contact me so we can arrange a return. I really appreciate your honesty and help!")}
                     rows={3}
                     className="mt-1"
                   />
@@ -2264,7 +2849,7 @@ export default function ScanPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
+                {/* <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
                   <div className="flex-1 min-w-0">
                     <Label className="text-sm font-medium text-black">Location Sharing</Label>
                     <p className="text-xs text-gray-600 mt-1 leading-relaxed">Allow finders to see your approximate location</p>
@@ -2285,7 +2870,7 @@ export default function ScanPage() {
                     />
                   </button>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Contact Visibility Toggle - For both Item and Pet Tags */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">

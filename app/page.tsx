@@ -6,7 +6,7 @@ import Image from "next/image"
 import { ArrowRight, Scan, MessageCircle, RotateCcw, Shield, Smartphone, Globe, CheckCircle, Star, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Header } from "@/components/header"
+import { ScanHeader } from "@/components/scan-header"
 import { Footer } from "@/components/footer"
 import { useAuth } from "@/hooks/use-auth"
 
@@ -17,7 +17,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      <Header />
+      <ScanHeader />
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 text-center">
@@ -74,9 +74,9 @@ export default function HomePage() {
               
               <div className="hidden md:block">
                 <div className="flex items-center justify-center">
-                  <div className="w-16 h-1 bg-gradient-to-r from-blue-500 via-green-500 to-purple-500 rounded-full"></div>
+                  <div className="w-16 h-1 bg-gradient-to-r from-blue-500 via-green-500 to-blue-500 rounded-full"></div>
                   <ArrowRight className="h-6 w-6 text-gray-400 mx-2" />
-                  <div className="w-16 h-1 bg-gradient-to-r from-blue-500 via-green-500 to-purple-500 rounded-full"></div>
+                  <div className="w-16 h-1 bg-gradient-to-r from-blue-500 via-green-500 to-blue-500 rounded-full"></div>
                 </div>
               </div>
 
@@ -122,7 +122,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center group">
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
                 <div className="text-white text-4xl">🎯</div>
               </div>
               <h3 className="text-2xl font-bold text-navy-900 mb-4">Find it</h3>
@@ -160,7 +160,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
                 <span className="text-3xl font-bold text-white">3</span>
               </div>
               <h3 className="text-xl font-semibold text-navy-900 mb-3">Tag Active</h3>
@@ -408,7 +408,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
                 <Globe className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-navy-900 mb-3">Works Anywhere</h3>

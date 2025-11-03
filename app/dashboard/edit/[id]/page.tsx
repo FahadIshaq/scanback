@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Upload, X, Power, Trash2, Heart, Package, Save, Loader2 } from "lucide-react"
+import { ArrowLeft, Upload, X, Power, Trash2, PawPrint, Tag, Plus, Save, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -329,9 +329,11 @@ export default function EditPage({ params }: EditPageProps) {
             <CardHeader>
               <CardTitle className="flex items-center">
                 {formData.tagType === "pet" ? (
-                  <Heart className="h-5 w-5 mr-2 text-pink-500" />
+                  <PawPrint className="h-5 w-5 mr-2 text-yellow-500" />
+                ) : formData.tagType === "emergency" ? (
+                  <Plus className="h-5 w-5 mr-2 text-red-600" strokeWidth={3} />
                 ) : (
-                  <Package className="h-5 w-5 mr-2 text-blue-500" />
+                  <Tag className="h-5 w-5 mr-2 text-blue-600 flex items-center justify-center" />
                 )}
                 Basic Information
               </CardTitle>

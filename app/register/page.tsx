@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { ArrowLeft, Heart, Package, CheckCircle, QrCode } from "lucide-react"
+import { ArrowLeft, PawPrint, Tag, Plus, CheckCircle, QrCode } from "lucide-react"
 import Link from "next/link"
 import { apiClient } from "@/lib/api"
+import { ScanHeader } from "@/components/scan-header"
 
 export default function RegisterPage() {
   const [type, setType] = useState<'item' | 'pet'>('item')
@@ -64,7 +65,7 @@ export default function RegisterPage() {
 
     try {
       // First, generate a QR code
-      const qrResponse = await fetch('http://localhost:5001/api/admin/generate-qr', {
+      const qrResponse = await fetch('https://scanback-backend.vercel.app/api/admin/generate-qr', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,22 +100,7 @@ export default function RegisterPage() {
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-             
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-black rounded-lg">
-                  <QrCode className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <span className="font-bold text-black">ScanBack</span>
-                  <p className="text-xs text-gray-600">QR Code Service</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
+        <ScanHeader />
 
         <div className="container mx-auto px-4 py-12 max-w-2xl text-center">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -149,22 +135,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-           
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-black rounded-lg">
-                <QrCode className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <span className="font-bold text-black">ScanBack</span>
-                <p className="text-xs text-gray-600">QR Code Service</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ScanHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="text-center mb-8">
@@ -187,14 +158,14 @@ export default function RegisterPage() {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="item" id="item" />
                     <Label htmlFor="item" className="flex items-center space-x-2 cursor-pointer">
-                      <Package className="h-4 w-4" />
+                      <Tag className="h-4 w-4 text-blue-600 flex items-center justify-center" />
                       <span>Item (keys, phone, luggage, etc.)</span>
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="pet" id="pet" />
                     <Label htmlFor="pet" className="flex items-center space-x-2 cursor-pointer">
-                      <Heart className="h-4 w-4" />
+                      <PawPrint className="h-4 w-4 text-yellow-500" />
                       <span>Pet (dog, cat, etc.)</span>
                     </Label>
                   </div>

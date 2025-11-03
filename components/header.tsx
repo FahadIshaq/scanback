@@ -6,16 +6,24 @@ import { QRLogo } from "@/components/qr-logo"
 import { useAuth } from "@/hooks/use-auth"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function Header() {
-  const { user, isAuthenticated, loading, logout } = useAuth()
+  const { user, loading, logout } = useAuth()
+  const pathname = usePathname()
+
+  const firstName = (user?.name || "").trim().split(" ")[0] || user?.name || ""
+  const onDashboard = pathname?.startsWith("/dashboard")
+  const isAuthenticated = !!user
 
   return (
     <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-10">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <QRLogo />
+            <Link href="/">
+              <QRLogo />
+            </Link>
           </div>
           <div className="flex items-center space-x-3">
             {loading ? (
@@ -23,29 +31,40 @@ export function Header() {
             ) : (
               <>
                 {isAuthenticated ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-gray-600 hover:text-navy-900">
-                        <User className="h-4 w-4 mr-2" />
-                        {user?.name || user?.phone}
+                  onDashboard ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Welcome, {firstName}</span>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href="/dashboard/settings">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Settings
+                        </Link>
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => window.location.href = '/dashboard'}>
-                        <User className="h-4 w-4 mr-2" />
-                        Manage My Tag
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
-                        <Settings className="h-4 w-4 mr-2" />
-                        Settings
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={logout}>
+                      <Button variant="outline" size="sm" onClick={logout}>
                         <LogOut className="h-4 w-4 mr-2" />
-                        Log Out
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        Logout
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href="/dashboard">
+                          <User className="h-4 w-4 mr-2" />
+                          Dashboard
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href="/dashboard/settings">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Settings
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={logout}>
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Logout
+                      </Button>
+                    </div>
+                  )
                 ) : (
                   <div className="flex items-center space-x-2">
                     <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-navy-900">
@@ -54,7 +73,6 @@ export function Header() {
                         Login
                       </Link>
                     </Button>
-                  
                   </div>
                 )}
               </>

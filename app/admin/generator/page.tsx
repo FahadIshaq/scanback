@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
+import { ScanHeader } from "@/components/scan-header"
 
 export default function AdminGeneratorPage() {
   const [batchSize, setBatchSize] = useState("100")
@@ -29,25 +30,7 @@ export default function AdminGeneratorPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-navy-900">
-              <Link href="/dashboard/stickers">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Stickers
-              </Link>
-            </Button>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-navy-900 rounded-lg flex items-center justify-center">
-                <span className="text-white text-sm font-bold">S</span>
-              </div>
-              <span className="font-semibold text-navy-900">ScanBack™ Admin Generator</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ScanHeader />
 
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="mb-6">

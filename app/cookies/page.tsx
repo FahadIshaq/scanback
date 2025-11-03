@@ -4,13 +4,13 @@ import Link from "next/link"
 import { ArrowLeft, Cookie, Shield, Settings, Eye, Clock, Database, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Header } from "@/components/header"
+import { ScanHeader } from "@/components/scan-header"
 import { Footer } from "@/components/footer"
 
 export default function CookiesPolicyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      <Header />
+      <ScanHeader />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">

@@ -2287,7 +2287,7 @@ export default function ScanPage() {
               )}
 
               {/* Pet-specific fields */}
-              {qrData?.type === 'pet' && (
+              {getCurrentTagType() === 'pet' && (
                 <div className="space-y-4">
 
                   {/* Emergency Details Toggle */}

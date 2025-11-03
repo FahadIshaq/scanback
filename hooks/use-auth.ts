@@ -72,6 +72,10 @@ export function useAuth() {
   const logout = () => {
     setUser(null)
     apiClient.clearToken()
+    // Hard redirect to ensure all client state is reset
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login'
+    }
   }
 
   return {

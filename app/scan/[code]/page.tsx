@@ -104,6 +104,7 @@ export default function ScanPage() {
   const [copiedPassword, setCopiedPassword] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [messageClicked, setMessageClicked] = useState(false)
+  const [savedMessage, setSavedMessage] = useState("")
   const [itemImage, setItemImage] = useState<string | null>(null)
   const [petImage, setPetImage] = useState<string | null>(null)
   const [emergencyImage, setEmergencyImage] = useState<string | null>(null)
@@ -896,6 +897,7 @@ export default function ScanPage() {
       
       if (response.success) {
         setSubmittedTagType(getCurrentTagType())
+        setSavedMessage(finalMessage) // Store the message that was actually saved
         setSuccess(true)
         setTempPassword(response.data.tempPassword || "")
         setUserEmail(response.data.user.email)
@@ -1270,11 +1272,7 @@ export default function ScanPage() {
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                     <p className="text-sm text-gray-700 italic leading-relaxed">
-                      "{formData.contact.message || (submittedTagType === 'pet' 
-                        ? `Hi! Thanks for finding my pet ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
-                        : submittedTagType === 'emergency'
-                        ? `Hi! Thanks for finding my emergency contact ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
-                        : `Hi! Thanks for finding my item ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`)}"
+                      "{savedMessage}"
                     </p>
                   </div>
                 </div>

@@ -1750,7 +1750,7 @@ export default function ScanPage() {
                       return (
                         <Button asChild className="w-full bg-red-600 hover:bg-red-700 text-white h-12 text-base font-semibold">
                           <a href={`tel:${emergencyNumber}`} className="flex items-center justify-center gap-3">
-                            SOS • Call {emergencyNumber} - Emergency Services
+                            Call {emergencyNumber} - Emergency Services
                           </a>
                         </Button>
                       )

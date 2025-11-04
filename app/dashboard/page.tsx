@@ -41,6 +41,7 @@ import { getCountryCallingCode, parsePhoneNumber } from "libphonenumber-js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { MedicalCross } from "@/components/MedicalCross"
 
 interface QRCode {
   _id: string
@@ -1287,7 +1288,7 @@ export default function DashboardPage() {
                               </>
                             ) : qr.type === 'emergency' ? (
                               <>
-                                <Plus className="h-3 w-3 mr-1 text-red-600" strokeWidth={3} />
+                                 <MedicalCross className="h-3 w-3 mr-1 text-red-600" size={16} />
                                 Emergency
                               </>
                             ) : (
@@ -1378,7 +1379,7 @@ export default function DashboardPage() {
                             </>
                           ) : (
                             <>
-                              <Plus className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                              <MedicalCross className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" size={16} />
                               <span className="hidden sm:inline">Activate</span>
                             </>
                           )}
@@ -1912,7 +1913,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
                       <div className="flex-1">
                         <Label className="text-sm font-medium text-black flex items-center gap-2">
-                          <Plus className="h-4 w-4 text-red-600" />
+                          <MedicalCross className="h-4 w-4 text-red-600" size={16} />
                           Add Emergency Details
                         </Label>
                         <p className="text-xs text-gray-600 mt-1">Medical aid info, blood type, allergies, medications</p>
@@ -2358,7 +2359,7 @@ export default function DashboardPage() {
                       </>
                     ) : selectedQR.type === 'emergency' ? (
                       <>
-                        <Plus className="h-4 w-4 text-red-600" strokeWidth={3} />
+                        <MedicalCross className="h-4 w-4 text-red-600" size={16} />
                         Emergency Details
                       </>
                     ) : (
@@ -2645,7 +2646,7 @@ export default function DashboardPage() {
                     {updatedQR.type === 'pet' ? (
                       <PawPrint className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
                     ) : updatedQR.type === 'emergency' ? (
-                      <Plus className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" strokeWidth={3} />
+                      <MedicalCross className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" size={16} />
                     ) : (
                       <Tag className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex items-center justify-center" />
                     )}
@@ -2826,7 +2827,7 @@ export default function DashboardPage() {
                           {qr.type === 'pet' ? (
                                 <PawPrint className="h-5 w-5 text-yellow-500" />
                               ) : qr.type === 'emergency' ? (
-                                <Plus className="h-5 w-5 text-red-600" strokeWidth={3} />
+                               <MedicalCross className="h-5 w-5 text-red-600" size={16} />
                           ) : (
                                 <Tag className="h-5 w-5 text-blue-600 flex items-center justify-center" />
                           )}
@@ -2938,7 +2939,7 @@ export default function DashboardPage() {
                     {filteredListType === 'pet' ? (
                       <PawPrint className="h-6 w-6 text-yellow-500" />
                     ) : filteredListType === 'emergency' ? (
-                      <Plus className="h-6 w-6 text-red-600" strokeWidth={3} />
+                      <MedicalCross className="h-6 w-6 text-red-600" size={16} />
                     ) : (
                       <Tag className="h-6 w-6 text-blue-600 flex items-center justify-center" />
                     )}
@@ -2972,7 +2973,7 @@ export default function DashboardPage() {
                               {qr.type === 'pet' ? (
                                 <PawPrint className={`h-5 w-5 ${qr.isActivated ? 'text-yellow-500' : 'text-gray-400'}`} />
                               ) : qr.type === 'emergency' ? (
-                                <Plus className={`h-5 w-5 ${qr.isActivated ? 'text-red-600' : 'text-gray-400'}`} strokeWidth={3} />
+                                <MedicalCross className={`h-5 w-5 ${qr.isActivated ? 'text-red-600' : 'text-gray-400'}`} size={16} />
                               ) : (
                                 <Tag className={`h-5 w-5 ${qr.isActivated ? 'text-blue-600' : 'text-gray-400'} flex items-center justify-center`} />
                               )}
@@ -3008,7 +3009,7 @@ export default function DashboardPage() {
                         {filteredListType === 'pet' ? (
                           <PawPrint className="h-8 w-8 text-yellow-500" />
                         ) : filteredListType === 'emergency' ? (
-                          <Plus className="h-8 w-8 text-red-600" strokeWidth={3} />
+                          <MedicalCross className="h-8 w-8 text-red-600" size={16} />
                         ) : (
                           <Tag className="h-8 w-8 text-blue-600 flex items-center justify-center" />
                         )}

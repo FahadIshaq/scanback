@@ -18,6 +18,25 @@ import { TermsPrivacyPopup } from "@/components/terms-privacy-popup"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ScanHeader } from "@/components/scan-header"
+import { MedicalCross } from "@/components/MedicalCross"
+// Custom Medical Cross Icon Component (sharp edges, no rounded corners)
+// const MedicalCross = ({ className, size = 24 }: { className?: string; size?: number }) => {
+//   return (
+//     <svg
+//       width={size}
+//       height={size}
+//       viewBox="0 0 24 24"
+//       fill="none"
+//       xmlns="http://www.w3.org/2000/svg"
+//       className={className}
+//     >
+//       {/* Horizontal bar - bold medical cross style */}
+//       <rect x="2" y="9" width="20" height="6" rx="0" fill="currentColor" />
+//       {/* Vertical bar - bold medical cross style */}
+//       <rect x="9" y="2" width="6" height="20" rx="0" fill="currentColor" />
+//     </svg>
+//   )
+// }
 
 interface QRData {
   code: string
@@ -1213,7 +1232,7 @@ export default function ScanPage() {
                     {submittedTagType === 'pet' ? (
                       <Heart className="h-4 w-4 text-orange-500" />
                     ) : submittedTagType === 'emergency' ? (
-                      <Plus className="h-4 w-4 text-red-600" />
+                      <MedicalCross className="text-red-600" size={16} />
                     ) : (
                       <Tag className="h-4 w-4 text-blue-600 flex items-center justify-center" />
                     )}
@@ -1316,7 +1335,7 @@ export default function ScanPage() {
               {qrData.type === 'pet' ? (
                 <PawPrint className="h-12 w-12 text-yellow-500" />
               ) : qrData.type === 'emergency' ? (
-                <Plus className="h-12 w-12 text-red-600" />
+                <MedicalCross className="text-red-600" size={74} />
               ) : (
                 <Tag className="h-12 w-12 text-blue-600 flex items-center justify-center" />
               )}
@@ -1607,7 +1626,7 @@ export default function ScanPage() {
                   <CardHeader className="bg-red-50">
                     <CardTitle className="flex items-center gap-2 text-xl text-black">
                       <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-red-600">
-                        <Plus className="h-4 w-4 text-white" strokeWidth={3} />
+                        <MedicalCross className="text-white" size={16} />
                       </span>
                       Emergency Information
                     </CardTitle>
@@ -1641,7 +1660,7 @@ export default function ScanPage() {
                       <div className="bg-red-50 rounded-lg p-5 border border-red-200">
                         <Label className="text-base font-semibold text-red-700 mb-4 flex items-center gap-2">
                           <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-red-600">
-                            <Plus className="h-4 w-4 text-white" strokeWidth={3} />
+                            <MedicalCross className="text-white" size={16} />
                           </span>
                         Medical Information
                       </Label>
@@ -2109,7 +2128,7 @@ export default function ScanPage() {
             {getCurrentTagType() === 'pet' ? (
               <PawPrint className="h-10 w-10 text-yellow-500" />
             ) : getCurrentTagType() === 'emergency' ? (
-              <Plus className="h-10 w-10 text-red-600" />
+              <MedicalCross className="text-red-600" size={74} />
             ) : getCurrentTagType() === 'item' ? (
               <Tag className="h-10 w-10 text-blue-600 flex items-center justify-center" />
             ) : (
@@ -2217,11 +2236,7 @@ export default function ScanPage() {
                           ? 'bg-red-600'
                           : 'bg-gray-100'
                       }`}>
-                        <Plus className={`h-6 w-6 ${
-                          selectedTagType === 'emergency'
-                            ? 'text-white'
-                            : 'text-red-600'
-                        } strokeWidth={3}`} />
+                        <MedicalCross className={`${selectedTagType === 'emergency' ? 'text-white' : 'text-red-600'}`} size={24} />
                       </div>
                       <span className={`text-sm font-semibold ${
                         selectedTagType === 'emergency'
@@ -2664,7 +2679,7 @@ export default function ScanPage() {
                     <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
                       <div className="flex-1">
                         <Label className="text-sm font-medium text-black flex items-center gap-2">
-                          <Plus className="h-4 w-4 text-red-600" />
+                          <MedicalCross className="text-red-600" size={16} />
                           Add Emergency Details
                         </Label>
                         <p className="text-xs text-gray-600 mt-1">Medical aid info, blood type, allergies, medications</p>

@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-
+import { MedicalCross } from "@/components/MedicalCross"
 interface EditPageProps {
   params: Promise<{
     id: string
@@ -331,7 +331,7 @@ export default function EditPage({ params }: EditPageProps) {
                 {formData.tagType === "pet" ? (
                   <PawPrint className="h-5 w-5 mr-2 text-yellow-500" />
                 ) : formData.tagType === "emergency" ? (
-                  <Plus className="h-5 w-5 mr-2 text-red-600" strokeWidth={3} />
+                  <MedicalCross className="h-5 w-5 mr-2 text-red-600" size={16} />
                 ) : (
                   <Tag className="h-5 w-5 mr-2 text-blue-600 flex items-center justify-center" />
                 )}

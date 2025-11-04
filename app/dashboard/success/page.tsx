@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { apiClient } from "@/lib/api"
 import {ScanHeader} from "@/components/scan-header"
-
+import { MedicalCross } from "@/components/MedicalCross"
 interface QRData {
   code: string
   type: 'item' | 'pet' | 'emergency' | 'any'
@@ -63,7 +63,7 @@ export default function SuccessPage() {
       case 'pet':
         return <PawPrint className="h-5 w-5 text-yellow-500" />
       case 'emergency':
-        return <Plus className="h-5 w-5 text-red-600" strokeWidth={3} />
+        return <MedicalCross className="h-5 w-5 text-red-600" size={16} />
       case 'item':
         return <Tag className="h-5 w-5 text-blue-600 flex items-center justify-center" />
       default:

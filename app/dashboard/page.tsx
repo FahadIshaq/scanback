@@ -58,6 +58,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MedicalCross } from "@/components/MedicalCross";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 interface QRCode {
   _id: string;
@@ -258,6 +260,7 @@ const getPhonePlaceholder = (countryCode: string) => {
 
 export default function DashboardPage() {
   const { user, loading: authLoading, logout } = useAuth();
+  const { toast } = useToast();
   const [qrCodes, setQrCodes] = useState<QRCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -3370,7 +3373,10 @@ export default function DashboardPage() {
                           "https://scanback.vercel.app"
                         }/scan/${selectedQR.code}`
                       );
-                      // You could add a toast notification here
+                      toast({
+                        title: "URL copied successfully",
+                        description: "The scan page URL has been copied to your clipboard.",
+                      });
                     }}
                     className="flex-1 text-sm"
                   >
@@ -4129,6 +4135,7 @@ export default function DashboardPage() {
         )}
       </div>
       <Footer />
+      <Toaster />
     </div>
   );
 }

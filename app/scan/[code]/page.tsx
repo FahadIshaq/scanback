@@ -69,6 +69,7 @@ interface QRData {
     phone: string
     backupPhone?: string
     message?: string
+    countryCode?: string
   }
   settings?: {
     instantAlerts: boolean
@@ -157,17 +158,109 @@ export default function ScanPage() {
     }
   }
 
+  // Convert phone code (e.g., "+1") to ISO country code (e.g., "US")
+  const phoneCodeToCountryCode = (phoneCode: string): string => {
+    const code = phoneCode.replace(/[^+\d]/g, '').toUpperCase()
+    const phoneCodeMap: Record<string, string> = {
+      '+1': 'US',
+      '+27': 'ZA',
+      '+44': 'GB',
+      '+61': 'AU',
+      '+33': 'FR',
+      '+49': 'DE',
+      '+39': 'IT',
+      '+34': 'ES',
+      '+351': 'PT',
+      '+31': 'NL',
+      '+32': 'BE',
+      '+353': 'IE',
+      '+358': 'FI',
+      '+46': 'SE',
+      '+47': 'NO',
+      '+41': 'CH',
+      '+43': 'AT',
+      '+45': 'DK',
+      '+420': 'CZ',
+      '+36': 'HU',
+      '+40': 'RO',
+      '+48': 'PL',
+      '+421': 'SK',
+      '+370': 'LT',
+      '+371': 'LV',
+      '+372': 'EE'
+    }
+    return phoneCodeMap[code] || 'ZA'
+  }
+
   // Extract country code from phone number
   const extractCountryCodeFromPhone = (phone: string): string => {
     try {
       if (phone && phone.startsWith('+')) {
+        // Try to parse the phone number
         const phoneNumber = parsePhoneNumber(phone)
         if (phoneNumber && phoneNumber.country) {
           return phoneNumber.country
         }
+        
+        // Fallback: Check phone number prefix patterns
+        const cleanPhone = phone.replace(/\s/g, '')
+        if (cleanPhone.startsWith('+1')) {
+          return 'US' // USA or Canada - defaulting to US
+        } else if (cleanPhone.startsWith('+27')) {
+          return 'ZA' // South Africa
+        } else if (cleanPhone.startsWith('+44')) {
+          return 'GB' // United Kingdom
+        } else if (cleanPhone.startsWith('+61')) {
+          return 'AU' // Australia
+        } else if (cleanPhone.startsWith('+33')) {
+          return 'FR' // France
+        } else if (cleanPhone.startsWith('+49')) {
+          return 'DE' // Germany
+        } else if (cleanPhone.startsWith('+39')) {
+          return 'IT' // Italy
+        } else if (cleanPhone.startsWith('+34')) {
+          return 'ES' // Spain
+        } else if (cleanPhone.startsWith('+351')) {
+          return 'PT' // Portugal
+        } else if (cleanPhone.startsWith('+31')) {
+          return 'NL' // Netherlands
+        } else if (cleanPhone.startsWith('+32')) {
+          return 'BE' // Belgium
+        } else if (cleanPhone.startsWith('+353')) {
+          return 'IE' // Ireland
+        } else if (cleanPhone.startsWith('+358')) {
+          return 'FI' // Finland
+        } else if (cleanPhone.startsWith('+46')) {
+          return 'SE' // Sweden
+        } else if (cleanPhone.startsWith('+47')) {
+          return 'NO' // Norway
+        } else if (cleanPhone.startsWith('+41')) {
+          return 'CH' // Switzerland
+        } else if (cleanPhone.startsWith('+43')) {
+          return 'AT' // Austria
+        } else if (cleanPhone.startsWith('+45')) {
+          return 'DK' // Denmark
+        } else if (cleanPhone.startsWith('+420')) {
+          return 'CZ' // Czech Republic
+        } else if (cleanPhone.startsWith('+36')) {
+          return 'HU' // Hungary
+        } else if (cleanPhone.startsWith('+40')) {
+          return 'RO' // Romania
+        } else if (cleanPhone.startsWith('+48')) {
+          return 'PL' // Poland
+        } else if (cleanPhone.startsWith('+421')) {
+          return 'SK' // Slovakia
+        } else if (cleanPhone.startsWith('+370')) {
+          return 'LT' // Lithuania
+        } else if (cleanPhone.startsWith('+371')) {
+          return 'LV' // Latvia
+        } else if (cleanPhone.startsWith('+372')) {
+          return 'EE' // Estonia
+        }
       }
     } catch (error) {
       // Ignore parsing errors
+      console.log('Error parsing phone number:', error)
     }
     return 'ZA' // Default to South Africa
   }
@@ -1745,7 +1838,22 @@ export default function ScanPage() {
 
                     {/* SOS Bar */}
                     {(() => {
-                      const countryCode = extractCountryCodeFromPhone(qrData.contact.phone)
+                      // First try to use countryCode from contact if available, otherwise parse from phone
+                      let countryCode: string
+                      if (qrData.contact?.countryCode) {
+                        // Extract country code from format like "+27" or "ZA"
+                        const code = qrData.contact.countryCode.trim().toUpperCase()
+                        if (code.startsWith('+')) {
+                          // Convert phone code (e.g., +1) to ISO country code (e.g., US)
+                          countryCode = phoneCodeToCountryCode(code)
+                        } else {
+                          // Already an ISO country code (e.g., US, ZA)
+                          countryCode = code
+                        }
+                      } else {
+                        // Fallback: parse from phone number
+                        countryCode = extractCountryCodeFromPhone(qrData.contact.phone)
+                      }
                       const emergencyNumber = getEmergencyNumber(countryCode)
                       return (
                         <Button asChild className="w-full bg-red-600 hover:bg-red-700 text-white h-12 text-base font-semibold">

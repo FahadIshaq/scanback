@@ -908,7 +908,12 @@ export default function DashboardPage() {
           emergencyContact2Phone: showEmergencyContacts && editForm.details.emergencyContact2Phone ? `+${getCountryCallingCode(editForm.details.emergencyContact2CountryCode as any)}${editForm.details.emergencyContact2Phone}` : undefined,
           emergencyContact2Relation: showEmergencyContacts ? editForm.details.emergencyContact2Relation : ''
         },
-        settings: editForm.settings
+        settings: {
+          instantAlerts: editForm.settings.instantAlerts,
+          locationSharing: editForm.settings.locationSharing,
+          showContactOnFinderPage: editForm.settings.showContactOnFinderPage,
+          useBackupNumber: editForm.settings.useBackupNumber
+        }
       }
       
       // Don't allow phone or email changes - remove them from updateData

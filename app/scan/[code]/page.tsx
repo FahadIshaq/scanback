@@ -809,6 +809,12 @@ export default function ScanPage() {
                  (itemImage || formData.details.image), // Use appropriate image state
           emergencyContact1Phone: formData.details.emergencyContact1Phone ? `+${getCountryCallingCode(formData.details.emergencyContact1CountryCode as any)}${formData.details.emergencyContact1Phone}` : undefined,
           emergencyContact2Phone: formData.details.emergencyContact2Phone ? `+${getCountryCallingCode(formData.details.emergencyContact2CountryCode as any)}${formData.details.emergencyContact2Phone}` : undefined
+        },
+        settings: {
+          instantAlerts: formData.settings.instantAlerts,
+          locationSharing: formData.settings.locationSharing,
+          showContactOnFinderPage: formData.settings.showContactOnFinderPage,
+          useBackupNumber: formData.settings.useBackupNumber
         }
       }
 
@@ -1893,6 +1899,57 @@ export default function ScanPage() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Backup Contact Box - Only show if useBackupNumber is enabled and backup phone exists */}
+              {qrData.contact?.backupPhone && (qrData.settings?.useBackupNumber !== false) && (
+                <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-black">Backup Contact</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* WhatsApp Message */}
+                    <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-semibold">
+                      <a 
+                        href={`https://wa.me/${qrData.contact.backupPhone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(
+                          qrData.type === 'emergency' 
+                            ? `Hi ${qrData.contact.name || 'there'}! I've scanned your emergency tag. Please contact me if you need assistance.`
+                            : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange return.`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-3"
+                      >
+                        <FaWhatsapp className="h-5 w-5" />
+                        Message on WhatsApp
+                      </a>
+                    </Button>
+
+                    {/* Primary Contact Methods */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold">
+                        <a href={`tel:${qrData.contact.backupPhone}`} className="flex items-center justify-center gap-3">
+                          <FaPhone className="h-5 w-5 text-blue-400" />
+                          Call Backup
+                        </a>
+                      </Button>
+
+                      <Button asChild variant="outline" className="w-full border-2 border-gray-300 hover:border-black text-black hover:text-black h-12 text-base font-semibold">
+                        <a 
+                          href={`sms:${qrData.contact.backupPhone}?body=${encodeURIComponent(
+                            qrData.type === 'emergency'
+                              ? `Hi ${qrData.contact.name || 'there'}! I've scanned your emergency tag. Please contact me if you need assistance.`
+                              : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange return.`
+                          )}`}
+                          className="flex items-center justify-center gap-3"
+                        >
+                          <FaSms className="h-5 w-5 text-blue-600" />
+                          SMS Backup
+                        </a>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Thank You Message */}
               <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-gray-50">

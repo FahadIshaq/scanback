@@ -194,75 +194,55 @@ export default function ScanPage() {
 
   // Extract country code from phone number
   const extractCountryCodeFromPhone = (phone: string): string => {
+    if (!phone) return 'ZA'
+    
+    // Clean the phone number - remove all spaces, dashes, parentheses
+    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '')
+    
+    // Must start with +
+    if (!cleanPhone.startsWith('+')) {
+      return 'ZA'
+    }
+    
     try {
-      if (phone && phone.startsWith('+')) {
-        // Try to parse the phone number
-        const phoneNumber = parsePhoneNumber(phone)
-        if (phoneNumber && phoneNumber.country) {
-          return phoneNumber.country
-        }
-        
-        // Fallback: Check phone number prefix patterns
-        const cleanPhone = phone.replace(/\s/g, '')
-        if (cleanPhone.startsWith('+1')) {
-          return 'US' // USA or Canada - defaulting to US
-        } else if (cleanPhone.startsWith('+27')) {
-          return 'ZA' // South Africa
-        } else if (cleanPhone.startsWith('+44')) {
-          return 'GB' // United Kingdom
-        } else if (cleanPhone.startsWith('+61')) {
-          return 'AU' // Australia
-        } else if (cleanPhone.startsWith('+33')) {
-          return 'FR' // France
-        } else if (cleanPhone.startsWith('+49')) {
-          return 'DE' // Germany
-        } else if (cleanPhone.startsWith('+39')) {
-          return 'IT' // Italy
-        } else if (cleanPhone.startsWith('+34')) {
-          return 'ES' // Spain
-        } else if (cleanPhone.startsWith('+351')) {
-          return 'PT' // Portugal
-        } else if (cleanPhone.startsWith('+31')) {
-          return 'NL' // Netherlands
-        } else if (cleanPhone.startsWith('+32')) {
-          return 'BE' // Belgium
-        } else if (cleanPhone.startsWith('+353')) {
-          return 'IE' // Ireland
-        } else if (cleanPhone.startsWith('+358')) {
-          return 'FI' // Finland
-        } else if (cleanPhone.startsWith('+46')) {
-          return 'SE' // Sweden
-        } else if (cleanPhone.startsWith('+47')) {
-          return 'NO' // Norway
-        } else if (cleanPhone.startsWith('+41')) {
-          return 'CH' // Switzerland
-        } else if (cleanPhone.startsWith('+43')) {
-          return 'AT' // Austria
-        } else if (cleanPhone.startsWith('+45')) {
-          return 'DK' // Denmark
-        } else if (cleanPhone.startsWith('+420')) {
-          return 'CZ' // Czech Republic
-        } else if (cleanPhone.startsWith('+36')) {
-          return 'HU' // Hungary
-        } else if (cleanPhone.startsWith('+40')) {
-          return 'RO' // Romania
-        } else if (cleanPhone.startsWith('+48')) {
-          return 'PL' // Poland
-        } else if (cleanPhone.startsWith('+421')) {
-          return 'SK' // Slovakia
-        } else if (cleanPhone.startsWith('+370')) {
-          return 'LT' // Lithuania
-        } else if (cleanPhone.startsWith('+371')) {
-          return 'LV' // Latvia
-        } else if (cleanPhone.startsWith('+372')) {
-          return 'EE' // Estonia
-        }
+      // First try to parse using libphonenumber
+      const phoneNumber = parsePhoneNumber(cleanPhone)
+      if (phoneNumber && phoneNumber.country) {
+        return phoneNumber.country
       }
     } catch (error) {
-      // Ignore parsing errors
-      console.log('Error parsing phone number:', error)
+      // Continue to fallback if parsing fails
     }
-    return 'ZA' // Default to South Africa
+    
+    // Fallback: Check phone number prefix patterns (order matters - check longer codes first)
+    if (cleanPhone.startsWith('+420')) return 'CZ' // Czech Republic
+    if (cleanPhone.startsWith('+421')) return 'SK' // Slovakia
+    if (cleanPhone.startsWith('+351')) return 'PT' // Portugal
+    if (cleanPhone.startsWith('+353')) return 'IE' // Ireland
+    if (cleanPhone.startsWith('+358')) return 'FI' // Finland
+    if (cleanPhone.startsWith('+372')) return 'EE' // Estonia
+    if (cleanPhone.startsWith('+371')) return 'LV' // Latvia
+    if (cleanPhone.startsWith('+370')) return 'LT' // Lithuania
+    if (cleanPhone.startsWith('+61')) return 'AU' // Australia
+    if (cleanPhone.startsWith('+44')) return 'GB' // United Kingdom
+    if (cleanPhone.startsWith('+49')) return 'DE' // Germany
+    if (cleanPhone.startsWith('+47')) return 'NO' // Norway
+    if (cleanPhone.startsWith('+46')) return 'SE' // Sweden
+    if (cleanPhone.startsWith('+45')) return 'DK' // Denmark
+    if (cleanPhone.startsWith('+43')) return 'AT' // Austria
+    if (cleanPhone.startsWith('+41')) return 'CH' // Switzerland
+    if (cleanPhone.startsWith('+40')) return 'RO' // Romania
+    if (cleanPhone.startsWith('+39')) return 'IT' // Italy
+    if (cleanPhone.startsWith('+36')) return 'HU' // Hungary
+    if (cleanPhone.startsWith('+34')) return 'ES' // Spain
+    if (cleanPhone.startsWith('+33')) return 'FR' // France
+    if (cleanPhone.startsWith('+32')) return 'BE' // Belgium
+    if (cleanPhone.startsWith('+31')) return 'NL' // Netherlands
+    if (cleanPhone.startsWith('+27')) return 'ZA' // South Africa
+    if (cleanPhone.startsWith('+1')) return 'US' // USA or Canada - defaulting to US
+    
+    // Default to South Africa if no match
+    return 'ZA'
   }
   
   // Validation errors for additional fields
@@ -1852,9 +1832,20 @@ export default function ScanPage() {
                         }
                       } else {
                         // Fallback: parse from phone number
-                        countryCode = extractCountryCodeFromPhone(qrData.contact.phone)
+                        countryCode = extractCountryCodeFromPhone(qrData.contact?.phone || '')
                       }
                       const emergencyNumber = getEmergencyNumber(countryCode)
+                      
+                      // Debug logging (remove in production)
+                      if (process.env.NODE_ENV === 'development') {
+                        console.log('Emergency Number Debug:', {
+                          phone: qrData.contact?.phone,
+                          countryCode: qrData.contact?.countryCode,
+                          extractedCountryCode: countryCode,
+                          emergencyNumber
+                        })
+                      }
+                      
                       return (
                         <Button asChild className="w-full bg-red-600 hover:bg-red-700 text-white h-12 text-base font-semibold">
                           <a href={`tel:${emergencyNumber}`} className="flex items-center justify-center gap-3">

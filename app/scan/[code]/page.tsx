@@ -1108,7 +1108,7 @@ export default function ScanPage() {
           </div>
           <h2 className="text-3xl font-bold text-black mb-4">Registration Successful!</h2>
           <div className="mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mx-auto max-w-md">
+            <div className="bg-gray-100 border border-blue-200 rounded-xl px-4 py-3 mx-auto max-w-md">
               <h2 className="text-sm sm:text-lg font-semibold text-gray-800 text-center">
                 <span className="inline">No App</span>
                 <span className="mx-2 text-blue-400">|</span>
@@ -2142,7 +2142,7 @@ export default function ScanPage() {
              'Activate Your Tag'}
           </h1>
           <div className="mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mx-auto max-w-md">
+            <div className="bg-gray-100 border border-blue-200 rounded-xl px-4 py-3 mx-auto max-w-md">
               <h2 className="text-sm sm:text-lg font-semibold text-gray-800 text-center">
                 <span className="inline">No App</span>
                 <span className="mx-2 text-blue-400">|</span>

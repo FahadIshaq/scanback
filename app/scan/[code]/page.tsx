@@ -2128,7 +2128,7 @@ export default function ScanPage() {
             {getCurrentTagType() === 'pet' ? (
               <PawPrint className="h-10 w-10 text-yellow-500" />
             ) : getCurrentTagType() === 'emergency' ? (
-              <MedicalCross className="text-red-600" size={74} />
+              <MedicalCross className="text-red-600" size={60} />
             ) : getCurrentTagType() === 'item' ? (
               <Tag className="h-10 w-10 text-blue-600 flex items-center justify-center" />
             ) : (

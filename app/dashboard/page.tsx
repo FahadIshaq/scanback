@@ -1943,7 +1943,7 @@ export default function DashboardPage() {
                         {editingQR.type === "pet"
                           ? "Pet Name"
                           : editingQR.type === "emergency"
-                          ? "Emergency Contact Name"
+                          ? "Tag Wearer Name"
                           : "Item Name"}{" "}
                         *
                       </Label>
@@ -1953,16 +1953,22 @@ export default function DashboardPage() {
                         onChange={(e) =>
                           handleEditInputChange("details.name", e.target.value)
                         }
-                        placeholder={`Enter your ${
-                          editingQR.type === "pet"
-                            ? "pet"
-                            : editingQR.type === "emergency"
-                            ? "emergency contact"
-                            : "item"
-                        } name`}
+                        placeholder={
+                          editingQR.type === "emergency"
+                            ? "Who will wear or use this tag"
+                            : `Enter your ${
+                                editingQR.type === "pet" ? "pet" : "item"
+                              } name`
+                        }
                         required
                         className="mt-1 text-sm"
                       />
+                      {editingQR.type === "emergency" && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          If you are activating this for yourself, just enter
+                          your own name.
+                        </p>
+                      )}
                     </div>
 
                     <div>

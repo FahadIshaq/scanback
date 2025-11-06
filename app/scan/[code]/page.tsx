@@ -1954,7 +1954,7 @@ export default function ScanPage() {
                         href={`https://wa.me/${qrData.contact.phone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(
                           qrData.type === 'emergency' 
                             ? `Hi ${qrData.contact.name || 'there'}! I've scanned your emergency tag. Please contact me if you need assistance.`
-                            : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange return.`
+                            : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange a return.`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -1980,7 +1980,7 @@ export default function ScanPage() {
                     {qrData.contact.email && (
                     <Button asChild variant="outline" className="border-2 border-gray-300 hover:border-black text-black hover:text-black h-12 text-base font-semibold">
                       <a 
-                        href={`mailto:${qrData.contact.email}?subject=${encodeURIComponent(qrData.type === 'emergency' ? 'Emergency Tag Scanned' : `Found your ${qrData.type === 'pet' ? 'pet' : 'item'} - ${qrData.details?.name || 'item'}`)}&body=${encodeURIComponent(qrData.type === 'emergency' ? `Hi ${qrData.contact.name || 'there'},\n\nI've scanned your emergency tag. Please contact me if you need assistance.\n\nBest regards` : `Hi ${qrData.contact.name || 'there'},\n\nI found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange return.\n\nBest regards`)}`} 
+                        href={`mailto:${qrData.contact.email}?subject=${encodeURIComponent(qrData.type === 'emergency' ? 'Emergency Tag Scanned' : `Found your ${qrData.type === 'pet' ? 'pet' : 'item'} - ${qrData.details?.name || 'item'}`)}&body=${encodeURIComponent(qrData.type === 'emergency' ? `Hi ${qrData.contact.name || 'there'},\n\nI've scanned your emergency tag. Please contact me if you need assistance.\n\nBest regards` : `Hi ${qrData.contact.name || 'there'},\n\nI found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange a return.\n\nBest regards`)}`} 
                         className="flex items-center justify-center gap-3"
                       >
                         <FaEnvelope className="h-5 w-5 text-blue-600" />
@@ -2003,7 +2003,7 @@ export default function ScanPage() {
                         href={`sms:${qrData.contact.phone}?body=${encodeURIComponent(
                           qrData.type === 'emergency'
                             ? `Hi ${qrData.contact.name || 'there'}! I've scanned your emergency tag. Please contact me if you need assistance.`
-                            : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange return.`
+                            : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange a return.`
                         )}`}
                         className="flex items-center justify-center gap-3"
                       >
@@ -2029,7 +2029,7 @@ export default function ScanPage() {
                         href={`https://wa.me/${qrData.contact.backupPhone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(
                           qrData.type === 'emergency' 
                             ? `Hi ${qrData.contact.name || 'there'}! I've scanned your emergency tag. Please contact me if you need assistance.`
-                            : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange return.`
+                            : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange a return.`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -2054,7 +2054,7 @@ export default function ScanPage() {
                           href={`sms:${qrData.contact.backupPhone}?body=${encodeURIComponent(
                             qrData.type === 'emergency'
                               ? `Hi ${qrData.contact.name || 'there'}! I've scanned your emergency tag. Please contact me if you need assistance.`
-                              : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange return.`
+                              : `Hi ${qrData.contact.name || 'there'}! I found your ${qrData.type === 'pet' ? 'pet' : 'item'} "${qrData.details?.name || 'item'}". Please contact me so we can arrange a return.`
                           )}`}
                           className="flex items-center justify-center gap-3"
                         >
@@ -2358,15 +2358,18 @@ export default function ScanPage() {
               {/* Item/Pet Name */}
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name">{getCurrentTagType() === 'pet' ? 'Pet Name' : getCurrentTagType() === 'emergency' ? 'Emergency Contact Name' : 'Item Name'} *</Label>
+                  <Label htmlFor="name">{getCurrentTagType() === 'pet' ? 'Pet Name' : getCurrentTagType() === 'emergency' ? 'Tag Wearer Name' : 'Item Name'} *</Label>
                   <Input
                     id="name"
                     value={formData.details.name}
                     onChange={(e) => handleInputChange('details.name', e.target.value)}
-                    placeholder={`Enter your ${getCurrentTagType() === 'pet' ? 'pet' : getCurrentTagType() === 'emergency' ? 'emergency contact' : 'item'} name`}
+                    placeholder={getCurrentTagType() === 'emergency' ? 'Who will wear or use this tag' : `Enter your ${getCurrentTagType() === 'pet' ? 'pet' : 'item'} name`}
                     required
                     className="mt-1"
                   />
+                  {getCurrentTagType() === 'emergency' && (
+                    <p className="text-xs text-gray-600 mt-1">If you are activating this for yourself, just enter your own name.</p>
+                  )}
               </div>
 
               {/* Item Image Upload - Only for Item Tags */}

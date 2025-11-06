@@ -1358,6 +1358,8 @@ export default function ScanPage() {
                     <div className="p-2 bg-white rounded-lg shadow-sm border border-gray-200">
                     {qrData.type === 'pet' ? (
                         <PawPrint className="h-5 w-5 text-yellow-500" />
+                    ) : qrData.type === 'emergency' ? (
+                        <MedicalCross className="h-5 w-5 text-red-600" size={20} />
                     ) : (
                         <Tag className="h-5 w-5 text-blue-600 flex items-center justify-center" />
                     )}
@@ -1632,6 +1634,13 @@ export default function ScanPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Tag Wearer Name */}
+                    {qrData.details.name && (
+                      <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                        <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2 block">Tag Wearer Name</Label>
+                        <p className="text-red-900 text-lg font-bold">{qrData.details.name}</p>
+                      </div>
+                    )}
                     
                     {/* Emergency Contact Photo */}
                     {qrData.details.image && (

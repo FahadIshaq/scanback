@@ -49,10 +49,10 @@ export default function HomePage() {
             <div className="flex flex-col justify-center">
               <div className="mb-10 space-y-3">
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05]">
-                  One <span className="font-extrabold">scan</span>.
+                  One <span className="font-extrabold">scan</span>
             </h1>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05]">
-                  One <span className="font-extrabold">chance</span> to get it back.
+                  One <span className="font-extrabold">chance</span> to get it back
           </h1>
               </div>
               <div className="border-l-4 border-blue-600 pl-6 py-2">

@@ -30,7 +30,7 @@ export default function HowItWorksPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               {[
                 {
-                  icon: <QrCode className="w-12 h-12" />,
+                  icon: <QrCode className="w-12 h-12 text-black" />,
                   title: "Tag It",
                   description:
                     "Stick or attach your ScanBack tag to your valuables, pets, or gear.",

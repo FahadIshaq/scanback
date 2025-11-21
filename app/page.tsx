@@ -128,9 +128,11 @@ export default function HomePage() {
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight">
 Peace of mind made visible in three steps            </h2>
-            <p className="text-xl text-gray-600 font-light">
-              Engineered for simplicity. Built for results.
+            <p className="text-2xl font-bold text-black">
+              Lost something?
             </p>
+            <p className="text-xl text-gray-600 font-light">
+            ScanBack helps it come home.            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[

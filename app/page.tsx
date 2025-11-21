@@ -490,13 +490,16 @@ Peace of mind made visible in three steps            </h2>
               </div>
             </div>
             <div className="text-center">
-              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
-                30 Sec
-                    </div>
-              <div className="text-xl text-gray-300 font-light">
-                Average contact time
-                    </div>
-                  </div>
+  <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
+    <span className="text-6xl md:text-7xl">60</span>
+    <span className="text-3xl md:text-4xl align-center">Sec</span>
+  </div>
+
+  <div className="text-xl text-gray-300 font-light">
+    Average contact time
+  </div>
+</div>
+
             <div className="text-center">
               <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
                 190+

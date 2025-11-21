@@ -48,16 +48,22 @@ export default function HomePage() {
             {/* Left Column - Content */}
             <div className="flex flex-col justify-center">
               <div className="mb-10 space-y-3">
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05]">
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-normal text-black tracking-tight leading-[1.05]">
                   One <span className="font-extrabold">scan</span>
-            </h1>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05]">
-                  One <span className="font-extrabold">chance</span> to get it back
-          </h1>
+                </h1>
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-normal text-black tracking-tight leading-[1.05]">
+                  One <span className="font-extrabold">chance</span>
+                </h1>
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05] md:pl-2 pl-1">
+                  to get it back !
+                </h1>
               </div>
-              <div className="border-l-4 border-blue-600 pl-6 py-2">
-                <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed max-w-xl font-normal">
-                  Premium QR stickers that connect finders directly to you via <span className="font-bold">WhatsApp</span>. No <span className="font-bold">apps</span>, no <span className="font-bold">subscriptions</span>.
+              <div className="border-l-4 border-black-600 pl-6 py-2">
+                <p className="text-lg md:text-xl lg:text-2xl text-black leading-relaxed max-w-xl font-normal">
+                  Smart QR code stickers and tags that connect finders directly to you via <span className="font-bold">WhatsApp</span>.
+                </p>
+                <p className="text-lg md:text-xl lg:text-2xl text-black leading-relaxed max-w-xl font-normal mt-2">
+                  No <span className="font-bold">apps</span>, No <span className="font-bold">subscriptions</span>.
                 </p>
               </div>
             </div>
@@ -117,7 +123,7 @@ export default function HomePage() {
       </section>
 
       {/* Key Messages - Apple Style */}
-      <section className="py-20 bg-gray-50">
+      {/* <section className="py-20 bg-gray-50">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
             <div>
@@ -138,7 +144,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Product Gallery Collage */}
       <section className="py-12 md:py-24 bg-gray-50">
@@ -365,7 +371,7 @@ Peace of mind made visible in three steps            </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[
               {
-                icon: <QrCode className="w-12 h-12" />,
+                icon: <QrCode className="w-12 h-12 text-black" />,
                 title: "Scan",
                 description:
                   "Any smartphone camera. No app required. Instant recognition.",
@@ -475,7 +481,7 @@ Peace of mind made visible in three steps            </h2>
             </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
             <div className="text-center">
-              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
                 95%
                   </div>
               <div className="text-xl text-gray-300 font-light">
@@ -483,7 +489,7 @@ Peace of mind made visible in three steps            </h2>
               </div>
             </div>
             <div className="text-center">
-              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
                 30s
                     </div>
               <div className="text-xl text-gray-300 font-light">
@@ -491,7 +497,7 @@ Peace of mind made visible in three steps            </h2>
                     </div>
                   </div>
             <div className="text-center">
-              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
                 190+
                 </div>
               <div className="text-xl text-gray-300 font-light">
@@ -508,11 +514,11 @@ Peace of mind made visible in three steps            </h2>
           <h2 className="text-4xl md:text-5xl font-light text-black mb-8 tracking-tight">
             Never worry about losing things again.
           </h2>
-          <p className="text-xl text-gray-600 font-light mb-12 leading-relaxed">
+          <p className="text-xl text-gray-600 font-light mb-0 leading-relaxed">
             Join thousands who've experienced the peace of mind that ScanBack
             provides.
           </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          {/* <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <button className="bg-blue-600 text-white px-10 py-4 rounded-full font-medium hover:bg-blue-700 transition-all duration-200 text-lg flex items-center justify-center">
               Get ScanBack
               <ArrowRight className="w-5 h-5 ml-2" />
@@ -520,7 +526,7 @@ Peace of mind made visible in three steps            </h2>
             <button className="text-blue-600 px-10 py-4 font-medium hover:text-blue-700 transition-colors text-lg">
               Learn more
             </button>
-          </div>
+          </div> */}
         </div>
       </section>
 

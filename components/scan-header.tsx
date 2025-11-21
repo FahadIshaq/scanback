@@ -26,36 +26,44 @@ export function ScanHeader() {
               </div>
               <div>
                 <span className="font-bold text-black">ScanBack™</span>
-                <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
+                <p className="text-xs text-gray-600">Smart Lost & Found QR Stickers and Tags</p>
               </div>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            {/* Landing page navigation links */}
-            {isLandingPage && (
-              <>
-                <a
-                  href="#overview"
-                  className="text-sm text-gray-800 hover:text-black transition-colors"
-                >
-                  Overview
-                </a>
-                <a
-                  href="#how-it-works"
-                  className="text-sm text-gray-800 hover:text-black transition-colors"
-                >
-                  How it works
-                </a>
-                <a
-                  href="#tech-specs"
-                  className="text-sm text-gray-800 hover:text-black transition-colors"
-                >
-                  Tech specs
-                </a>
-              </>
-            )}
+            {/* Navigation links */}
+            <Link
+              href="/about"
+              className="text-sm text-gray-800 hover:text-black transition-colors"
+            >
+              About Us
+            </Link>
+            <Link
+              href="/how-it-works"
+              className="text-sm text-gray-800 hover:text-black transition-colors"
+            >
+              How It Works
+            </Link>
+            <Link
+              href="/partners"
+              className="text-sm text-gray-800 hover:text-black transition-colors"
+            >
+              Partners
+            </Link>
+            <Link
+              href="/shop"
+              className="text-sm text-gray-800 hover:text-black transition-colors"
+            >
+              Shop
+            </Link>
+            <Link
+              href="/contact"
+              className="text-sm text-gray-800 hover:text-black transition-colors"
+            >
+              Contact
+            </Link>
 
             {/* Authentication buttons */}
             {isAuthenticated && onDashboard ? (
@@ -113,12 +121,32 @@ export function ScanHeader() {
                     Dashboard
                   </Link>
             ) : (
-              <Link
-                href="/login"
-                className="bg-blue-600 text-white text-sm px-4 py-2 rounded-full hover:bg-blue-700 transition-all duration-200"
-              >
-                Login
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md border bg-white text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Open menu">
+                  <Menu className="h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 p-1">
+                  <DropdownMenuItem asChild>
+                    <Link href="/about">About Us</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/how-it-works">How It Works</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/partners">Partners</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/shop">Shop</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/contact">Contact</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/login" className="text-blue-600 font-medium">Login</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
               </div>
         </div>

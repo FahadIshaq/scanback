@@ -159,7 +159,7 @@ export default function HomePage() {
             <div className="col-span-2 md:col-span-2 md:row-span-2 group">
               <div className="relative w-full h-full min-h-[200px] sm:min-h-[300px] md:min-h-[400px] rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/image1.jpeg"
+                  src="/images/passport.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -185,7 +185,7 @@ export default function HomePage() {
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/passport.png"
+                  src="/images/image1.jpeg"
                   alt="Passport with ScanBack"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"

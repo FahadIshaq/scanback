@@ -122,6 +122,62 @@ export default function HomePage() {
               </div>
       </section>
 
+ {/* How It Works - Apple Style */}
+ <section id="how-it-works" className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight">
+Peace of mind made visible in three steps            </h2>
+            <p className="text-xl text-gray-600 font-light">
+              Engineered for simplicity. Built for results.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {[
+              {
+                icon: <QrCode className="w-12 h-12 text-black" />,
+                title: "Scan",
+                description:
+                  "Any smartphone camera. No app required. Instant recognition.",
+                step: "01",
+              },
+              {
+                icon: <FaWhatsapp className="w-12 h-12" />,
+                title: "Connect",
+                description:
+                  "WhatsApp message sent directly to owner with location details.",
+                step: "02",
+              },
+              {
+                icon: <Heart className="w-12 h-12" />,
+                title: "Return",
+                description:
+                  "Your precious item finds its way back home to you.",
+                step: "03",
+              },
+            ].map((feature, index) => (
+              <div key={index} className="text-center">
+                <div className="text-6xl font-ultralight text-gray-300 mb-8">
+                  {feature.step}
+              </div>
+                <div className={`w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-8 ${
+                  index === 0 ? "text-blue-600" : 
+                  index === 1 ? "text-green-600" : 
+                  "text-red-500"
+                }`}>
+                  {feature.icon}
+            </div>
+                <h3 className="text-2xl font-light text-black mb-4">
+                  {feature.title}
+                </h3>
+                <p className="text-lg text-gray-600 font-light leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
       {/* Key Messages - Apple Style */}
       {/* <section className="py-20 bg-gray-50">
         <div className="max-w-4xl mx-auto px-6 text-center">
@@ -358,62 +414,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works - Apple Style */}
-      <section id="how-it-works" className="py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight">
-Peace of mind made visible in three steps            </h2>
-            <p className="text-xl text-gray-600 font-light">
-              Engineered for simplicity. Built for results.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[
-              {
-                icon: <QrCode className="w-12 h-12 text-black" />,
-                title: "Scan",
-                description:
-                  "Any smartphone camera. No app required. Instant recognition.",
-                step: "01",
-              },
-              {
-                icon: <FaWhatsapp className="w-12 h-12" />,
-                title: "Connect",
-                description:
-                  "WhatsApp message sent directly to owner with location details.",
-                step: "02",
-              },
-              {
-                icon: <Heart className="w-12 h-12" />,
-                title: "Return",
-                description:
-                  "Your precious item finds its way back home to you.",
-                step: "03",
-              },
-            ].map((feature, index) => (
-              <div key={index} className="text-center">
-                <div className="text-6xl font-ultralight text-gray-300 mb-8">
-                  {feature.step}
-              </div>
-                <div className={`w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-8 ${
-                  index === 0 ? "text-blue-600" : 
-                  index === 1 ? "text-green-600" : 
-                  "text-red-500"
-                }`}>
-                  {feature.icon}
-            </div>
-                <h3 className="text-2xl font-light text-black mb-4">
-                  {feature.title}
-                </h3>
-                <p className="text-lg text-gray-600 font-light leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+     
 
       {/* Product Showcase - Apple Style */}
       <section className="py-24 bg-gray-50">
@@ -490,7 +491,7 @@ Peace of mind made visible in three steps            </h2>
             </div>
             <div className="text-center">
               <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
-                30s
+                30 Sec
                     </div>
               <div className="text-xl text-gray-300 font-light">
                 Average contact time

@@ -125,11 +125,6 @@ export function Footer() {
               )}
             </div>
           </div>
-          <div className="text-center mt-6">
-            <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-              We help lost things find their way home — recovery cannot be guaranteed.
-            </p>
-          </div>
         </div>
       </div>
     </footer>

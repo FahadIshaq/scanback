@@ -72,9 +72,6 @@ export default function HowItWorksPage() {
               ))}
             </div>
             
-            <p className="text-center text-lg text-gray-700 font-light mt-12">
-              Quick, safe, and hassle-free.
-            </p>
           </div>
 
           {/* Extra Features */}

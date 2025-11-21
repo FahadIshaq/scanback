@@ -1,440 +1,530 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { ArrowRight, Scan, MessageCircle, RotateCcw, Shield, Smartphone, Globe, CheckCircle, Star, Zap } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ScanHeader } from "@/components/scan-header"
-import { Footer } from "@/components/footer"
-import { useAuth } from "@/hooks/use-auth"
-
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  ChevronRight,
+  Play,
+  QrCode,
+  Heart,
+  Package,
+  Camera,
+  Home,
+  ArrowRight,
+} from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
+import { ScanHeader } from "@/components/scan-header";
+import { Footer } from "@/components/footer";
 
 export default function HomePage() {
-  const [demoCode] = useState("demo-pet-001")
-  const { user, isAuthenticated, loading, testLogin, logout } = useAuth()
+  const [scrollY, setScrollY] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const qrImages = ["/images/q1.png", "/images/q2.png", "/images/q3.png", "/images/q4.png"];
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % qrImages.length);
+    }, 2000); // Change image every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [qrImages.length]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-white">
       <ScanHeader />
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16 text-center">
-        <div className="max-w-4xl mx-auto">
-          {/* Brand Badge */}
-          <div className="inline-flex items-center space-x-2 bg-navy-900/10 text-navy-900 px-4 py-2 rounded-full mb-6">
-            <Star className="h-4 w-4 fill-navy-900 text-navy-900" />
-            <span className="text-sm font-medium">Trusted by 10,000+ users worldwide</span>
-        </div>
-
-          <h1 className="text-4xl md:text-6xl font-bold text-navy-900 mb-6 leading-tight">
-            One scan.{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-navy-900 to-blue-600">
-              One chance to get it back.
-            </span>
+      <section className="pt-20 pb-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center pt-12 pb-8">
+            {/* Left Column - Content */}
+            <div className="flex flex-col justify-center">
+              <div className="mb-10 space-y-3">
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05]">
+                  One <span className="font-extrabold">scan</span>.
+            </h1>
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05]">
+                  One <span className="font-extrabold">chance</span> to get it back.
           </h1>
-          <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-            Premium QR stickers that connect finders directly to you via WhatsApp. 
-            <span className="font-semibold text-navy-900"> No apps, no subscriptions.</span>
-          </p>
-
-          {/* Hero CTA */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <Button size="lg" asChild className="bg-navy-900 hover:bg-navy-800 text-white rounded-xl shadow-xl text-lg px-8 py-6">
-            <Link href={`/scan/${demoCode}`}>
-                <Scan className="mr-2 h-5 w-5" />
-              Try Demo Scan
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            asChild
-              className="border-2 border-navy-200 text-navy-800 hover:bg-navy-50 bg-white rounded-xl text-lg px-8 py-6 shadow-lg"
-          >
-              <Link href="/auth/register">
-                <Zap className="mr-2 h-5 w-5" />
-                Get Your Stickers
-              </Link>
-          </Button>
-          </div>
-
-          {/* Visual Demo */}
-          <div className="bg-white rounded-3xl shadow-2xl p-8 mb-16 border border-gray-100">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <Scan className="h-10 w-10 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-navy-900 mb-2">Scan</h3>
-                <p className="text-gray-600">Any phone camera activates your tag instantly</p>
               </div>
-              
-              <div className="hidden md:block">
-                <div className="flex items-center justify-center">
-                  <div className="w-16 h-1 bg-gradient-to-r from-blue-500 via-green-500 to-blue-500 rounded-full"></div>
-                  <ArrowRight className="h-6 w-6 text-gray-400 mx-2" />
-                  <div className="w-16 h-1 bg-gradient-to-r from-blue-500 via-green-500 to-blue-500 rounded-full"></div>
-                </div>
+              <div className="border-l-4 border-blue-600 pl-6 py-2">
+                <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed max-w-xl font-normal">
+                  Premium QR stickers that connect finders directly to you via <span className="font-bold">WhatsApp</span>. No <span className="font-bold">apps</span>, no <span className="font-bold">subscriptions</span>.
+                </p>
               </div>
+            </div>
 
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <MessageCircle className="h-10 w-10 text-white" />
+            {/* Right Column - Animated QR Images */}
+            <div className="flex items-center justify-center">
+              <div className="relative w-full max-w-md mx-auto aspect-square bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 rounded-2xl p-8 shadow-xl border border-gray-300/50">
+                <div className="relative w-full h-full">
+                  {qrImages.map((image, index) => (
+                    <div
+                      key={index}
+                      className={`absolute inset-0 transition-opacity duration-1000 ${
+                        index === currentImageIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+                      }`}
+                    >
+                      <Image
+                        src={image}
+                        alt={`QR Code ${index + 1}`}
+                        fill
+                        className="object-contain drop-shadow-lg"
+                        priority={index === 0}
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                    </div>
+                  ))}
                 </div>
-                <h3 className="text-lg font-semibold text-navy-900 mb-2">Notify</h3>
-                <p className="text-gray-600">Instant WhatsApp alerts with location</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stick it, Scan it, Find it */}
-      <section className="bg-white py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-navy-900 mb-6">How ScanBack Works</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Three simple steps to protect your valuables</p>
+      {/* Hero Video Section - Apple Style */}
+      <section className="py-0 bg-black">
+        <div className="max-w-7xl mx-auto">
+          <div className="relative aspect-[16/9] md:aspect-[21/9]">
+            {/* Video Placeholder */}
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+              <div className="text-center text-white">
+                <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 cursor-pointer hover:bg-white/20 transition-all duration-300 border border-white/20">
+                  <Play className="w-10 h-10 ml-1" />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center group">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                <div className="text-white text-4xl">📱</div>
+                <h3 className="text-2xl font-light mb-3 text-white/90">
+                  See how it works
+                </h3>
+                <p className="text-lg text-white/70 font-light">
+                  Experience the simplicity of ScanBack
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-navy-900 mb-4">Stick it</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">
-                Place ScanBack stickers on your essentials and most valuable possessions
-              </p>
             </div>
-
-            <div className="text-center group">
-              <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                <div className="text-white text-4xl">🔍</div>
-              </div>
-              <h3 className="text-2xl font-bold text-navy-900 mb-4">Scan it</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">
-                Anyone who finds your item can scan it and contact you (no app needed)
-              </p>
-            </div>
-
-            <div className="text-center group">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                <div className="text-white text-4xl">🎯</div>
-              </div>
-              <h3 className="text-2xl font-bold text-navy-900 mb-4">Find it</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">
-                Get a message instantly! Connect with your finder and get it back
-              </p>
-            </div>
+            {/* Actual video would go here */}
+            <video className="hidden w-full h-full object-cover" controls>
+              <source src="/scanback-demo.mp4" type="video/mp4" />
+            </video>
           </div>
-        </div>
+              </div>
       </section>
 
-      {/* How It Works */}
-      <section className="bg-gray-50 py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-navy-900 mb-6">Getting Started</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Activate your tag in 30 seconds. No app. No subscription.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                <span className="text-3xl font-bold text-white">1</span>
-              </div>
-              <h3 className="text-xl font-semibold text-navy-900 mb-3">Scan QR Code</h3>
-              <p className="text-gray-600">Use any phone camera to scan your ScanBack sticker</p>
-            </div>
-
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                <span className="text-3xl font-bold text-white">2</span>
-              </div>
-              <h3 className="text-xl font-semibold text-navy-900 mb-3">Add WhatsApp</h3>
-              <p className="text-gray-600">Enter your WhatsApp number and custom message</p>
-            </div>
-
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                <span className="text-3xl font-bold text-white">3</span>
-              </div>
-              <h3 className="text-xl font-semibold text-navy-900 mb-3">Tag Active</h3>
-              <p className="text-gray-600">Your tag is live and ready to help return your items</p>
-            </div>
-
-            <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                <span className="text-3xl font-bold text-white">4</span>
-              </div>
-              <h3 className="text-xl font-semibold text-navy-900 mb-3">Get Notified</h3>
-              <p className="text-gray-600">Instant WhatsApp alert when someone finds your item</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Products Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-navy-900 mb-6">Our Products</h2>
-          <p className="text-xl text-gray-600 mb-12">Discover QR code stickers made to save your life</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Keys */}
-            <div className="text-center group">
-              <div className="w-64 h-64 mx-auto mb-6 bg-gray-200 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                <div className="text-gray-500 text-lg">
-                  <Image src="/images/keys.png" alt="Keys" width={200} height={200} />
-                </div>
-              </div>
-              <h3 className="text-xl font-semibold text-navy-900 mb-3">Keys</h3>
-              <p className="text-gray-600">From lost to found, get your keys back to your pocket in minutes.</p>
-            </div>
-
-            {/* Passports */}
-            <div className="text-center group">
-              <div className="w-64 h-64 mx-auto mb-6 bg-gray-200 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                <div className="text-gray-500 text-lg">
-                  <Image src="/images/passport.png" alt="Passport" width={200} height={200} />
-                </div>
-              </div>
-              <h3 className="text-xl font-semibold text-navy-900 mb-3">Passports</h3>
-              <p className="text-gray-600">Your passport is your freedom. Tag it before you travel and get back if lost.</p>
-            </div>
-
-            {/* Suitcases */}
-            <div className="text-center group">
-              <div className="w-64 h-64 mx-auto mb-6 bg-gray-200 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                <div className="text-gray-500 text-lg">
-                  <Image src="/images/suitcase.png" alt="Suitcase" width={200} height={200} />
-                </div>
-              </div>
-              <h3 className="text-xl font-semibold text-navy-900 mb-3">Suitcases</h3>
-              <p className="text-gray-600">Label your bags and suitcases in case of travel mishaps.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Video Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-navy-900 mb-6">See It In Action</h2>
-          <p className="text-xl text-gray-600 mb-12">Watch how ScanBack works in real life</p>
-          
-          <div className="max-w-4xl mx-auto">
-            <div className="aspect-video bg-gray-200 rounded-2xl flex items-center justify-center">
-              <div className="text-gray-500 text-lg">Add your video here</div>
-            </div>
-                  </div>
-                </div>
-      </section>
-
-      {/* Secure Section */}
+      {/* Key Messages - Apple Style */}
       <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left side - Image placeholder */}
-            <div className="order-2 lg:order-1">
-              <div className="w-full aspect-[4/3] bg-gray-200 rounded-2xl overflow-hidden">
-                <Image 
-                  src="/images/main.jpeg" 
-                  alt="Secure" 
-                  width={600} 
-                  height={450} 
-                  className="w-full h-full object-cover"
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+            <div>
+              <h3 className="text-2xl font-light text-black mb-4">
+                Lost something?
+              </h3>
+              <p className="text-lg text-gray-600 font-light">
+                ScanBack helps it come home.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-2xl font-light text-black mb-4">
+                Do the right thing.
+              </h3>
+              <p className="text-lg text-gray-600 font-light">
+                Scan to Return.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Product Gallery Collage */}
+      <section className="py-12 md:py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-black mb-4 md:mb-6 tracking-tight">
+              Product Gallery
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+            {/* Large featured image */}
+            <div className="col-span-2 md:col-span-2 md:row-span-2 group">
+              <div className="relative w-full h-full min-h-[200px] sm:min-h-[300px] md:min-h-[400px] rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/image1.jpeg"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  priority
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
             </div>
-
-            {/* Right side - Content */}
-            <div className="order-1 lg:order-2">
-              <h2 className="text-3xl md:text-4xl font-bold text-navy-900 mb-6">Secure</h2>
-              <p className="text-xl text-gray-600 mb-8">
-                Add your most valuable belongings to your QR code wallet
-              </p>
-              
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-navy-900 mb-4">Ideal for:</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">📱</span>
-                      <span className="text-gray-700">Smartphones</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">🛂</span>
-                      <span className="text-gray-700">Passports and ID</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">🔑</span>
-                      <span className="text-gray-700">Keychains</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">📟</span>
-                      <span className="text-gray-700">Electronics</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">🚗</span>
-                      <span className="text-gray-700">Car Keys</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">💳</span>
-                      <span className="text-gray-700">Cards</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">🕶️</span>
-                      <span className="text-gray-700">Glasses</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">💰</span>
-                      <span className="text-gray-700">Wallets</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">🧳</span>
-                      <span className="text-gray-700">Suitcases</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">🎒</span>
-                      <span className="text-gray-700">Bags</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">💾</span>
-                      <span className="text-gray-700">USB & drives</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">💻</span>
-                      <span className="text-gray-700">Laptops</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">🔈</span>
-                      <span className="text-gray-700">Bluetooth speakers</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">🎧</span>
-                      <span className="text-gray-700">Headphones</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">⚡️</span>
-                      <span className="text-gray-700">Chargers</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xl">💦</span>
-                      <span className="text-gray-700">Water bottles</span>
-                    </div>
-                  </div>
-                </div>
-                  </div>
-                </div>
+            
+            {/* Medium images */}
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/keys.png"
+                  alt="Keys with ScanBack"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/passport.png"
+                  alt="Passport with ScanBack"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/image7.jpeg"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/image2.jpeg"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            
+            {/* Suitcase image */}
+            <div className="col-span-2 md:col-span-2 group">
+              <div className="relative w-full aspect-[2/1] rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/suitcase.png"
+                  alt="Suitcase with ScanBack"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
+            </div>
+            
+            {/* Additional images */}
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/image3.jpeg"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/image4.jpeg"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/image5.jpeg"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/image6.jpeg"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/image8.jpeg"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/image9.jpeg"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Image Gallery Section */}
-      <section className="py-20 bg-white overflow-hidden">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-navy-900 mb-6">Product Gallery</h2>
-          <p className="text-xl text-gray-600 mb-12">See our QR code stickers in action</p>
-          
-          {/* First Row - Left to Right Scrolling */}
-          <div className="mb-8">
-            <div className="flex animate-scroll-left">
-              {/* Duplicate images for seamless loop */}
-              {[1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6].map((num, index) => (
-                <div key={`row1-${index}`} className="group flex-shrink-0 mx-3">
-                  <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow w-64 h-64">
-                    <Image
-                      src={`/images/image${num}.jpeg`}
-                      alt="ScanBack QR Code Sticker"
-                      width={300}
-                      height={300}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* Our Products */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight">
+              Our Products
+            </h2>
+            <p className="text-xl text-gray-600 font-light">
+              Premium QR stickers designed for durability and style.
+            </p>
           </div>
-
-          {/* Second Row - Right to Left Scrolling */}
-          <div>
-            <div className="flex animate-scroll-right">
-              {/* Duplicate images for seamless loop */}
-              {[7, 8, 9, 10, 11, 12, 7, 8, 9, 10, 11, 12].map((num, index) => (
-                <div key={`row2-${index}`} className="group flex-shrink-0 mx-3">
-                  <div className="relative overflow-hidden rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow w-64 h-64">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                image: "/images/q1.png",
+                title: "Classic White",
+                description: "Clean, minimalist design perfect for any surface.",
+              },
+              {
+                image: "/images/q2.png",
+                title: "Premium Black",
+                description: "Elegant black finish for a sophisticated look.",
+              },
+              {
+                image: "/images/q3.png",
+                title: "Luxury Gold",
+                description: "Premium gold finish that stands out with style.",
+              },
+            ].map((product, index) => (
+              <div key={index} className="group cursor-pointer">
+                <div className="bg-gray-50 rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-300 group-hover:scale-[1.02]">
+                  <div className="aspect-square bg-white rounded-2xl mb-6 flex items-center justify-center relative overflow-hidden border border-gray-200">
                     <Image
-                      src={`/images/image${num}.jpeg`}
-                      alt="ScanBack QR Code Sticker"
-                      width={300}
-                      height={300}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      src={product.image}
+                      alt={product.title}
+                      fill
+                      className="object-contain p-4"
+                      sizes="(max-width: 768px) 100vw, 33vw"
                     />
                   </div>
+                  <h3 className="text-xl font-medium text-black mb-3">
+                    {product.title}
+                  </h3>
+                  <p className="text-gray-600 font-light leading-relaxed">
+                    {product.description}
+                  </p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="bg-white py-20">
-        <div className="container mx-auto px-4">
+      {/* How It Works - Apple Style */}
+      <section id="how-it-works" className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight">
+Peace of mind made visible in three steps            </h2>
+            <p className="text-xl text-gray-600 font-light">
+              Engineered for simplicity. Built for results.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {[
+              {
+                icon: <QrCode className="w-12 h-12" />,
+                title: "Scan",
+                description:
+                  "Any smartphone camera. No app required. Instant recognition.",
+                step: "01",
+              },
+              {
+                icon: <FaWhatsapp className="w-12 h-12" />,
+                title: "Connect",
+                description:
+                  "WhatsApp message sent directly to owner with location details.",
+                step: "02",
+              },
+              {
+                icon: <Heart className="w-12 h-12" />,
+                title: "Return",
+                description:
+                  "Your precious item finds its way back home to you.",
+                step: "03",
+              },
+            ].map((feature, index) => (
+              <div key={index} className="text-center">
+                <div className="text-6xl font-ultralight text-gray-300 mb-8">
+                  {feature.step}
+              </div>
+                <div className={`w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-8 ${
+                  index === 0 ? "text-blue-600" : 
+                  index === 1 ? "text-green-600" : 
+                  "text-red-500"
+                }`}>
+                  {feature.icon}
+            </div>
+                <h3 className="text-2xl font-light text-black mb-4">
+                  {feature.title}
+                </h3>
+                <p className="text-lg text-gray-600 font-light leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Product Showcase - Apple Style */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight">
+              Perfect for everything you care about.
+            </h2>
+            <p className="text-xl text-gray-600 font-light">
+              Especially packaging and items that travel.
+            </p>
+                </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                image: "/images/image1.jpeg",
+                title: "Packaging",
+                description:
+                  "Boxes, deliveries, and shipments protected with instant return capability.",
+              },
+              {
+                image: "/images/image8.jpeg",
+                title: "Travel gear",
+                description:
+                  "Luggage, cameras, and equipment protection wherever you go.",
+              },
+              {
+                image: "/images/image6.jpeg",
+                title: "Everyday items",
+                description:
+                  "Keys, wallets, phones. Everything that matters to you.",
+              },
+            ].map((item, index) => (
+              <div key={index} className="group cursor-pointer">
+                <div className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-300 group-hover:scale-[1.02]">
+                  <div className="aspect-[4/3] bg-gray-100 rounded-2xl mb-8 flex items-center justify-center relative overflow-hidden">
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+              </div>
+                  <h3 className="text-xl font-medium text-black mb-3">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-600 font-light leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Statistics - Apple Style */}
+      <section className="py-24 bg-black text-white">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-navy-900 mb-6">Why Choose ScanBack™</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto">
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                <Shield className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-navy-900 mb-3">Privacy First</h3>
-              <p className="text-gray-600">Your contact details are never shared publicly</p>
+            <h2 className="text-4xl md:text-5xl font-light mb-8 tracking-tight">
+              If it gets lost, at least there's a way back.
+            </h2>
             </div>
-
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                <Smartphone className="h-8 w-8 text-white" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+            <div className="text-center">
+              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                95%
+                  </div>
+              <div className="text-xl text-gray-300 font-light">
+                Items returned
               </div>
-              <h3 className="text-xl font-semibold text-navy-900 mb-3">No App Required</h3>
-              <p className="text-gray-600">Works with any phone camera, no downloads needed</p>
             </div>
-
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform">
-                <Globe className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-navy-900 mb-3">Works Anywhere</h3>
-              <p className="text-gray-600">Global coverage with local WhatsApp integration</p>
-            </div>
+            <div className="text-center">
+              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                30s
+                    </div>
+              <div className="text-xl text-gray-300 font-light">
+                Average contact time
+                    </div>
+                  </div>
+            <div className="text-center">
+              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                190+
+                </div>
+              <div className="text-xl text-gray-300 font-light">
+                Countries supported
+                  </div>
+                </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 text-center">
-          <div className="bg-gradient-to-br from-navy-900 to-navy-800 rounded-3xl p-12 max-w-4xl mx-auto text-white shadow-2xl">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Protect Your Items?</h2>
-            <p className="text-xl mb-8 opacity-90">Join thousands of users who trust ScanBack™ to keep their valuables safe.</p>
-            <Button size="lg" asChild className="bg-white text-navy-900 hover:bg-gray-100 rounded-xl text-lg px-8 py-6 shadow-xl">
-              <Link href="/auth/register">
-                Get Started Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
+      {/* Call to Action - Apple Style */}
+      <section className="py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-4xl md:text-5xl font-light text-black mb-8 tracking-tight">
+            Never worry about losing things again.
+          </h2>
+          <p className="text-xl text-gray-600 font-light mb-12 leading-relaxed">
+            Join thousands who've experienced the peace of mind that ScanBack
+            provides.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <button className="bg-blue-600 text-white px-10 py-4 rounded-full font-medium hover:bg-blue-700 transition-all duration-200 text-lg flex items-center justify-center">
+              Get ScanBack
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </button>
+            <button className="text-blue-600 px-10 py-4 font-medium hover:text-blue-700 transition-colors text-lg">
+              Learn more
+            </button>
           </div>
         </div>
       </section>
 
       <Footer />
     </div>
-  )
+  );
 }

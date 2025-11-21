@@ -7,7 +7,7 @@ export function Footer() {
   const { isAuthenticated } = useAuth()
 
   return (
-    <footer className="bg-navy-900 text-white py-16">
+    <footer className="bg-black text-white py-16">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Company Info & Downloads */}
@@ -153,23 +153,13 @@ export function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-white/20 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div className="border-t border-white/20 pt-8 text-center items-center justify-center">
+          <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0">
             <div className="text-sm text-gray-400">
               Made by ScanBack Technologies. ©2025 All rights reserved. 
-              ScanBack™ and the ScanBack logo are trademarks of ScanBack Technologies. 
-              "QR Code" is a registered trademark of Denso Wave Incorporated.
+              
             </div>
-            <div className="flex items-center space-x-6">
-              <Link href="/cookies" className="text-sm text-gray-400 hover:text-white transition-colors">
-                Cookie Preferences
-              </Link>
-              {isAuthenticated && (
-                <Link href="/dashboard" className="text-sm text-gray-400 hover:text-white transition-colors">
-                  Manage My Tag
-                </Link>
-              )}
-            </div>
+           
           </div>
         </div>
       </div>

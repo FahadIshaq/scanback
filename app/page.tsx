@@ -55,7 +55,7 @@ export default function HomePage() {
                   One <span className="font-extrabold">chance</span>
                 </h1>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05] md:pl-2 pl-1">
-                  to get it back !
+                  to get it back&nbsp;!
                 </h1>
               </div>
               <div className="border-l-4 border-black-600 pl-6 py-2">

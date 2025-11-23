@@ -363,59 +363,6 @@ Peace of mind made visible in three steps            </h2>
         </div>
       </section>
 
-      {/* Our Products */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight">
-              Our Products
-            </h2>
-            <p className="text-xl text-gray-600 font-light">
-              Premium QR stickers designed for durability and style.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                image: "/images/q1.png",
-                title: "Classic White",
-                description: "Clean, minimalist design perfect for any surface.",
-              },
-              {
-                image: "/images/q2.png",
-                title: "Premium Black",
-                description: "Elegant black finish for a sophisticated look.",
-              },
-              {
-                image: "/images/q3.png",
-                title: "Luxury Gold",
-                description: "Premium gold finish that stands out with style.",
-              },
-            ].map((product, index) => (
-              <div key={index} className="group cursor-pointer">
-                <div className="bg-gray-50 rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-300 group-hover:scale-[1.02]">
-                  <div className="aspect-square bg-white rounded-2xl mb-6 flex items-center justify-center relative overflow-hidden border border-gray-200">
-                    <Image
-                      src={product.image}
-                      alt={product.title}
-                      fill
-                      className="object-contain p-4"
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
-                  </div>
-                  <h3 className="text-xl font-medium text-black mb-3">
-                    {product.title}
-                  </h3>
-                  <p className="text-gray-600 font-light leading-relaxed">
-                    {product.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
      
 
       {/* Product Showcase - Apple Style */}
@@ -426,7 +373,7 @@ Peace of mind made visible in three steps            </h2>
               Perfect for everything you care about.
             </h2>
             <p className="text-xl text-gray-600 font-light">
-              Especially packaging and items that travel.
+              If I loose it, Scanback brings it back !
             </p>
                 </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

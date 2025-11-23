@@ -59,13 +59,13 @@ export function ScanHeader() {
               Shop Info
             </Link>
             <Link
-              href="/shop"
+              href="/products"
               className="text-sm text-gray-800 hover:text-black transition-colors"
             >
               Products
             </Link>
             <Link
-              href="/products"
+              href="/contact"
               className="text-sm text-gray-800 hover:text-black transition-colors"
             >
               Contact
@@ -145,7 +145,7 @@ export function ScanHeader() {
                     <Link href="/shop">Shop Info</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/shop">Products</Link>
+                    <Link href="/products">Products</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/contact">Contact</Link>

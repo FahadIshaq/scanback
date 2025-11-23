@@ -169,7 +169,7 @@ Peace of mind made visible in three steps            </h2>
                 }`}>
                   {feature.icon}
             </div>
-                <h3 className="text-2xl font-light text-black mb-4">
+                <h3 className="text-2xl font-bold text-black mb-4">
                   {feature.title}
                 </h3>
                 <p className="text-lg text-gray-600 font-light leading-relaxed">

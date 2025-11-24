@@ -13,9 +13,14 @@ export default function ProductsPage() {
       <section className="py-24 bg-white pt-32">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight">
-              Our Products
-            </h2>
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-black bg-white text-2xl font-bold tracking-wide">
+                SB
+              </div>
+              <h2 className="text-4xl md:text-5xl font-light text-black tracking-tight">
+                Our Products
+              </h2>
+            </div>
             <p className="text-xl text-gray-600 font-light">
               Premium QR stickers designed for durability and style.
             </p>

@@ -9,9 +9,14 @@ export default function AboutPage() {
       <main className="pt-20 pb-24">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight">
-              About Us
-            </h1>
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-black bg-white text-2xl font-bold tracking-wide">
+                SB
+              </div>
+              <h1 className="text-4xl md:text-5xl font-light text-black tracking-tight">
+                About Us
+              </h1>
+            </div>
           </div>
 
           <div className="prose prose-lg max-w-none">

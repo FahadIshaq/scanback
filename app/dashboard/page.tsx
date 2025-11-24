@@ -1365,41 +1365,41 @@ export default function DashboardPage() {
       <ScanHeader />
       {/* Actions are now in ScanHeader for dashboard; remove duplicate bar */}
 
-      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl flex-1">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 max-w-6xl flex-1">
         {/* Welcome Section */}
         <div className="mb-6 sm:mb-8 space-y-4">
           {/* Top Section - Welcome with Dashboard Button */}
-          <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 rounded-2xl p-5 sm:p-6 lg:p-7 shadow-xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-5 rounded-full -mr-20 -mt-20"></div>
-            <div className="absolute bottom-0 left-0 w-28 h-28 bg-white opacity-5 rounded-full -ml-14 -mb-14"></div>
-            <div className="relative z-0 space-y-4">
+          <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-7 shadow-xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-white opacity-5 rounded-full -mr-16 sm:-mr-20 -mt-16 sm:-mt-20"></div>
+            <div className="absolute bottom-0 left-0 w-20 h-20 sm:w-28 sm:h-28 bg-white opacity-5 rounded-full -ml-10 sm:-ml-14 -mb-10 sm:-mb-14"></div>
+            <div className="relative z-0 space-y-3 sm:space-y-4">
               {/* Welcome Message */}
-              <div className="flex items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
                 {/* Icon - Squircle with blue gradient and checkmark */}
-                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-gray-400 via-gray-500 to-gray-600 rounded-2xl sm:rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-gray-400 via-gray-500 to-gray-600 rounded-xl sm:rounded-2xl lg:rounded-3xl flex items-center justify-center flex-shrink-0 shadow-lg">
                   <CheckCircle
-                    className="h-6 w-6 sm:h-7 sm:w-7 text-white"
+                    className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white"
                     strokeWidth={2.5}
                   />
                 </div>
                 {/* Welcome Text */}
-                <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight flex-1">
-                  <span className="text-white">Welcome back, </span>
-                  <span className="bg-white bg-clip-text text-transparent">
+                <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold leading-tight flex-1 min-w-0">
+                  <span className="text-white block sm:inline">Welcome back, </span>
+                  <span className="bg-white bg-clip-text text-transparent block sm:inline truncate">
                     {user?.name ? user.name.split(" ")[0] : "there"}
                   </span>
                 </h1>
               </div>
 
               {/* Dashboard Button */}
-              <div className="pl-0 sm:pl-16 lg:pl-20">
+              <div className="pl-0 sm:pl-14 lg:pl-20">
                 <Button
-                  className="bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 hover:from-gray-600 hover:via-gray-700 hover:to-gray-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl px-4 sm:px-6 py-2 sm:py-3"
+                  className="bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700 hover:from-gray-600 hover:via-gray-700 hover:to-gray-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 rounded-lg sm:rounded-xl px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2 lg:py-3 w-full sm:w-auto"
                   asChild
                 >
-                  <Link href="/dashboard" className="flex items-center gap-2">
-                    <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-white" />
-                    <span className="text-sm sm:text-base">
+                  <Link href="/dashboard" className="flex items-center justify-center gap-2">
+                    <Star className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 fill-white" />
+                    <span className="text-xs sm:text-sm lg:text-base">
                       ScanBack™ Dashboard
                     </span>
                   </Link>
@@ -1409,8 +1409,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Main Content Section - Grey Card */}
-          <div className="bg-gray-100 rounded-2xl p-5 sm:p-6 lg:p-8 shadow-lg">
-            <p className="text-base sm:text-lg lg:text-xl text-gray-700 leading-relaxed font-medium text-center sm:text-left">
+          <div className="bg-gray-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 xl:p-8 shadow-lg">
+            <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700 leading-relaxed font-medium text-center sm:text-left">
               Track your tags, manage your items, and get notified — all in one
               place.
             </p>
@@ -1418,7 +1418,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
           <Card className="hover:shadow-md transition-shadow">
             <CardContent className="p-3 sm:p-6 text-center">
               <div className="text-xl sm:text-3xl font-bold text-blue-600 mb-1 sm:mb-2">
@@ -1546,17 +1546,17 @@ export default function DashboardPage() {
 
         {/* QR Codes List */}
         <Card>
-          <CardHeader className="pb-3 sm:pb-6">
+          <CardHeader className="pb-3 sm:pb-4 lg:pb-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <CardTitle className="text-lg sm:text-xl">
+              <CardTitle className="text-base sm:text-lg lg:text-xl">
                 Your QR Codes
               </CardTitle>
-              <span className="text-gray-500 text-sm">
+              <span className="text-gray-500 text-xs sm:text-sm">
                 {qrCodes.length} {qrCodes.length === 1 ? "code" : "codes"}
               </span>
             </div>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 px-3 sm:px-6">
             {qrCodes.length === 0 ? (
               <div className="text-center py-8 sm:py-12">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1733,8 +1733,8 @@ export default function DashboardPage() {
 
         {/* Edit Modal - Comprehensive Form */}
         {editingQR && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-4xl w-full my-4 sm:my-8 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-4 sm:p-6 border-b">
                 <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                   <div className="p-1.5 sm:p-2 bg-black rounded-lg flex-shrink-0">
@@ -3078,8 +3078,8 @@ export default function DashboardPage() {
 
         {/* QR Code Modal */}
         {showQRModal && selectedQR && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-md w-full my-4 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-4 sm:p-6 border-b">
                 <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                   <div className="p-1.5 sm:p-2 bg-black rounded-lg flex-shrink-0">
@@ -3396,8 +3396,8 @@ export default function DashboardPage() {
 
         {/* OTP Verification Modal */}
         {showOTPVerification && editingQR && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-md w-full my-4 max-h-[95vh] overflow-y-auto">
               <div className="flex items-center justify-between p-4 sm:p-6 border-b">
                 <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                   <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
@@ -3531,8 +3531,8 @@ export default function DashboardPage() {
 
         {/* Update Success Modal */}
         {showUpdateSuccess && updatedQR && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-2xl w-full my-4 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between p-4 sm:p-6 border-b">
                 <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                   <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg flex-shrink-0">
@@ -3553,11 +3553,11 @@ export default function DashboardPage() {
                   onClick={closeUpdateSuccess}
                   className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </div>
 
-              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
                 {/* Updated QR Code Info */}
                 <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
                   <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
@@ -3716,20 +3716,20 @@ export default function DashboardPage() {
 
         {/* Scan History Modal */}
         {showScanHistoryModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-6 border-b">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Scan className="h-6 w-6 text-blue-600" />
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-2xl w-full my-4 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b">
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                  <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                    <Scan className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                       {showRecentScansOnly
                         ? "Recent Scan History (Last 7 Days)"
                         : "Scan History & Locations"}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs sm:text-sm text-gray-600">
                       {showRecentScansOnly
                         ? "View scans from the past 7 days"
                         : "Track all scans across your QR codes"}
@@ -3738,13 +3738,13 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={closeScanHistoryModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 ml-2"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <div className="space-y-4">
                   {(() => {
                     // Calculate 7 days ago for filtering
@@ -3816,25 +3816,25 @@ export default function DashboardPage() {
                       return (
                         <div
                           key={qr._id}
-                          className="border border-gray-200 rounded-lg p-4"
+                          className="border border-gray-200 rounded-lg p-3 sm:p-4"
                         >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center space-x-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                               {qr.type === "pet" ? (
-                                <PawPrint className="h-5 w-5 text-yellow-500" />
+                                <PawPrint className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 flex-shrink-0" />
                               ) : qr.type === "emergency" ? (
                                 <MedicalCross
-                                  className="h-5 w-5 text-red-600"
+                                  className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 flex-shrink-0"
                                   size={16}
                                 />
                               ) : (
-                                <Tag className="h-5 w-5 text-blue-600 flex items-center justify-center" />
+                                <Tag className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex items-center justify-center flex-shrink-0" />
                               )}
-                              <div>
-                                <h4 className="font-semibold text-gray-900">
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
                                   {qr.details.name}
                                 </h4>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-xs sm:text-sm text-gray-600">
                                   {qr.type === "pet"
                                     ? "Pet Tag"
                                     : qr.type === "emergency"
@@ -3843,8 +3843,8 @@ export default function DashboardPage() {
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-blue-600">
+                            <div className="text-left sm:text-right flex-shrink-0">
+                              <div className="text-base sm:text-lg font-bold text-blue-600">
                                 {showRecentScansOnly
                                   ? recentScansCount
                                   : qr.scanCount}
@@ -3857,8 +3857,8 @@ export default function DashboardPage() {
 
                           {recentScansCount > 0 ||
                           (!showRecentScansOnly && qr.scanCount > 0) ? (
-                            <div className="bg-gray-50 rounded-lg p-3">
-                              <p className="text-sm text-gray-600 mb-3 font-medium">
+                            <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 font-medium">
                                 {showRecentScansOnly
                                   ? "Recent Scan History (Last 7 Days):"
                                   : "Scan History:"}
@@ -3891,17 +3891,17 @@ export default function DashboardPage() {
                                         return (
                                           <div
                                             key={scanKey}
-                                            className="flex items-center justify-between text-xs"
+                                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 text-xs"
                                           >
                                             <div className="flex items-center space-x-2">
-                                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                              <span className="text-gray-700">
+                                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                                              <span className="text-gray-700 break-words">
                                                 {new Date(
                                                   scan.scannedAt as string
                                                 ).toLocaleString()}
                                               </span>
                                             </div>
-                                            <div className="text-gray-500">
+                                            <div className="text-gray-500 text-left sm:text-right pl-4 sm:pl-0">
                                               {scan.location &&
                                               scan.location !== "unknown"
                                                 ? scan.location
@@ -3976,12 +3976,12 @@ export default function DashboardPage() {
 
         {/* Filtered List Modal */}
         {showFilteredListModal && filteredListType && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-6 border-b">
-                <div className="flex items-center space-x-3">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-2xl w-full my-4 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b">
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                   <div
-                    className={`p-2 rounded-lg ${
+                    className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${
                       filteredListType === "pet"
                         ? "bg-yellow-100"
                         : filteredListType === "emergency"
@@ -3990,25 +3990,25 @@ export default function DashboardPage() {
                     }`}
                   >
                     {filteredListType === "pet" ? (
-                      <PawPrint className="h-6 w-6 text-yellow-500" />
+                      <PawPrint className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
                     ) : filteredListType === "emergency" ? (
                       <MedicalCross
-                        className="h-6 w-6 text-red-600"
+                        className="h-5 w-5 sm:h-6 sm:w-6 text-red-600"
                         size={16}
                       />
                     ) : (
-                      <Tag className="h-6 w-6 text-blue-600 flex items-center justify-center" />
+                      <Tag className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex items-center justify-center" />
                     )}
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                       {filteredListType === "pet"
                         ? "Pet Tags"
                         : filteredListType === "emergency"
                         ? "Emergency Tags"
                         : "Item Tags"}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs sm:text-sm text-gray-600">
                       {
                         qrCodes.filter((qr) => qr.type === filteredListType)
                           .length
@@ -4024,31 +4024,31 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={closeFilteredListModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 ml-2"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
-              <div className="p-6">
-                <div className="space-y-4">
+              <div className="p-4 sm:p-6">
+                <div className="space-y-3 sm:space-y-4">
                   {qrCodes
                     .filter((qr) => qr.type === filteredListType)
                     .map((qr) => (
                       <div
                         key={qr._id}
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                        className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                             <div
-                              className={`p-2 rounded-lg ${
+                              className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${
                                 qr.isActivated ? "bg-green-100" : "bg-gray-100"
                               }`}
                             >
                               {qr.type === "pet" ? (
                                 <PawPrint
-                                  className={`h-5 w-5 ${
+                                  className={`h-4 w-4 sm:h-5 sm:w-5 ${
                                     qr.isActivated
                                       ? "text-yellow-500"
                                       : "text-gray-400"
@@ -4056,7 +4056,7 @@ export default function DashboardPage() {
                                 />
                               ) : qr.type === "emergency" ? (
                                 <MedicalCross
-                                  className={`h-5 w-5 ${
+                                  className={`h-4 w-4 sm:h-5 sm:w-5 ${
                                     qr.isActivated
                                       ? "text-red-600"
                                       : "text-gray-400"
@@ -4065,7 +4065,7 @@ export default function DashboardPage() {
                                 />
                               ) : (
                                 <Tag
-                                  className={`h-5 w-5 ${
+                                  className={`h-4 w-4 sm:h-5 sm:w-5 ${
                                     qr.isActivated
                                       ? "text-blue-600"
                                       : "text-gray-400"
@@ -4073,18 +4073,18 @@ export default function DashboardPage() {
                                 />
                               )}
                             </div>
-                            <div>
-                              <h4 className="font-semibold text-gray-900">
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
                                 {qr.details.name}
                               </h4>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-xs sm:text-sm text-gray-600 line-clamp-1">
                                 {qr.details.description || "No description"}
                               </p>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
                             <div
-                              className={`text-sm px-2 py-1 rounded-full ${
+                              className={`text-xs sm:text-sm px-2 py-1 rounded-full whitespace-nowrap ${
                                 qr.isActivated
                                   ? "bg-green-100 text-green-800"
                                   : "bg-gray-100 text-gray-600"
@@ -4092,7 +4092,7 @@ export default function DashboardPage() {
                             >
                               {qr.isActivated ? "Active" : "Inactive"}
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">
+                            <div className="text-xs text-gray-500">
                               {qr.scanCount} scans
                             </div>
                           </div>

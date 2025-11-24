@@ -17,16 +17,16 @@ export function ScanHeader() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="p-2 bg-black rounded-lg">
-                <QrCode className="h-6 w-6 text-white" />
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
+        <div className="flex items-center justify-between h-14 sm:h-16">
+          <div className="flex items-center min-w-0 flex-1">
+            <Link href="/" className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+              <div className="p-1.5 sm:p-2 bg-black rounded-lg flex-shrink-0">
+                <QrCode className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <div>
-                <span className="font-bold text-black">ScanBack™</span>
-                <p className="text-xs text-gray-600">Smart Lost & Found QR Stickers and Tags</p>
+              <div className="min-w-0">
+                <span className="font-bold text-black text-sm sm:text-base block truncate">ScanBack™</span>
+                <p className="text-xs text-gray-600 hidden sm:block">Smart Lost & Found QR Stickers and Tags</p>
               </div>
             </Link>
           </div>

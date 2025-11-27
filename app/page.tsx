@@ -55,36 +55,16 @@ export default function HomePage() {
                   One <span className="font-extrabold">chance</span>
                 </h1>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black tracking-tight leading-[1.05] md:pl-2 pl-1">
-                  to get it back&nbsp;!
+                  to get it back!
                 </h1>
               </div>
               <div className="border-l-4 border-black-600 pl-6 py-2">
                 <p className="text-lg md:text-xl lg:text-2xl text-black leading-relaxed max-w-xl font-normal">
                   Smart QR code stickers and tags that connect finders directly to you via <span className="font-bold">WhatsApp</span>.
                 </p>
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5 w-full max-w-md md:max-w-xl lg:max-w-2xl">
-                  {[
-                    { key: "apps", label: "No", highlight: "app required" },
-                    { key: "subscriptions", label: "No", highlight: "subscriptions" },
-                  ].map(({ key, label, highlight }) => (
-                    <div
-                      key={key}
-                      className={`rounded-2xl border px-5 py-4 sm:px-6 sm:py-5 text-left shadow-sm transition-colors ${
-                        key === "apps"
-                          ? "bg-black text-white border-black"
-                          : "bg-white text-black border-black"
-                      } w-full`}
-                    >
-                      <p
-                        className={`text-base sm:text-lg md:text-xl font-normal leading-relaxed break-words ${
-                          key === "apps" ? "text-white" : "text-black"
-                        }`}
-                      >
-                        {label} <span className="font-bold">{highlight}</span>
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-lg md:text-xl lg:text-2xl text-black leading-relaxed max-w-xl font-normal mt-2">
+                  No <span className="font-bold">apps,</span> No <span className="font-bold">subscriptions</span>.
+                </p>
               </div>
             </div>
 
@@ -167,7 +147,7 @@ Peace of mind made visible in three steps            </h2>
                 icon: <FaWhatsapp className="w-12 h-12" />,
                 title: "Connect",
                 description:
-                  "WhatsApp message sent directly to owner with location details.",
+                  "WhatsApp message sent directly to owner with contact options.",
                 step: "02",
               },
               {

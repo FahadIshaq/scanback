@@ -12,9 +12,9 @@ export default function PartnersPage() {
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-16">
             <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-black bg-white text-2xl font-bold tracking-wide">
+              {/* <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-black bg-white text-2xl font-bold tracking-wide">
                 SB
-              </div>
+              </div> */}
               <h1 className="text-4xl md:text-5xl font-light text-black tracking-tight">
                 Partners
               </h1>

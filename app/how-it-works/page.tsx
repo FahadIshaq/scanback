@@ -15,9 +15,9 @@ export default function HowItWorksPage() {
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-16">
             <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-black bg-white text-2xl font-bold tracking-wide">
+              {/* <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-black bg-white text-2xl font-bold tracking-wide">
                 SB
-              </div>
+              </div> */}
               <h1 className="text-4xl md:text-5xl font-light text-black tracking-tight">
                 How It Works
               </h1>
@@ -28,7 +28,7 @@ export default function HowItWorksPage() {
           <div className="mb-20">
             <div className="text-center mb-20">
               <h2 className="text-4xl md:text-5xl font-light text-black mb-6 tracking-tight">
-                From Lost to Found in 3 Easy Steps
+                From Lost to Found in Three Easy Steps
               </h2>
             </div>
             
@@ -38,7 +38,7 @@ export default function HowItWorksPage() {
                   icon: <QrCode className="w-12 h-12 text-black" />,
                   title: "Tag It",
                   description:
-                    "Stick or attach your ScanBack tag to your valuables, pets, or gear.",
+                    "Stick or attach your ScanBack sticker or tag to your valuables, pets, or gear.",
                   step: "01",
                 },
                 {
@@ -67,7 +67,7 @@ export default function HowItWorksPage() {
                   }`}>
                     {feature.icon}
                   </div>
-                  <h3 className="text-2xl font-light text-black mb-4">
+                  <h3 className="text-2xl font-bold text-black mb-4">
                     {feature.title}
                   </h3>
                   <p className="text-lg text-gray-600 font-light leading-relaxed">

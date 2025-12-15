@@ -64,7 +64,7 @@ export default function PartnersPage() {
                   Who can become a partner?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-700">
-                  Retailers, vet clinics, travel brands, courier companies, and promotional suppliers.
+                  Retailers, vet clinics, travel brands, courier companies, and promotional clients.
                 </AccordionContent>
               </AccordionItem>
 

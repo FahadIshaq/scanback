@@ -938,8 +938,8 @@ export default function ScanPage() {
 
     if (!showFinderSkeleton) {
       // Activation Page Skeleton
-    return (
-        <div className="min-h-screen bg-white">
+      return (
+        <div className="min-h-screen bg-white flex flex-col pt-16 sm:pt-20">
           <ScanHeader />
 
           <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -987,7 +987,7 @@ export default function ScanPage() {
 
     // Finder Page Skeleton (qrData exists and isActivated is true)
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white flex flex-col pt-16 sm:pt-20">
         <ScanHeader />
 
         <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -1053,7 +1053,7 @@ export default function ScanPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white flex flex-col pt-16 sm:pt-20">
         <ScanHeader />
 
         <div className="container mx-auto px-4 py-12 max-w-2xl text-center">
@@ -1084,23 +1084,8 @@ export default function ScanPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-white">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-black rounded-lg">
-                  <QrCode className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <span className="font-bold text-black">ScanBack™</span>
-                  <p className="text-xs text-gray-600">Smart Lost & Found QR Tag</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
+      <div className="min-h-screen bg-white flex flex-col pt-16 sm:pt-20">
+        <ScanHeader />
 
         <div className="container mx-auto px-4 py-12 max-w-2xl text-center">
           <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-green-100">
@@ -1325,7 +1310,7 @@ export default function ScanPage() {
   // If QR code is already activated, show the information display
   if (qrData && qrData.isActivated) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white flex flex-col pt-16 sm:pt-20">
         <ScanHeader />
 
         <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -2128,7 +2113,7 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col pt-16 sm:pt-20">
       <ScanHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">

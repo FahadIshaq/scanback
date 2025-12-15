@@ -1347,10 +1347,69 @@ export default function DashboardPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+      <div className="min-h-screen bg-gray-50 flex flex-col pt-16 sm:pt-20">
+        <ScanHeader />
+        <div className="flex-1">
+          <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 max-w-6xl">
+            {/* Skeleton: Welcome Section */}
+            <div className="mb-6 sm:mb-8 space-y-4">
+              <div className="rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-7 shadow-xl bg-gray-200 animate-pulse">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-gray-300 rounded-2xl" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 bg-gray-300 rounded w-1/3" />
+                    <div className="h-6 bg-gray-300 rounded w-1/2" />
+                  </div>
+                </div>
+                <div className="h-9 bg-gray-300 rounded w-40" />
+              </div>
+
+              <div className="bg-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 animate-pulse">
+                <div className="h-5 bg-gray-300 rounded w-3/4 mx-auto sm:mx-0" />
+              </div>
+            </div>
+
+            {/* Skeleton: Stats Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-lg border border-gray-200 bg-white p-3 sm:p-6 animate-pulse"
+                >
+                  <div className="h-7 sm:h-8 bg-gray-200 rounded w-1/2 mx-auto mb-2" />
+                  <div className="h-3 bg-gray-200 rounded w-3/4 mx-auto" />
+                </div>
+              ))}
+            </div>
+
+            {/* Skeleton: QR Codes List */}
+            <div className="rounded-xl border border-gray-200 bg-white shadow-sm animate-pulse">
+              <div className="border-b border-gray-100 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+                <div className="h-5 bg-gray-200 rounded w-32" />
+                <div className="h-4 bg-gray-200 rounded w-16" />
+              </div>
+              <div className="px-3 sm:px-6 py-4 space-y-3 sm:space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="border border-gray-200 rounded-lg p-3 sm:p-4"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-24" />
+                        <div className="h-5 bg-gray-200 rounded w-40" />
+                        <div className="h-3 bg-gray-200 rounded w-32" />
+                      </div>
+                      <div className="w-full sm:w-40 space-y-2">
+                        <div className="h-8 bg-gray-200 rounded" />
+                        <div className="h-8 bg-gray-200 rounded" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1361,7 +1420,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col pt-16 sm:pt-20">
       <ScanHeader />
       {/* Actions are now in ScanHeader for dashboard; remove duplicate bar */}
 

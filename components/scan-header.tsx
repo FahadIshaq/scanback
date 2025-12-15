@@ -14,6 +14,10 @@ export function ScanHeader() {
   const isLandingPage = pathname === "/"
   const firstName = (user?.name || "").trim().split(" ")[0] || user?.name || ""
   const isAuthenticated = !!user
+  
+  // Default branding
+  const brandName = "ScanBack™"
+  const tagline = "Smart Lost & Found QR Stickers and Tags"
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50">
@@ -25,8 +29,8 @@ export function ScanHeader() {
                 <QrCode className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div className="min-w-0">
-                <span className="font-bold text-black text-sm sm:text-base block truncate">ScanBack™</span>
-                <p className="text-xs text-gray-600 hidden sm:block">Smart Lost & Found QR Stickers and Tags</p>
+                <span className="font-bold text-black text-sm sm:text-base block truncate">{brandName}</span>
+                <p className="text-xs text-gray-600 hidden sm:block">{tagline}</p>
               </div>
             </Link>
           </div>

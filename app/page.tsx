@@ -19,9 +19,11 @@ import { Footer } from "@/components/footer";
 
 export default function HomePage() {
   const [scrollY, setScrollY] = useState(0);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentSquareIndex, setCurrentSquareIndex] = useState(0);
+  const [currentCircleIndex, setCurrentCircleIndex] = useState(0);
 
-  const qrImages = ["/images/q1.png", "/images/q2.png", "/images/q3.png", "/images/q4.png"];
+  const squareImages = Array.from({ length: 6 }, (_, i) => `/images/${i + 1}.png`);
+  const circleImages = Array.from({ length: 6 }, (_, i) => `/images/${i + 7}.png`);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -31,11 +33,19 @@ export default function HomePage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % qrImages.length);
-    }, 2000); // Change image every 2 seconds
+      setCurrentSquareIndex((prevIndex) => (prevIndex + 1) % squareImages.length);
+    }, 2000); // Change square image every 2 seconds
 
     return () => clearInterval(interval);
-  }, [qrImages.length]);
+  }, [squareImages.length]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentCircleIndex((prevIndex) => (prevIndex + 1) % circleImages.length);
+    }, 2000); // Change circle image every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [circleImages.length]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -68,28 +78,62 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column - Animated QR Images */}
-            <div className="flex items-center justify-center">
-              <div className="relative w-full max-w-md mx-auto aspect-square bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 rounded-2xl p-8 shadow-xl border border-gray-300/50">
-                <div className="relative w-full h-full">
-                  {qrImages.map((image, index) => (
-                    <div
-                      key={index}
-                      className={`absolute inset-0 transition-opacity duration-1000 ${
-                        index === currentImageIndex ? "opacity-100 z-10" : "opacity-0 z-0"
-                      }`}
-                    >
-                      <Image
-                        src={image}
-                        alt={`QR Code ${index + 1}`}
-                        fill
-                        className="object-contain drop-shadow-lg"
-                        priority={index === 0}
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                      />
-                    </div>
-                  ))}
+            {/* Right Column - Square and Circle Images */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
+              {/* Square Images */}
+              <div className="relative w-full max-w-xs md:max-w-sm mx-auto">
+                <div className="relative w-full aspect-square" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 40px rgba(0, 0, 0, 0.2))' }}>
+                  <div className="relative w-full h-full">
+                    {squareImages.map((image, index) => (
+                      <div
+                        key={index}
+                        className={`absolute inset-0 transition-opacity duration-1000 ${
+                          index === currentSquareIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+                        }`}
+                      >
+                        <Image
+                          src={image}
+                          alt={`Square QR Code ${index + 1}`}
+                          fill
+                          className="object-contain"
+                          priority={index === 0}
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
+                {/* <div className="text-center mt-3">
+                  <p className="text-xs md:text-sm font-medium text-gray-600">Square Tags</p>
+                </div> */}
+              </div>
+
+              {/* Circle Images */}
+              <div className="relative w-full max-w-xs md:max-w-sm mx-auto">
+                <div className="relative w-full aspect-square" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 40px rgba(0, 0, 0, 0.2))' }}>
+                  <div className="relative w-full h-full">
+                    {circleImages.map((image, index) => (
+                      <div
+                        key={index}
+                        className={`absolute inset-0 transition-opacity duration-1000 ${
+                          index === currentCircleIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+                        }`}
+                      >
+                        <Image
+                          src={image}
+                          alt={`Circle QR Code ${index + 1}`}
+                          fill
+                          className="object-contain"
+                          priority={index === 0}
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* <div className="text-center mt-3">
+                  <p className="text-xs md:text-sm font-medium text-gray-600">Circle Tags</p>
+                </div> */}
               </div>
             </div>
           </div>

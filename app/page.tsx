@@ -82,7 +82,7 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
               {/* Square Images */}
               <div className="relative w-full max-w-xs md:max-w-sm mx-auto">
-                <div className="relative w-full aspect-square" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 40px rgba(0, 0, 0, 0.2))' }}>
+                <div className="relative w-full aspect-square">
                   <div className="relative w-full h-full">
                     {squareImages.map((image, index) => (
                       <div
@@ -110,7 +110,7 @@ export default function HomePage() {
 
               {/* Circle Images */}
               <div className="relative w-full max-w-xs md:max-w-sm mx-auto">
-                <div className="relative w-full aspect-square" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 40px rgba(0, 0, 0, 0.2))' }}>
+                <div className="relative w-full aspect-square">
                   <div className="relative w-full h-full">
                     {circleImages.map((image, index) => (
                       <div

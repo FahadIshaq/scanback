@@ -82,7 +82,7 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
               {/* Square Images */}
               <div className="relative w-full max-w-xs md:max-w-sm mx-auto">
-                <div className="relative w-full aspect-square">
+                <div className="relative w-full aspect-square" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 40px rgba(0, 0, 0, 0.2))' }}>
                   <div className="relative w-full h-full">
                     {squareImages.map((image, index) => (
                       <div
@@ -110,7 +110,7 @@ export default function HomePage() {
 
               {/* Circle Images */}
               <div className="relative w-full max-w-xs md:max-w-sm mx-auto">
-                <div className="relative w-full aspect-square">
+                <div className="relative w-full aspect-square" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 40px rgba(0, 0, 0, 0.2))' }}>
                   <div className="relative w-full h-full">
                     {circleImages.map((image, index) => (
                       <div
@@ -261,7 +261,7 @@ Peace of mind made visible in three steps            </h2>
             <div className="col-span-2 md:col-span-2 md:row-span-2 group">
               <div className="relative w-full h-full min-h-[200px] sm:min-h-[300px] md:min-h-[400px] rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/passport.png"
+                  src="/images/qr1.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -275,31 +275,7 @@ Peace of mind made visible in three steps            </h2>
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/keys.png"
-                  alt="Keys with ScanBack"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                />
-              </div>
-            </div>
-            
-            <div className="group">
-              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
-                <Image
-                  src="/images/image1.jpeg"
-                  alt="Passport with ScanBack"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                />
-              </div>
-            </div>
-            
-            <div className="group">
-              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
-                <Image
-                  src="/images/image7.jpeg"
+                  src="/images/qr2.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -311,7 +287,7 @@ Peace of mind made visible in three steps            </h2>
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/image2.jpeg"
+                  src="/images/qr3.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -320,12 +296,36 @@ Peace of mind made visible in three steps            </h2>
               </div>
             </div>
             
-            {/* Suitcase image */}
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/qr4.png"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            
+            <div className="group">
+              <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                <Image
+                  src="/images/qr5.png"
+                  alt="ScanBack Product"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            </div>
+            
+            {/* Wide image */}
             <div className="col-span-2 md:col-span-2 group">
               <div className="relative w-full aspect-[2/1] rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/suitcase.png"
-                  alt="Suitcase with ScanBack"
+                  src="/images/qr6.png"
+                  alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -337,7 +337,7 @@ Peace of mind made visible in three steps            </h2>
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/image3.jpeg"
+                  src="/images/qr7.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -349,7 +349,7 @@ Peace of mind made visible in three steps            </h2>
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/image4.jpeg"
+                  src="/images/qr8.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -361,7 +361,7 @@ Peace of mind made visible in three steps            </h2>
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/image5.jpeg"
+                  src="/images/qr9.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -373,7 +373,7 @@ Peace of mind made visible in three steps            </h2>
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/image6.jpeg"
+                  src="/images/qr10.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -384,7 +384,7 @@ Peace of mind made visible in three steps            </h2>
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/image8.jpeg"
+                  src="/images/qr11.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -395,7 +395,7 @@ Peace of mind made visible in three steps            </h2>
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src="/images/image9.jpeg"
+                  src="/images/qr12.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -423,19 +423,19 @@ Peace of mind made visible in three steps            </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                image: "/images/image1.jpeg",
+                image: "/images/qr1.png",
                 title: "Packaging",
                 description:
                   "Boxes, deliveries, and shipments protected with instant return capability.",
               },
               {
-                image: "/images/image8.jpeg",
+                image: "/images/qr4.png",
                 title: "Travel gear",
                 description:
                   "Luggage, cameras, and equipment protection wherever you go.",
               },
               {
-                image: "/images/image6.jpeg",
+                image: "/images/qr2.png",
                 title: "Everyday items",
                 description:
                   "Keys, wallets, phones. Everything that matters to you.",

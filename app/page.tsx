@@ -21,6 +21,10 @@ export default function HomePage() {
   const [scrollY, setScrollY] = useState(0);
   const [currentSquareIndex, setCurrentSquareIndex] = useState(0);
   const [currentCircleIndex, setCurrentCircleIndex] = useState(0);
+  const [squareImageLoaded, setSquareImageLoaded] = useState(false);
+  const [circleImageLoaded, setCircleImageLoaded] = useState(false);
+  const [galleryImagesLoaded, setGalleryImagesLoaded] = useState<Set<number>>(new Set());
+  const [showcaseImagesLoaded, setShowcaseImagesLoaded] = useState<Set<number>>(new Set());
 
   const squareImages = Array.from({ length: 6 }, (_, i) => `/images/${i + 1}.png`);
   const circleImages = Array.from({ length: 6 }, (_, i) => `/images/${i + 7}.png`);
@@ -260,6 +264,9 @@ Peace of mind made visible in three steps            </h2>
             {/* Large featured image */}
             <div className="col-span-2 md:col-span-2 md:row-span-2 group">
               <div className="relative w-full h-full min-h-[200px] sm:min-h-[300px] md:min-h-[400px] rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(0) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr1.png"
                   alt="ScanBack Product"
@@ -267,6 +274,7 @@ Peace of mind made visible in three steps            </h2>
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   priority
                   sizes="(max-width: 768px) 100vw, 50vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(0))}
                 />
               </div>
             </div>
@@ -274,48 +282,64 @@ Peace of mind made visible in three steps            </h2>
             {/* Medium images */}
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(1) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr2.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 25vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(1))}
                 />
               </div>
             </div>
             
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(2) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr3.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 25vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(2))}
                 />
               </div>
             </div>
             
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(3) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr4.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 25vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(3))}
                 />
               </div>
             </div>
             
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(4) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr5.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 25vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(4))}
                 />
               </div>
             </div>
@@ -323,12 +347,16 @@ Peace of mind made visible in three steps            </h2>
             {/* Wide image */}
             <div className="col-span-2 md:col-span-2 group">
               <div className="relative w-full aspect-[2/1] rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(5) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr6.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 100vw, 50vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(5))}
                 />
               </div>
             </div>
@@ -336,70 +364,94 @@ Peace of mind made visible in three steps            </h2>
             {/* Additional images */}
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(6) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr7.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 25vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(6))}
                 />
               </div>
             </div>
             
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(7) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr8.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 25vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(7))}
                 />
               </div>
             </div>
             
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(8) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr9.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 25vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(8))}
                 />
               </div>
             </div>
             
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(9) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr10.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 25vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(9))}
                 />
               </div>
             </div>
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(10) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr11.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 25vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(10))}
                 />
               </div>
             </div>
             <div className="group">
               <div className="relative w-full aspect-square rounded-lg md:rounded-2xl overflow-hidden shadow-md md:shadow-lg hover:shadow-xl md:hover:shadow-2xl transition-all duration-300">
+                {!galleryImagesLoaded.has(11) && (
+                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                )}
                 <Image
                   src="/images/qr12.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                   sizes="(max-width: 768px) 50vw, 25vw"
+                  onLoadingComplete={() => setGalleryImagesLoaded(prev => new Set(prev).add(11))}
                 />
               </div>
             </div>
@@ -444,12 +496,16 @@ Peace of mind made visible in three steps            </h2>
               <div key={index} className="group cursor-pointer">
                 <div className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-300 group-hover:scale-[1.02]">
                   <div className="aspect-[4/3] bg-gray-100 rounded-2xl mb-8 flex items-center justify-center relative overflow-hidden">
+                    {!showcaseImagesLoaded.has(index) && (
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                    )}
                     <Image
                       src={item.image}
                       alt={item.title}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 33vw"
+                      onLoadingComplete={() => setShowcaseImagesLoaded(prev => new Set(prev).add(index))}
                     />
               </div>
                   <h3 className="text-xl font-medium text-black mb-3">

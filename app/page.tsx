@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -25,6 +25,8 @@ export default function HomePage() {
   const [circleImageLoaded, setCircleImageLoaded] = useState(false);
   const [galleryImagesLoaded, setGalleryImagesLoaded] = useState<Set<number>>(new Set());
   const [showcaseImagesLoaded, setShowcaseImagesLoaded] = useState<Set<number>>(new Set());
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const squareImages = Array.from({ length: 6 }, (_, i) => `/images/${i + 1}.png`);
   const circleImages = Array.from({ length: 6 }, (_, i) => `/images/${i + 7}.png`);
@@ -86,7 +88,7 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
               {/* Square Images */}
               <div className="relative w-full max-w-xs md:max-w-sm mx-auto">
-                <div className="relative w-full aspect-square" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 40px rgba(0, 0, 0, 0.2))' }}>
+                <div className="relative w-full aspect-square">
                   <div className="relative w-full h-full">
                     {squareImages.map((image, index) => (
                       <div
@@ -114,7 +116,7 @@ export default function HomePage() {
 
               {/* Circle Images */}
               <div className="relative w-full max-w-xs md:max-w-sm mx-auto">
-                <div className="relative w-full aspect-square" style={{ filter: 'drop-shadow(0 0 20px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 40px rgba(0, 0, 0, 0.2))' }}>
+                <div className="relative w-full aspect-square">
                   <div className="relative w-full h-full">
                     {circleImages.map((image, index) => (
                       <div
@@ -149,25 +151,42 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="relative aspect-[16/9] md:aspect-[21/9]">
             {/* Video Placeholder */}
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
-              <div className="text-center text-white">
-                <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 cursor-pointer hover:bg-white/20 transition-all duration-300 border border-white/20">
-                  <Play className="w-10 h-10 ml-1" />
-          </div>
-                <h3 className="text-2xl font-light mb-3 text-white/90">
-                  See how it works
-                </h3>
-                <p className="text-lg text-white/70 font-light">
-                  Experience the simplicity of ScanBack
-                </p>
+            {!isVideoPlaying && (
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center z-10">
+                <div className="text-center text-white">
+                  <button
+                    onClick={() => {
+                      if (videoRef.current) {
+                        videoRef.current.play();
+                        setIsVideoPlaying(true);
+                      }
+                    }}
+                    className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 cursor-pointer hover:bg-white/20 transition-all duration-300 border border-white/20"
+                  >
+                    <Play className="w-10 h-10 ml-1" />
+                  </button>
+                  <h3 className="text-2xl font-light mb-3 text-white/90">
+                    See how it works
+                  </h3>
+                  <p className="text-lg text-white/70 font-light">
+                    Experience the simplicity of ScanBack
+                  </p>
+                </div>
               </div>
-            </div>
-            {/* Actual video would go here */}
-            <video className="hidden w-full h-full object-cover" controls>
-              <source src="/scanback-demo.mp4" type="video/mp4" />
+            )}
+            {/* Actual video */}
+            <video
+              ref={videoRef}
+              className={`w-full h-full object-cover ${isVideoPlaying ? 'block' : 'hidden'}`}
+              controls
+              muted
+              onPause={() => setIsVideoPlaying(false)}
+              onEnded={() => setIsVideoPlaying(false)}
+            >
+              <source src="/videos/demo.mp4" type="video/mp4" />
             </video>
           </div>
-              </div>
+        </div>
       </section>
 
  {/* How It Works - Apple Style */}
@@ -475,7 +494,7 @@ Peace of mind made visible in three steps            </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                image: "/images/qr1.png",
+                image: "/images/qr3.png",
                 title: "Packaging",
                 description:
                   "Boxes, deliveries, and shipments protected with instant return capability.",

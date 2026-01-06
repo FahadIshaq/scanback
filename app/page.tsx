@@ -74,7 +74,7 @@ export default function HomePage() {
 
             {/* Right Column - Square Images */}
             <div className="flex items-center justify-center">
-              <div className="relative w-full max-w-xs md:max-w-sm mx-auto">
+              <div className="relative w-full max-w-[240px] md:max-w-[300px] mx-auto">
                 <div className="relative w-full aspect-square">
                   <div className="relative w-full h-full">
                     {squareImages.map((image, index) => (

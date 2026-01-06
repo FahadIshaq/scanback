@@ -450,7 +450,7 @@ Peace of mind made visible in three steps            </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                image: "/images/qr3.png",
+                image: "/images/pack.png",
                 title: "Packaging",
                 description:
                   "Boxes, deliveries, and shipments protected with instant return capability.",
@@ -462,7 +462,7 @@ Peace of mind made visible in three steps            </h2>
                   "Luggage, cameras, and equipment protection wherever you go.",
               },
               {
-                image: "/images/qr2.png",
+                image: "/images/airpods.png",
                 title: "Everyday items",
                 description:
                   "Keys, wallets, phones. Everything that matters to you.",

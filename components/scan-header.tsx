@@ -17,7 +17,7 @@ export function ScanHeader() {
   
   // Default branding
   const brandName = "ScanBack™"
-  const tagline = "Smart Lost & Found QR Stickers and Tags"
+  const tagline = "Smart Lost & Found QR Labels and Tags"
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/50">

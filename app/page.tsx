@@ -64,7 +64,7 @@ export default function HomePage() {
               </div>
               <div className="border-l-4 border-black-600 pl-6 py-2">
                 <p className="text-lg md:text-xl lg:text-2xl text-black leading-relaxed max-w-xl font-normal">
-                  Smart QR code stickers and tags that connect finders directly to you via <span className="font-bold">WhatsApp</span>.
+                  Smart QR code labels and tags that connect finders directly to you via <span className="font-bold">WhatsApp</span>.
                 </p>
                 <p className="text-lg md:text-xl lg:text-2xl text-black leading-relaxed max-w-xl font-normal mt-2">
                   No <span className="font-bold">apps,</span> No <span className="font-bold">subscriptions</span>.

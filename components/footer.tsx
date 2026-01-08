@@ -21,7 +21,7 @@ export function Footer() {
               </div>
               <div>
                 <span className="text-xl sm:text-2xl font-bold text-white">ScanBack™</span>
-                <p className="text-xs text-gray-400">Smart Lost & Found QR Stickers and Tags</p>
+                <p className="text-xs text-gray-400">Smart Lost & Found QR Labels and Tags</p>
               </div>
             </Link>
             

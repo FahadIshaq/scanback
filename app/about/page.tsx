@@ -21,7 +21,7 @@ export default function AboutPage() {
 
           <div className="prose prose-lg max-w-none">
             <h2 className="text-3xl font-light text-black mb-6">
-              ScanBack™ — Smart QR Tags That Bring Things Back
+              ScanBack™ — Smart QR Labels and Tags That Bring Things Back
             </h2>
             
             <p className="text-lg text-gray-700 leading-relaxed mb-6">

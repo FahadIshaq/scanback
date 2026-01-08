@@ -16,7 +16,7 @@ export function QRLogo() {
           </div>
           <div className="flex flex-col items-start">
             <span className="font-bold text-black text-lg leading-tight">ScanBack™</span>
-            <p className="text-xs text-gray-600 leading-tight">Smart Lost & Found QR Tag</p>
+            <p className="text-xs text-gray-600 leading-tight">Smart Lost & Found QR Labels and Tags</p>
           </div>
         </button>
       </DialogTrigger>

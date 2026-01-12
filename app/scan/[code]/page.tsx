@@ -2151,15 +2151,19 @@ export default function ScanPage() {
                 <span className="inline">Free Notifications</span>
               </h2>
             </div>
-            {(qrData?.metadata?.generationMode === 'connected' || (qrData?.metadata?.connectedQuantity && qrData.metadata.connectedQuantity > 1)) && (
-              <p className="text-gray-700 text-lg text-center mt-4">
-                enter few quick details, to activate your all tags, with one scan
-              </p>
-            )}
           </div>
           <p className="text-gray-700 text-lg">
           Get started in seconds — just enter a few quick details to activate your tag.
           </p>
+          {(qrData?.metadata?.generationMode === 'connected' || (qrData?.metadata?.connectedQuantity && qrData.metadata.connectedQuantity > 1)) && (
+            <div className="mt-4 mb-6">
+              <div className="bg-gray-100 border border-blue-200 rounded-xl px-4 py-3 mx-auto max-w-md">
+                <p className="text-sm sm:text-lg font-semibold text-gray-800 text-center">
+                  Enter few quick details, to activate your all tags, with one scan
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <Card className="shadow-xl border-2 border-gray-200 rounded-xl bg-white">

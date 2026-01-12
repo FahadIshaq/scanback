@@ -796,12 +796,16 @@ export default function ScanPage() {
   const isFormValid = () => {
     const { contact, details } = formData
     
+    // Check if it's a connected pack (skip name requirement for connected item packs)
+    const isConnectedPack = qrData?.metadata?.generationMode === 'connected' || (qrData?.metadata?.connectedQuantity && qrData.metadata.connectedQuantity > 1)
+    const isConnectedItem = getCurrentTagType() === 'item' && isConnectedPack
+    
     // Check required fields
     const hasRequiredFields = 
       contact.name.trim() !== '' &&
       contact.email.trim() !== '' &&
       contact.phone.trim() !== '' &&
-      details.name.trim() !== ''
+      (isConnectedItem || details.name.trim() !== '')
     
     // Check email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -843,7 +847,10 @@ export default function ScanPage() {
       document.getElementById('backupPhone')?.focus()
       return
     }
-    if (formData.details.name.trim() === '') {
+    // Skip name validation for connected item packs
+    const isConnectedPack = qrData?.metadata?.generationMode === 'connected' || (qrData?.metadata?.connectedQuantity && qrData.metadata.connectedQuantity > 1)
+    const isConnectedItem = getCurrentTagType() === 'item' && isConnectedPack
+    if (!isConnectedItem && formData.details.name.trim() === '') {
       document.getElementById('name')?.focus()
       return
     }
@@ -884,10 +891,14 @@ export default function ScanPage() {
 
     try {
       // Generate auto message if no custom message provided
+      const isConnectedPack = qrData?.metadata?.generationMode === 'connected' || (qrData?.metadata?.connectedQuantity && qrData.metadata.connectedQuantity > 1)
+      const isConnectedItem = getCurrentTagType() === 'item' && isConnectedPack
       const autoMessage = getCurrentTagType() === 'emergency'
         ? "Hi! This is an emergency tag. If you've scanned this, I may need help. Please contact my emergency contacts listed below or seek medical attention if required. Thank you for your support."
         : getCurrentTagType() === 'pet'
         ? `Hi! Thanks for finding my pet ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
+        : isConnectedItem
+        ? `Hi! Thanks for finding my items. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
         : `Hi! Thanks for finding my item ${formData.details.name}. Please contact me so we can arrange a return. I really appreciate your honesty and help!`
       const finalMessage = formData.contact.message?.trim() || autoMessage
 
@@ -2365,24 +2376,27 @@ export default function ScanPage() {
               </div>
 
               {/* Item/Pet Name */}
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name">{getCurrentTagType() === 'pet' ? 'Pet Name' : getCurrentTagType() === 'emergency' ? 'Tag Wearer Name' : 'Item Name'} *</Label>
-                  <Input
-                    id="name"
-                    value={formData.details.name}
-                    onChange={(e) => handleInputChange('details.name', e.target.value)}
-                    placeholder={getCurrentTagType() === 'emergency' ? 'Who will wear or use this tag' : `Enter your ${getCurrentTagType() === 'pet' ? 'pet' : 'item'} name`}
-                    required
-                    className="mt-1"
-                  />
-                  {getCurrentTagType() === 'emergency' && (
-                    <p className="text-xs text-gray-600 mt-1">If you are activating this for yourself, just enter your own name.</p>
-                  )}
-              </div>
+              {!(getCurrentTagType() === 'item' && (qrData?.metadata?.generationMode === 'connected' || (qrData?.metadata?.connectedQuantity && qrData.metadata.connectedQuantity > 1))) && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">{getCurrentTagType() === 'pet' ? 'Pet Name' : getCurrentTagType() === 'emergency' ? 'Tag Wearer Name' : 'Item Name'} *</Label>
+                    <Input
+                      id="name"
+                      value={formData.details.name}
+                      onChange={(e) => handleInputChange('details.name', e.target.value)}
+                      placeholder={getCurrentTagType() === 'emergency' ? 'Who will wear or use this tag' : `Enter your ${getCurrentTagType() === 'pet' ? 'pet' : 'item'} name`}
+                      required
+                      className="mt-1"
+                    />
+                    {getCurrentTagType() === 'emergency' && (
+                      <p className="text-xs text-gray-600 mt-1">If you are activating this for yourself, just enter your own name.</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Item Image Upload - Only for Item Tags */}
-              {getCurrentTagType() === 'item' && (
+              {getCurrentTagType() === 'item' && !(qrData?.metadata?.generationMode === 'connected' || (qrData?.metadata?.connectedQuantity && qrData.metadata.connectedQuantity > 1)) && (
                 <div className="space-y-4">
                   <div>
                     <Label>Item Photo (Optional)</Label>

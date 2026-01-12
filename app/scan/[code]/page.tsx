@@ -96,6 +96,12 @@ interface QRData {
     showContactOnFinderPage?: boolean
     useBackupNumber?: boolean
   }
+  metadata?: {
+    generationMode?: 'connected' | 'unique'
+    connectedQuantity?: number
+    batchId?: string
+    [key: string]: any
+  }
   status: string
   createdAt: string
 }
@@ -2132,7 +2138,7 @@ export default function ScanPage() {
           <h1 className="text-3xl font-bold text-black mb-3">
             {getCurrentTagType() === 'pet' ? 'Activate Your Pet Tag' : 
              getCurrentTagType() === 'emergency' ? 'Activate Your Emergency Tag' : 
-             getCurrentTagType() === 'item' ? 'Activate Your Item Tag' : 
+             getCurrentTagType() === 'item' ? (qrData?.metadata?.generationMode === 'connected' || (qrData?.metadata?.connectedQuantity && qrData.metadata.connectedQuantity > 1)) ? 'Activate your Items Tags' : 'Activate Your Item Tag' : 
              'Activate Your Tag'}
           </h1>
           <div className="mb-6">
@@ -2145,6 +2151,11 @@ export default function ScanPage() {
                 <span className="inline">Free Notifications</span>
               </h2>
             </div>
+            {(qrData?.metadata?.generationMode === 'connected' || (qrData?.metadata?.connectedQuantity && qrData.metadata.connectedQuantity > 1)) && (
+              <p className="text-gray-700 text-lg text-center mt-4">
+                enter few quick details, to activate your all tags, with one scan
+              </p>
+            )}
           </div>
           <p className="text-gray-700 text-lg">
           Get started in seconds — just enter a few quick details to activate your tag.

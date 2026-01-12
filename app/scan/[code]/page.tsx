@@ -3016,8 +3016,7 @@ export default function ScanPage() {
                     rows={3}
                     className="mt-1"
                   />
-            </div>
-              </div>
+                </div>
 
               {/* Toggle Settings */}
               <div className="space-y-4">

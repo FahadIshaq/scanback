@@ -25,7 +25,7 @@ export default function HomePage() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const squareImages = Array.from({ length: 6 }, (_, i) => `/images/${i + 1}.png`);
+  const squareImages = Array.from({ length: 8 }, (_, i) => `/images/sc${+i + 1}.png`);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);

@@ -28,17 +28,17 @@ export default function ProductsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                image: "/images/q1.png",
+                image: "/images/sc5.png",
                 title: "Classic White",
                 description: "Clean, minimalist design perfect for any surface.",
               },
               {
-                image: "/images/q2.png",
+                image: "/images/sc1.png",
                 title: "Premium Black",
                 description: "Elegant black finish for a sophisticated look.",
               },
               {
-                image: "/images/q3.png",
+                image: "/images/sc6.png",
                 title: "Luxury Gold",
                 description: "Premium gold finish that stands out with style.",
               },

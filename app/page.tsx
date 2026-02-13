@@ -243,7 +243,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr1.png"
+                  src="/images/passport1.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -261,7 +261,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr2.png"
+                  src="/images/key.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -277,7 +277,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr3.png"
+                  src="/images/whitecolor.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -293,7 +293,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr4.png"
+                  src="/images/qr4-1.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -309,7 +309,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr5.png"
+                  src="/images/qr5-2.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -326,7 +326,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr6.png"
+                  src="/images/qr6-2.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -343,7 +343,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr7.png"
+                  src="/images/qr7-2.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -359,7 +359,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr8.png"
+                  src="/images/qr8-2.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -375,7 +375,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr9.png"
+                  src="/images/qr9-3.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -391,7 +391,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr10.png"
+                  src="/images/qr10-2.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -406,7 +406,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr11.png"
+                  src="/images/qr9-2.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -421,7 +421,7 @@ Peace of mind made visible in three steps            </h2>
                   <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                 )}
                 <Image
-                  src="/images/qr12.png"
+                  src="/images/qr12-2.png"
                   alt="ScanBack Product"
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -450,19 +450,19 @@ Peace of mind made visible in three steps            </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                image: "/images/pack.png",
+                image: "/images/pack-1.png",
                 title: "Packaging",
                 description:
                   "Boxes, deliveries, and shipments protected with instant return capability.",
               },
               {
-                image: "/images/qr4.png",
+                image: "/images/qr4-1.png",
                 title: "Travel gear",
                 description:
                   "Luggage, cameras, and equipment protection wherever you go.",
               },
               {
-                image: "/images/airpods.png",
+                image: "/images/airpods-1.png",
                 title: "Everyday items",
                 description:
                   "Keys, wallets, phones. Everything that matters to you.",

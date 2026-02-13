@@ -1,153 +1,174 @@
 "use client"
 
+import { useState } from "react"
+import Link from "next/link"
 import { ScanHeader } from "@/components/scan-header"
 import { Footer } from "@/components/footer"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { ShoppingBag, Mail } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Bell, ArrowRight, Handshake, CheckCircle, Loader2 } from "lucide-react"
 
 export default function ShopPage() {
+  const [email, setEmail] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [error, setError] = useState("")
+
+  const handleNotifySubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!email || !email.includes("@")) {
+      setError("Please enter a valid email address")
+      return
+    }
+
+    setIsSubmitting(true)
+    setError("")
+
+    // Simulate API call - replace with actual endpoint when ready
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    setIsSubmitting(false)
+    setIsSubmitted(true)
+    setEmail("")
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <ScanHeader />
-      
+
       <main className="pt-20 pb-24">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
-              {/* <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-black bg-white text-2xl font-bold tracking-wide">
-                SB
-              </div> */}
-              <h1 className="text-4xl md:text-5xl font-light text-black tracking-tight">
-                Shop
-              </h1>
-            </div>
-            <p className="text-xl text-gray-600 font-light">
-              Find Your Tag — Choose Your Finish — Stay Connected
-            </p>
-          </div>
-
-          <div className="prose prose-lg max-w-none mb-12">
-            <p className="text-lg text-gray-700 leading-relaxed mb-8">
-              Explore our full range of embedded ScanBack QR tags — designed for every lifestyle.
-            </p>
-
-            <h2 className="text-2xl font-medium text-black mb-6">Available Shapes & Sizes:</h2>
-            <ul className="space-y-2 mb-8">
-              <li className="text-lg text-gray-700">• <strong>Square Tags</strong> – 15 mm, 18 mm, 20 mm, 25 mm, 30 mm, 35 mm, 45 mm</li>
-              <li className="text-lg text-gray-700">• <strong>Round Tags</strong> – 15 mm to 45 mm</li>
-              <li className="text-lg text-gray-700">• <strong>Special Tags</strong> – Emergency Red, Pet Tags, Corporate Packs</li>
-            </ul>
-
-            <h2 className="text-2xl font-medium text-black mb-6">Available Finishes:</h2>
-            <p className="text-lg text-gray-700 mb-8">
-              Matte Black | Gloss White | Silver | Gold | Chrome (Matt or Gloss)
-            </p>
-
-            <h2 className="text-2xl font-medium text-black mb-6">Every Tag Includes:</h2>
-            <ul className="space-y-3 mb-12">
-              <li className="flex items-start">
-                <span className="text-blue-600 mr-3">•</span>
-                <span className="text-lg text-gray-700">Unique QR code linked to your account</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-blue-600 mr-3">•</span>
-                <span className="text-lg text-gray-700">Weather-resistant vinyl construction</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-blue-600 mr-3">•</span>
-                <span className="text-lg text-gray-700">Simple peel-and-stick application</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-blue-600 mr-3">•</span>
-                <span className="text-lg text-gray-700">Optional multi-tag activation</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Shop FAQs */}
-          <div>
-            <h3 className="text-2xl font-medium text-black mb-8">FAQs – Shop</h3>
+        <div className="max-w-3xl mx-auto px-6">
+          
+          {/* Hero Section */}
+          <div className="text-center mb-16 pt-12">
             
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="text-left font-medium">
-                  Can I order just one tag?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-700">
-                  Yes — single units and multi-packs are available.
-                </AccordionContent>
-              </AccordionItem>
+            {/* Headline */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-black tracking-tight mb-6">
+              ScanBack is launching soon
+            </h1>
 
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="text-left font-medium">
-                  Are all tags pre-activated?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-700">
-                  All ScanBack tags are embedded and ready for instant activation.
-                </AccordionContent>
-              </AccordionItem>
+            {/* Divider */}
+            <div className="w-16 h-px bg-gray-300 mx-auto mb-6" />
 
-              <AccordionItem value="item-3">
-                <AccordionTrigger className="text-left font-medium">
-                  How long will delivery take?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-700">
-                  Typically 5–7 business days locally. Bulk orders may take longer.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="text-left font-medium">
-                  Can I customise my tag?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-700">
-                  We offer limited personalisation for corporate or retail orders — contact <a href="mailto:sales@scanback.co.za" className="text-blue-600 hover:underline">sales@scanback.co.za</a>.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-5">
-                <AccordionTrigger className="text-left font-medium">
-                  Do you ship internationally?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-700">
-                  Yes — rates are calculated at checkout.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-6">
-                <AccordionTrigger className="text-left font-medium">
-                  Are there any subscriptions or renewals?
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-700">
-                  No. Your ScanBack tag works with a one-time activation only.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-
-          {/* Email Signup */}
-          <div className="bg-gray-50 rounded-2xl p-8 mt-12 text-center">
-            <ShoppingBag className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h3 className="text-2xl font-medium text-black mb-4">Stay Connected</h3>
-            <p className="text-lg text-gray-700 mb-6">
-              Join the ScanBack™ community for updates, new tag releases, and exclusive offers.
+            {/* Sub-headline */}
+            <p className="text-xl md:text-2xl text-gray-600 font-light">
+              Available soon at selected retail stores and online partners
             </p>
-            <div className="max-w-md mx-auto">
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="Email address"
-                  className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                  Subscribe
-                </button>
-              </div>
-              <p className="text-sm text-gray-600 mt-3">
-                No spam — just smart ways to protect what matters.
-              </p>
-            </div>
           </div>
+
+          {/* Body Copy */}
+          <div className="text-center mb-16">
+            <p className="text-lg text-gray-700 leading-relaxed mb-6">
+              ScanBack is currently in final production, and we're onboarding select retail and online partners.
+            </p>
+            <p className="text-lg text-gray-700 leading-relaxed mb-6">
+              We're making sure everything is perfect before our first official release — because your peace of mind deserves nothing less.
+            </p>
+            <p className="text-lg text-gray-700 leading-relaxed">
+              In the meantime, explore how ScanBack works, register your interest, or get in touch for bulk, partner, or white-label enquiries.
+            </p>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+            
+            {/* Primary Button - How It Works */}
+            <Link href="/how-it-works">
+              <Button
+                size="lg"
+                className="bg-black hover:bg-gray-800 text-white px-8 py-6 text-lg rounded-full"
+              >
+                How ScanBack Works
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+
+          {/* Notify Me Section */}
+          <div className="bg-gray-50 rounded-2xl p-8 md:p-12 text-center mb-12">
+            <Bell className="h-12 w-12 text-blue-600 mx-auto mb-6" />
+            <h2 className="text-2xl md:text-3xl font-medium text-black mb-4">
+              Notify Me When Available
+            </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Be the first to know when ScanBack launches. No pressure, no commitment.
+            </p>
+
+            {isSubmitted ? (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                <CheckCircle className="h-10 w-10 text-green-600 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-black mb-2">You're on the list!</h3>
+                <p className="text-gray-600">
+                  We'll notify you as soon as ScanBack is available.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleNotifySubmit} className="max-w-md mx-auto">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      setError("")
+                    }}
+                    placeholder="Enter your email"
+                    className="flex-1 px-5 py-4 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-center sm:text-left"
+                    disabled={isSubmitting}
+                  />
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        Signing up...
+                      </>
+                    ) : (
+                      "Notify Me"
+                    )}
+                  </Button>
+                </div>
+                {error && (
+                  <p className="text-red-600 text-sm mt-3">{error}</p>
+                )}
+              </form>
+            )}
+          </div>
+
+          {/* Partner Enquiries Section */}
+          <div className="border border-gray-200 rounded-2xl p-8 md:p-12 text-center mb-12">
+            <Handshake className="h-12 w-12 text-gray-700 mx-auto mb-6" />
+            <h2 className="text-2xl md:text-3xl font-medium text-black mb-4">
+              Wholesale & Partner Enquiries
+            </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Interested in retailing ScanBack, bulk orders, or white-label opportunities? Let's talk.
+            </p>
+            <Link href="/contact?topic=partners">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-2 border-black text-black hover:bg-black hover:text-white px-8 py-6 text-lg rounded-full"
+              >
+                Partner With Us
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
+
+          {/* Footer Note */}
+          <div className="text-center">
+            <p className="text-sm text-gray-500">
+              ScanBack will be available through selected retail and online partners.
+              <br />
+              Availability may vary by location.
+            </p>
+          </div>
+
         </div>
       </main>
 
@@ -155,4 +176,3 @@ export default function ShopPage() {
     </div>
   )
 }
-

@@ -22,7 +22,16 @@ export default function HomePage() {
   const [galleryImagesLoaded, setGalleryImagesLoaded] = useState<Set<number>>(new Set());
   const [showcaseImagesLoaded, setShowcaseImagesLoaded] = useState<Set<number>>(new Set());
 
-  const squareImages = Array.from({ length: 8 }, (_, i) => `/images/sc${+i + 1}.png`);
+  const squareImages = [
+    "/images/sc1.png",
+    "/images/sc2.png",
+    "/images/sc3.png",
+    "/images/sc4.png",
+    "/images/sc5.PNG",
+    "/images/sc6.png",
+    "/images/sc7.png",
+    "/images/sc8.png",
+  ];
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);

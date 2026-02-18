@@ -1,19 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
   ChevronRight,
-  Play,
   QrCode,
   Heart,
-  Package,
   Camera,
   Home,
   ArrowRight,
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
+import AutoPlayVideo from "@/components/auto-play-video";
 import { ScanHeader } from "@/components/scan-header";
 import { Footer } from "@/components/footer";
 
@@ -22,8 +21,6 @@ export default function HomePage() {
   const [currentSquareIndex, setCurrentSquareIndex] = useState(0);
   const [galleryImagesLoaded, setGalleryImagesLoaded] = useState<Set<number>>(new Set());
   const [showcaseImagesLoaded, setShowcaseImagesLoaded] = useState<Set<number>>(new Set());
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const squareImages = Array.from({ length: 8 }, (_, i) => `/images/sc${+i + 1}.png`);
 
@@ -103,44 +100,10 @@ export default function HomePage() {
       </section>
 
       {/* Hero Video Section - Apple Style */}
-      <section className="py-0 bg-black">
+      <section className="bg-black">
         <div className="max-w-7xl mx-auto">
           <div className="relative aspect-[16/9] md:aspect-[21/9]">
-            {/* Video Placeholder */}
-            {!isVideoPlaying && (
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center z-10">
-                <div className="text-center text-white">
-                  <button
-                    onClick={() => {
-                      if (videoRef.current) {
-                        videoRef.current.play();
-                        setIsVideoPlaying(true);
-                      }
-                    }}
-                    className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 cursor-pointer hover:bg-white/20 transition-all duration-300 border border-white/20"
-                  >
-                    <Play className="w-10 h-10 ml-1" />
-                  </button>
-                  <h3 className="text-2xl font-light mb-3 text-white/90">
-                    See how it works
-                  </h3>
-                  <p className="text-lg text-white/70 font-light">
-                    Experience the simplicity of ScanBack
-                  </p>
-                </div>
-              </div>
-            )}
-            {/* Actual video */}
-            <video
-              ref={videoRef}
-              className={`w-full h-full object-cover ${isVideoPlaying ? 'block' : 'hidden'}`}
-              controls
-              muted
-              onPause={() => setIsVideoPlaying(false)}
-              onEnded={() => setIsVideoPlaying(false)}
-            >
-              <source src="/videos/demo.mp4" type="video/mp4" />
-            </video>
+            <AutoPlayVideo />
           </div>
         </div>
       </section>

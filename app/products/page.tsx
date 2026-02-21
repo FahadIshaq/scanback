@@ -28,7 +28,7 @@ export default function ProductsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                image: "/images/sc5.png",
+                image: "/images/sc5.PNG",
                 title: "Classic White",
                 description: "Clean, minimalist design perfect for any surface.",
               },

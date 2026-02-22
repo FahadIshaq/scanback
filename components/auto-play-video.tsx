@@ -96,7 +96,7 @@ export default function AutoPlayVideo() {
     >
       <video
         ref={videoRef}
-        src="/videos/video.mp4"
+        src="/videos/final-demo.mp4"
         className="w-full h-full object-contain"
         playsInline
         muted

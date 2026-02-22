@@ -478,32 +478,29 @@ Peace of mind made visible in three steps            </h2>
             </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
             <div className="text-center">
-              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
-                95%
-                  </div>
-              <div className="text-xl text-gray-300 font-light">
-                Items returned
+              <div className="text-2xl md:text-3xl font-light text-white mb-4">
+                Designed to work worldwide
+              </div>
+              <div className="text-lg text-gray-400 font-light">
+                Seamlessly operating over 190+ countries
               </div>
             </div>
             <div className="text-center">
-  <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
-    <span className="text-6xl md:text-7xl">60</span>
-    <span className="text-3xl md:text-4xl align-center">Sec</span>
-  </div>
-
-  <div className="text-xl text-gray-300 font-light">
-    Average contact time
-  </div>
-</div>
-
+              <div className="text-2xl md:text-3xl font-light text-white mb-4">
+                Built for instant connection
+              </div>
+              <div className="text-lg text-gray-400 font-light">
+                Simple scan, immediate contact
+              </div>
+            </div>
             <div className="text-center">
-              <div className="text-6xl md:text-7xl font-ultralight mb-4 bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
-                190+
-                </div>
-              <div className="text-xl text-gray-300 font-light">
-                Countries supported
-                  </div>
-                </div>
+              <div className="text-2xl md:text-3xl font-light text-white mb-4">
+                Works anywhere with a smartphone
+              </div>
+              <div className="text-lg text-gray-400 font-light">
+                No apps or subscriptions needed
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -6,15 +6,16 @@ import { Footer } from "@/components/footer";
 
 export default function ProductsPage() {
   const squareProducts = [
-    {
-      image: "/images/sc5.PNG",
-      title: "Classic White",
-      description: "Clean, minimalist design perfect for any surface.",
-    },
+    
     {
       image: "/images/sc1.png",
       title: "Premium Black",
       description: "Elegant black finish for a sophisticated look.",
+    },
+    {
+      image: "/images/sc5.PNG",
+      title: "Classic White",
+      description: "Clean, minimalist design perfect for any surface.",
     },
     {
       image: "/images/sc6.png",
@@ -49,15 +50,16 @@ export default function ProductsPage() {
   ];
 
   const roundProducts = [
-    {
-      image: "/images/rounded1-1-1.png",
-      title: "Classic White",
-      description: "Clean, minimalist design perfect for any surface.",
-    },
+  
     {
       image: "/images/rounded9-9-9.png",
       title: "Premium Black",
       description: "Elegant black finish for a sophisticated look.",
+    },
+      {
+      image: "/images/rounded1-1-1.png",
+      title: "Classic White",
+      description: "Clean, minimalist design perfect for any surface.",
     },
     {
       image: "/images/rounded3-3-3.png",

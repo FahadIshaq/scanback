@@ -67,6 +67,7 @@ interface QRData {
     // Emergency Details fields
     medicalAidProvider?: string
     medicalAidNumber?: string
+    medicalAidPlan?: string
     bloodType?: string
     allergies?: string
     medications?: string
@@ -310,6 +311,7 @@ export default function ScanPage() {
       // Emergency Details fields
       medicalAidProvider: "",
       medicalAidNumber: "",
+      medicalAidPlan: "",
       bloodType: "",
       allergies: "",
       medications: "",
@@ -412,6 +414,7 @@ export default function ScanPage() {
             clearedData.details.breederInfo = ""
             clearedData.details.medicalAidProvider = ""
             clearedData.details.medicalAidNumber = ""
+            clearedData.details.medicalAidPlan = ""
             clearedData.details.bloodType = ""
             clearedData.details.allergies = ""
             clearedData.details.medications = ""
@@ -439,6 +442,7 @@ export default function ScanPage() {
             clearedData.details.model = ""
             clearedData.details.medicalAidProvider = ""
             clearedData.details.medicalAidNumber = ""
+            clearedData.details.medicalAidPlan = ""
             clearedData.details.bloodType = ""
             clearedData.details.allergies = ""
             clearedData.details.medications = ""
@@ -1667,7 +1671,7 @@ export default function ScanPage() {
                     )}
 
                     {/* Medical Information */}
-                    {(qrData.details.medicalAidProvider || qrData.details.medicalAidNumber || qrData.details.bloodType || qrData.details.allergies || qrData.details.medications || qrData.details.organDonor) && (
+                    {(qrData.details.medicalAidProvider || qrData.details.medicalAidNumber || qrData.details.medicalAidPlan || qrData.details.bloodType || qrData.details.allergies || qrData.details.medications || qrData.details.organDonor) && (
                       <div className="bg-red-50 rounded-lg p-5 border border-red-200">
                         <Label className="text-base font-semibold text-red-700 mb-4 flex items-center gap-2">
                           <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-red-600">
@@ -1677,7 +1681,7 @@ export default function ScanPage() {
                       </Label>
                       <div className="space-y-3">
                           {/* Medical Aid Info - Grouped */}
-                          {(qrData.details.medicalAidProvider || qrData.details.medicalAidNumber) && (
+                          {(qrData.details.medicalAidProvider || qrData.details.medicalAidNumber || qrData.details.medicalAidPlan) && (
                             <div className="bg-white rounded-lg p-4 border border-red-200 shadow-sm">
                               <Label className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-3 block">Medical Aid</Label>
                               <div className="space-y-2">
@@ -1691,6 +1695,12 @@ export default function ScanPage() {
                           <div>
                                     <span className="text-xs text-gray-600 font-medium">Number:</span>
                                     <p className="text-red-900 text-sm font-semibold mt-0.5">{qrData.details.medicalAidNumber}</p>
+                          </div>
+                        )}
+                        {qrData.details.medicalAidPlan && (
+                          <div>
+                                    <span className="text-xs text-gray-600 font-medium">Plan:</span>
+                                    <p className="text-red-900 text-sm font-semibold mt-0.5">{qrData.details.medicalAidPlan}</p>
                           </div>
                         )}
                               </div>
@@ -2750,6 +2760,17 @@ export default function ScanPage() {
                               className="mt-1"
                             />
                           </div>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="medicalAidPlan">Medical Aid Plan</Label>
+                          <Input
+                            id="medicalAidPlan"
+                            value={formData.details.medicalAidPlan || ""}
+                            onChange={(e) => handleInputChange("details.medicalAidPlan", e.target.value)}
+                            placeholder="e.g., Classic Saver, KeyCare Plus"
+                            className="mt-1"
+                          />
                         </div>
 
                         <div>

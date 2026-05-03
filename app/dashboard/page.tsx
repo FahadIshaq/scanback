@@ -78,6 +78,7 @@ interface QRCode {
     // Emergency Details fields
     medicalAidProvider?: string;
     medicalAidNumber?: string;
+    medicalAidPlan?: string;
     bloodType?: string;
     allergies?: string;
     medications?: string;
@@ -299,6 +300,7 @@ export default function DashboardPage() {
       // Emergency fields
       medicalAidProvider: "",
       medicalAidNumber: "",
+      medicalAidPlan: "",
       bloodType: "",
       allergies: "",
       medications: "",
@@ -508,6 +510,7 @@ export default function DashboardPage() {
         // Emergency fields
         medicalAidProvider: (qr.details as any).medicalAidProvider || "",
         medicalAidNumber: (qr.details as any).medicalAidNumber || "",
+        medicalAidPlan: (qr.details as any).medicalAidPlan || "",
         bloodType: (qr.details as any).bloodType || "",
         allergies: (qr.details as any).allergies || "",
         medications: (qr.details as any).medications || "",
@@ -565,6 +568,7 @@ export default function DashboardPage() {
       !!(
         (qr.details as any).medicalAidProvider ||
         (qr.details as any).medicalAidNumber ||
+        (qr.details as any).medicalAidPlan ||
         (qr.details as any).bloodType ||
         (qr.details as any).allergies ||
         (qr.details as any).medications ||
@@ -645,6 +649,7 @@ export default function DashboardPage() {
         breederInfo: "",
         medicalAidProvider: "",
         medicalAidNumber: "",
+        medicalAidPlan: "",
         bloodType: "",
         allergies: "",
         medications: "",
@@ -960,6 +965,8 @@ export default function DashboardPage() {
         ((editingQR.details as any).medicalAidProvider || "") ||
       editForm.details.medicalAidNumber !==
         ((editingQR.details as any).medicalAidNumber || "") ||
+      editForm.details.medicalAidPlan !==
+        ((editingQR.details as any).medicalAidPlan || "") ||
       editForm.details.bloodType !==
         ((editingQR.details as any).bloodType || "") ||
       editForm.details.allergies !==
@@ -1092,6 +1099,9 @@ export default function DashboardPage() {
             : "",
           medicalAidNumber: showEmergencyMedicalDetails
             ? editForm.details.medicalAidNumber
+            : "",
+          medicalAidPlan: showEmergencyMedicalDetails
+            ? editForm.details.medicalAidPlan
             : "",
           bloodType: showEmergencyMedicalDetails
             ? editForm.details.bloodType
@@ -2623,6 +2633,24 @@ export default function DashboardPage() {
                             </div>
 
                             <div>
+                              <Label htmlFor="editMedicalAidPlan">
+                                Medical Aid Plan
+                              </Label>
+                              <Input
+                                id="editMedicalAidPlan"
+                                value={editForm.details.medicalAidPlan || ""}
+                                onChange={(e) =>
+                                  handleEditInputChange(
+                                    "details.medicalAidPlan",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="e.g., Classic Saver, KeyCare Plus"
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div>
                               <Label htmlFor="editBloodType">Blood Type</Label>
                               <Select
                                 value={editForm.details.bloodType || ""}
@@ -3346,6 +3374,8 @@ export default function DashboardPage() {
                         </div>
                       )}
                       {(selectedQR.details.medicalAidProvider ||
+                        (selectedQR.details as any).medicalAidNumber ||
+                        (selectedQR.details as any).medicalAidPlan ||
                         selectedQR.details.bloodType ||
                         selectedQR.details.allergies ||
                         selectedQR.details.medications) && (
@@ -3360,6 +3390,22 @@ export default function DashboardPage() {
                                   Medical Aid:
                                 </span>{" "}
                                 {selectedQR.details.medicalAidProvider}
+                              </p>
+                            )}
+                            {(selectedQR.details as any).medicalAidNumber && (
+                              <p>
+                                <span className="font-medium">
+                                  Medical Aid Number:
+                                </span>{" "}
+                                {(selectedQR.details as any).medicalAidNumber}
+                              </p>
+                            )}
+                            {(selectedQR.details as any).medicalAidPlan && (
+                              <p>
+                                <span className="font-medium">
+                                  Medical Aid Plan:
+                                </span>{" "}
+                                {(selectedQR.details as any).medicalAidPlan}
                               </p>
                             )}
                             {selectedQR.details.bloodType && (

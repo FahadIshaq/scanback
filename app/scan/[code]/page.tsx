@@ -1487,7 +1487,7 @@ export default function ScanPage() {
                   )}
 
                   {/* Contact Methods Available */}
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  {/* <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <Label className="text-sm font-semibold text-gray-700 mb-3 block">Available Contact Methods</Label>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-200">
@@ -1507,7 +1507,7 @@ export default function ScanPage() {
                         <span className="text-sm font-medium text-black">SMS</span>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </CardContent>
               </Card>
               )}

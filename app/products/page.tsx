@@ -91,6 +91,11 @@ export default function ProductsPage() {
       title: "Emergency",
       description: "Bold emergency design for critical situations and quick identification.",
     },
+    {
+      image: "/images/medem.png",
+      title: "Emergency Medical Lapel Pin",
+      description: "Emergency medical lapel pin designed for critical situations and quick identification.",
+    },
   ];
 
   return (

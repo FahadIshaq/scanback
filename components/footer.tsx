@@ -35,13 +35,13 @@ export function Footer() {
             </div>
             
             {/* Social Media */}
-            <div className="flex space-x-4">
+            {/* <div className="flex space-x-4">
               <a href="#" className="text-white hover:text-blue-400 transition-colors text-xl">◎</a>
               <a href="#" className="text-white hover:text-blue-600 transition-colors text-xl">f</a>
               <a href="#" className="text-white hover:text-blue-400 transition-colors text-xl">X</a>
               <a href="#" className="text-white hover:text-pink-400 transition-colors text-xl">♪</a>
               <a href="#" className="text-white hover:text-blue-700 transition-colors text-xl">in</a>
-            </div>
+            </div> */}
             
             {/* Member Badge */}
             <div className="bg-red-600 text-white px-3 py-1 rounded text-sm font-medium inline-block">

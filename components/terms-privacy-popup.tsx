@@ -327,7 +327,7 @@ export function TermsPrivacyPopup({ isOpen, onClose, type }: TermsPrivacyPopupPr
             )}
           </DialogTitle>
           <p className="text-sm text-gray-500 mt-2">
-            Last updated: January 2025
+            Last updated: May 2026
           </p>
         </DialogHeader>
         

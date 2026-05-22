@@ -110,7 +110,7 @@ export function Footer() {
         <div className="border-t border-white/20 pt-6 sm:pt-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
             <div className="text-xs sm:text-sm text-gray-400 flex-1 max-w-3xl leading-relaxed">
-              Made by ScanBack Technologies. ©2025 All rights reserved. 
+              Made by ScanBack Technologies. ©2026 All rights reserved. 
               ScanBack™ and the ScanBack logo are trademarks of ScanBack (Pty) Ltd.
               "QR Code" is a registered trademark of Denso Wave Incorporated.
             </div>

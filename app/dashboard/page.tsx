@@ -3215,7 +3215,7 @@ export default function DashboardPage() {
                       <p className="text-xs sm:text-sm font-mono break-all">
                         {`${
                           process.env.NEXT_PUBLIC_BASE_URL ||
-                          "https://scanback.vercel.app"
+                          "https://www.scanback.co.za"
                         }/scan/${selectedQR.code}`}
                       </p>
                     </div>
@@ -3230,7 +3230,7 @@ export default function DashboardPage() {
                       QR Code URL:{" "}
                       {`${
                         process.env.NEXT_PUBLIC_BASE_URL ||
-                        "https://scanback.vercel.app"
+                        "https://www.scanback.co.za"
                       }/scan/${selectedQR.code}`}
                     </p>
                   </div>
@@ -3481,7 +3481,7 @@ export default function DashboardPage() {
                       navigator.clipboard.writeText(
                         `${
                           process.env.NEXT_PUBLIC_BASE_URL ||
-                          "https://scanback.vercel.app"
+                          "https://www.scanback.co.za"
                         }/scan/${selectedQR.code}`
                       );
                       toast({

@@ -1,0 +1,16 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "scanback.co.za" }],
+      "destination": "https://www.scanback.co.za/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "scanback.vercel.app" }],
+      "destination": "https://www.scanback.co.za/:path*",
+      "permanent": true
+    }
+  ]
+}
